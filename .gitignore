@@ -1,3 +1,23 @@
+# os generated files #
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# csv and data
+*.csv
+*.sql
+*.zip
+*.arff
+
+# vscode
+.vscode/*
+.vscode/launch.json
+.vscode/settings.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
