@@ -64,7 +64,7 @@ function loadArticlesFromUrl(url) {
       }
       
       imgUrl = (news[i].urlToImage == null)?"-webkit-linear-gradient(top, #fd0b58 0px, #a32b68 100%)":("url(\""+news[i].urlToImage+"\")");
-      list.append("<div onclick='readArticle("+ i + ")' class='card news' data-index='" + i + "' style='background-image:" + imgUrl + ";'> <div class='fav_container'><h2> [" + news[i].source.name + "] " + news[i].title + "</h2></div></div>");
+      list.append("<li onclick='readArticle("+ i + ")' class='card card-news' data-index='" + i + "' ><div class='list-header'> <div class='list-img' style='background-image:" + imgUrl + ";'></div> <div class='list-title'>[" + news[i].source.name + "] " + news[i].title + "</div></div><div class='list-content'>"+ news[i].description + "</div></li>");
     }
   });
 }

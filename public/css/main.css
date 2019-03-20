@@ -9,58 +9,10 @@ body {
 }
 
 header {
-    /* background: white; */
-    /* -webkit-box-shadow: 0 0 35px 0 rgba(154,161,171,.15); */
-    /* box-shadow: 0 0 35px 0 rgba(154,161,171,.15); */
     height: auto;
     width: 100%;
     padding: 25px;
     text-align: center;
-}
-
-#logo {
-    padding: 20px;
-    display: inline-block;
-    width: 100%;
-    max-width: 1140px;
-}
-
-#logo #text-wrapper {
-    /* float: left; */
-    width: auto;
-    /* border-left: 1px solid #1d4f78; */
-    padding: 10px;
-    /* margin-top: 10px; */
-    /* padding-bottom: 10px; */
-    text-align: center;
-    /* text-shadow: 0px 0px 5px rgba(154,161,171,.15); */
-}
-
-#logo img {
-    width: 80px;
-    /* float: left; */
-    margin: 0px 10px;
-}
-
-#logo-text {
-    font-family: "Futura";
-    font-weight: 600;
-    font-size: 25px;
-    /* margin-top: 15px; */
-    margin-bottom: 0px;
-    color: #164d7a;
-    padding: 0px;
-    /* float: left; */
-    /* text-align: left; */
-    display: block;
-}
-
-#subtitle {
-    margin: 0;
-    font-family: Futura;
-    font-weight: 500;
-    /* clear: both; */
-    color: #6c757d;
 }
 
 .card {
