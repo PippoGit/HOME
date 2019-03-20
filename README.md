@@ -1,5 +1,5 @@
 # HOME
-a (**HOpefully**) sMart nEws aggregator
+**HO**pefully-s**M**art n**E**ws aggregator
 
 RSS Feed news aggregator + machinelearning 
 
