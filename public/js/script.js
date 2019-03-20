@@ -137,7 +137,7 @@ function man()
 $(document).ready(function() {
 
   loadConfig();
-  loadNews(25);
+  loadNews(30);
   $("#searchbar").focus();
   $("#search").on('submit', function (e) {
     e.preventDefault();
