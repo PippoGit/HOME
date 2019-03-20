@@ -1,0 +1,30 @@
+{
+  "cmds":
+  [
+    {
+      "name" : "Show only news of a certain category",
+      "cmd"  : "cat",
+      "url"  : "*"
+    },
+    {
+       "name": "Show more articles",
+       "cmd": "more",
+       "url": 3
+    },
+    {
+      "name": "Commands list",
+      "cmd" : "man",
+      "url" : 2
+    },
+    {
+      "name": "Refresh newsfeed",
+      "cmd" : "refresh",
+      "url" : 1
+    },
+    {
+      "name" : "Learning mode",
+      "cmd"  : "learn",
+      "url"  : 0
+    }
+  ]
+}
