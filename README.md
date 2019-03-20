@@ -1,7 +1,7 @@
 # HOME
 a (**HOpefully**) sMart nEws aggregator
 
-RSS Feed news aggregator + machinelearning for content advisement. 
+RSS Feed news aggregator + machinelearning 
 
 ## Learning phase/Building the initial database
 RSS => Database => Learning => Manual dataset preparation
