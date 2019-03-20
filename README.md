@@ -1,12 +1,12 @@
 # HOME
-## a (**HOpefully**) sMart nEws aggregator
+a (**HOpefully**) sMart nEws aggregator
 
 RSS Feed news aggregator + machinelearning for content advisement. 
 
-# Learning phase/Building the initial database
+## Learning phase/Building the initial database
 RSS => Database => Learning => Manual dataset preparation
 
-# Operational phase
+## Operational phase
 RSS => | MODEL | => | DB | => | USER | => | DB |
 
 1) RSS files are parsed by the python server
@@ -16,7 +16,7 @@ RSS => | MODEL | => | DB | => | USER | => | DB |
 ----
 5) User Likes/Dislikes/Read news (Update the database with Like/Dislike/Read)
 
-# DB Structure
+## DB Structure
 
 * Title
 * Digest
@@ -29,7 +29,7 @@ RSS => | MODEL | => | DB | => | USER | => | DB |
 * Dislike
 * Read
 
-# Features for learning
+## Features for learning
 
 * Title
 * Author
