@@ -1,4 +1,4 @@
-var CMD_CONFIG;
+var CONFIG;
 var news;
 
 function more() {
@@ -6,33 +6,34 @@ function more() {
 }
 
 function readArticle(index) {
-  var win = window.open(news[index].url, '_blank');
+  var win = window.open(news[index].link, '_blank');
+  win.focus();
 }
 
-function loadArticlesFromUrl(url) {
+function loadArticlesFromUrl(url, pageSize = 30) {
   $.get(url, function(data) {
     var list = $("#feed");
     list.empty();
-    news = data.articles;
+    news = data;
 
     for(var i=0; i<news.length;i++)
     {
       var imgUrl;      
-      imgUrl = (news[i].urlToImage == null)?"-webkit-linear-gradient(top, #fd0b58 0px, #a32b68 100%)":news[i].urlToImage;
-      list.append("<li onclick='readArticle("+ i + ")' class='deck' data-index='" + i + "' > <div class='card card-news'><div class='list-header'> <img class='list-img' src='"+ imgUrl + "'></img> <div class='list-category'>"+news[i].source.name +"</div> <div class='list-title'>" + news[i].title + "</div><div class='list-author'>"+ news[i].author +"</div> <div class='list-datetime'> <i class='fas fa-clock'></i> " + news[i].publishedAt + "</div><div class='list-content'>"+ news[i].description + "</div> <div class='list-footer'> <i class='far fa-thumbs-up likebtn'></i> | <i class='far fa-thumbs-down dislikebtn'></i></div></div></li>");
+      imgUrl = (news[i].img == "")?"/img/unipi.gif":news[i].img;
+      list.append("<li onclick='readArticle("+ i + ")' class='deck' data-index='" + i + "' > <div class='card card-news'><div class='list-header'> <img class='list-img' src='"+ imgUrl + "'></img> <div class='list-category'>"+news[i].source +"</div> <div class='list-title'>" + news[i].title + "</div><div class='list-author'>"+ news[i].author +"</div> <div class='list-datetime'> <i class='fas fa-clock'></i> " + news[i].datetime + "</div><div class='list-content'>"+ news[i].description + "</div> <div class='list-footer'> <i class='far fa-thumbs-up likebtn'></i> | <i class='far fa-thumbs-down dislikebtn'></i></div></div></li>");
     }
   });
 }
 
 function loadNews(pageSize = 30) {
-  //NEWS API: 3091d29cdba743aa947808a266498f36
-  var url = 'https://newsapi.org/v2/top-headlines?sources=google-news-it,la-repubblica,ansa,il-sole-24-ore,bbc-news,the-new-york-times,techcrunch,polygon,the-next-web,the-verge,google-news&apiKey=3091d29cdba743aa947808a266498f36&sortBysAvailable=latest&pageSize='+pageSize;
-  loadArticlesFromUrl(url);
+  var url = "http://" + CONFIG.server + ":" + CONFIG.port + CONFIG.API_NEWS_URL + pageSize;
+  loadArticlesFromUrl(url, pageSize);
 }
 
 function loadConfig() {
-  $.getJSON('../config/cmd.json', function(data) {
-    CMD_CONFIG = data;
+  $.getJSON('/config/config.json', function(data) {
+    CONFIG = data;
+    loadNews(30)
   });
 }
 
@@ -49,9 +50,9 @@ function man()
 {
   $("#searchbar").val('');
   var text = "";// = "<ul>";
-  for(var i =0; i < CMD_CONFIG.cmds.length; i++)
+  for(var i =0; i < CONFIG.cmds.length; i++)
   {
-    text += " - " + CMD_CONFIG.cmds[i].name + ": !" + CMD_CONFIG.cmds[i].cmd+"\n";
+    text += " - " + CONFIG.cmds[i].name + ": !" + CONFIG.cmds[i].cmd+"\n";
   }
   swal({
     title: "Lista comandi",
@@ -63,7 +64,6 @@ function man()
 $(document).ready(function() {
 
   loadConfig();
-  loadNews(30);
   $("#searchbar").focus();
   
   $("#search").on('submit', function (e) {
@@ -72,7 +72,7 @@ $(document).ready(function() {
     var cmd = 0;
 
     query = query.split(" ");
-    cmd = getCmdAction(CMD_CONFIG, query[0]);
+    cmd = getCmdAction(CONFIG, query[0]);
     if(cmd == 0) cmd =-1; //CMD NOT FOUND
     query.shift();
     query = query.join(" ");

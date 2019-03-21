@@ -6,14 +6,14 @@
   "feeds": 
   [
     {
-      "name" : "La Repubblica",
-      "category" : "News",
-      "url" : "http://www.repubblica.it/rss/homepage/rss2.0.xml"
-    },
-    {
       "name" : "Corriere della Sera",
       "category" : "News",
       "url" : "http://xml2.corriereobjects.it/rss/homepage.xml"
+    },
+    {
+      "name" : "La Repubblica",
+      "category" : "News",
+      "url" : "http://www.repubblica.it/rss/homepage/rss2.0.xml"
     },
     {
       "name" : "AdnKronos",
