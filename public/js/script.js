@@ -63,8 +63,8 @@ function loadArticlesFromUrl(url) {
       	news[i].urlToImage = (news[i].preview == undefined)?null:news[i].preview.images[0].source.url;
       }
       
-      imgUrl = (news[i].urlToImage == null)?"-webkit-linear-gradient(top, #fd0b58 0px, #a32b68 100%)":("url(\""+news[i].urlToImage+"\")");
-      list.append("<li onclick='readArticle("+ i + ")' class='card card-news' data-index='" + i + "' ><div class='list-header'> <div class='list-img' style='background-image:" + imgUrl + ";'></div> <div class='list-title'>[" + news[i].source.name + "] " + news[i].title + "</div></div><div class='list-content'>"+ news[i].description + "</div></li>");
+      imgUrl = (news[i].urlToImage == null)?"-webkit-linear-gradient(top, #fd0b58 0px, #a32b68 100%)":news[i].urlToImage;
+      list.append("<li onclick='readArticle("+ i + ")' class='deck' data-index='" + i + "' > <div class='card card-news'><div class='list-header'> <img class='list-img' src='"+ imgUrl + "'></img> <div class='list-category'>"+news[i].source.name +"</div> <div class='list-title'>" + news[i].title + "</div><div class='list-author'>"+ news[i].author +"</div> <div class='list-datetime'> <i class='fas fa-clock'></i> " + news[i].publishedAt + "</div><div class='list-content'>"+ news[i].description + "</div> <div class='list-footer'> <i class='far fa-thumbs-up likebtn'></i> | <i class='far fa-thumbs-down dislikebtn'></i></div></div></li>");
     }
   });
 }
