@@ -6,9 +6,9 @@ from flask_cors import CORS
 from bs4 import BeautifulSoup
 
 app = Flask(__name__,
-    static_url_path='', 
-    static_folder='public/static',
-    template_folder='public/template')
+            static_url_path='', 
+            static_folder='public/static',
+            template_folder='public/template')
 api = Api(app)
 CORS(app)
 
