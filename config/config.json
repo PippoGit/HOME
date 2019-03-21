@@ -1,0 +1,62 @@
+{
+
+  "feeds": 
+  [
+    {
+      "name" : "La Repubblica",
+      "category" : "News",
+      "url" : "http://www.repubblica.it/rss/homepage/rss2.0.xml"
+    },
+    {
+      "name" : "Corriere della Sera",
+      "category" : "News",
+      "url" : "http://xml2.corriereobjects.it/rss/homepage.xml"
+    },
+    {
+      "name" : "AdnKronos",
+      "category" : "News",
+      "url" : "http://www.adnkronos.com/rss"
+    },
+    {
+      "name" : "ANSA",
+      "category" : "News",
+      "url" : "http://www.ansa.it/main/html/ansa_rss.html"
+    },
+    {
+      "name" : "Fanpage.it",
+      "category" : "News",
+      "url" : "https://www.fanpage.it/feed/"
+    },
+    {
+      "name" : "Il Fatto Quotidiano",
+      "category" : "News",
+      "url" : "https://www.ilfattoquotidiano.it/feed/"
+    },
+    {
+      "name" : "Il Sole 24 Ore",
+      "category" : "News",
+      "url" : "https://www.ilsole24ore.com/rss/primapagina.xml"
+    },
+    {
+      "name" : "Internazionale",
+      "category" : "News",
+      "url" : "https://www.internazionale.it/sitemaps/rss.xml"
+    },
+    {
+      "name" : "La Stampa",
+      "category" : "News",
+      "url" : "http://www.lastampa.it/rss.xml"
+    },
+    {
+      "name" : "Linkiesta",
+      "category" : "News",
+      "url": "https://www.linkiesta.it/it/feed/latest/?format=rss"
+    },
+    {
+      "name" : "TGCom 24",
+      "category" : "News",
+      "url": "http://www.tgcom24.mediaset.it/rss/homepage.xml"
+    },
+    
+  ]
+}

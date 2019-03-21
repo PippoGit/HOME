@@ -39,9 +39,21 @@ section {
 }
 
 footer {
-  width: 1005px;
+  width: 100%;
   margin: 0 auto;
   display: block;
+  text-align: center;
+  margin-top: 50px;
+  filter: grayscale();
+  /* opacity: 0.5; */
+  background:     background: whitesmoke;
+  background: whitesmoke;
+  padding: 40px 0;
+  border-top: 1px solid rgb(232, 232, 232);
+}
+
+footer img {
+  opacity:0.5;
 }
 
 #searchbar {
@@ -174,6 +186,9 @@ footer {
   font-weight: 600;
   margin: 40px auto;
   opacity: 0.3;
+  margin-bottom: 0;
+  /* padding-bottom: 40px; */
+  color: red;
 }
 
 .card {
@@ -348,6 +363,10 @@ footer {
 
 .list-footer i:active {
   color: #ce2359;
+}
+
+.set {
+  color: #d33c50;
 }
 
 #frontpage {
