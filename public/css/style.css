@@ -232,10 +232,12 @@ footer {
   /* height: auto; */
   /* width: auto; */
   /* height: auto; */
-  width: 350px;
+  width: 25%;
   height: auto;
   padding: 8px;
   /* display: flex; */
+  min-width: 250px;
+  max-width: 350px;
 }
 
 .list-header {
