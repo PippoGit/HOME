@@ -18,6 +18,7 @@ RSS => | MODEL | => | DB | => | USER | => | DB |
 
 ## DB Structure
 
+* IdNews (not used for the model, just to keep track of the likes/dislikes. it's a sha1(title|source|datetime) (i know it's bad, butwhocares))
 * Title
 * Digest
 * URL
