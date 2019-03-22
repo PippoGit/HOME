@@ -1,13 +1,6 @@
-import json
-
 import feedparser
 from bs4 import BeautifulSoup
-import hashlib
-import datetime
-import ssl
-
-import random
-
+import hashlib, datetime, ssl, random, json
 import pymongo
 
 # some util function 

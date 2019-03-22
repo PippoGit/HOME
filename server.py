@@ -36,6 +36,10 @@ class Feed(Resource):
     def get(self, num_articles=None):
         # getting the best articles from the db...
         return 400 # Not available yet!
+    
+    def put(self):
+        newsfeed.load()
+        return 200
 
 
 class Learn(Resource):
