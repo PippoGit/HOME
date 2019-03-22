@@ -92,16 +92,16 @@ class DBConnector:
     def insert_like(self, article):
         articles = self.db['articles']
         
-        results = [o for o in articles.find(article, {'_id': 1}).limit(1)]
+        results = articles.find_one({'_id':article['_id']})
         print(results)
 
-        if(len(results) is 0):
+        if results is None:
             # insert article
             articles.insert(article)
         else:
             # update old article
             articles.update(
-                article,
+                {'_id':article['_id']},
                 { '$set': { 'like': True, 'dislike': False} },
             )
 

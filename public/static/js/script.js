@@ -11,25 +11,30 @@ function url_request(api_url, params="") {
 
 function like(index) {
   var li = $(event.srcElement).closest('li');
+  n = JSON.parse(JSON.stringify(news[index]));
+  n.like = !n.like;
+  n.dislike = false;
 
-  if(news[index].like) {
-    // Remove the like
-    li.removeClass('liked');
-  }
-  else {
-    // Like the post
-    li.removeClass('disliked');
-    li.addClass('liked');
-
-    news[index].like = true;
-    news[index].dislike = false;
-
+  if(!news[index].like) { //should be liked
     $.ajax({
       type: "POST",
       url: url_request(CONFIG.API_LIKE_URL),
-      data: JSON.stringify(news[index]),
+      data: JSON.stringify(n),
       contentType:"application/json; charset=utf-8"
+    })
+    .done(function(data) {
+      li.removeClass('disliked');
+      li.addClass('liked');
+      news[index] = n;
+    })
+    .fail(function(data) {
+      alert("Error");
     });
+  }
+  else {
+    li.removeClass('liked');
+    news[index] = n;
+    alert("notworkingyet");
   }
 }
 
