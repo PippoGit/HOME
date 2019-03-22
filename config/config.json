@@ -1,7 +1,10 @@
 {
-  "db" : "nome",
-  "dbuser": "user",
-  "dbpassword": "password",
+  "db" : {
+    "host" : "host",
+    "name" : "nome",
+    "user": "user",
+    "password": "password"
+  },
   
   "feeds": 
   [
@@ -14,11 +17,6 @@
       "name" : "La Repubblica",
       "category" : "News",
       "url" : "http://www.repubblica.it/rss/homepage/rss2.0.xml"
-    },
-    {
-      "name" : "AdnKronos",
-      "category" : "News",
-      "url" : "http://www.adnkronos.com/rss"
     },
     {
       "name" : "ANSA",

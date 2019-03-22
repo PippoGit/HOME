@@ -4,45 +4,18 @@ from flask import Flask, render_template
 from flask_restful import Api, Resource, reqparse
 from flask_cors import CORS
 
-import feedparser
-from bs4 import BeautifulSoup
-import hashlib
-import datetime
-
 # importing configuration 
 print("\nimporting config file...") 
 config = home.load_config()
 
 # preparing the components
-db = home.DBConnector()
-newsfeed = home.NewsFeed()
+db = home.DBConnector(**config['db'])
+newsfeed = home.NewsFeed(config['feeds'])
 miner = home.Miner()
 
 # loading initial feed
 print("\nloading feeds...") 
-news = []
-for source in config["feeds"]:
-    entries = feedparser.parse(source['url']).entries
-
-    for e in entries:
-        #value = e.summary[0]['value']
-        soup = BeautifulSoup(e['summary'], features="html.parser")
-        imgurl = soup.find('img')
-        idn = e['title'] + source['name']
-
-        news.append({
-            'id' : hashlib.sha1(idn.encode()).hexdigest(),
-            'title' : e['title'] if ('title' in e) else "",
-            'author': e['author'] if ('author' in e) else "",
-            'description' : soup.text if soup is not None else "",
-            'datetime' : e['published'][:-6] if ('published' in e) else "",
-            'img' : imgurl['src'] if imgurl is not None else "",
-            'link': e['link'] if ('link' in e) else "",
-            'source' : source['name']
-        })
-news = sorted(news, key=lambda kv: datetime.datetime.strptime(kv['datetime'], '%a, %d %b %Y %H:%M:%S'), reverse=True)
-    # news = sorted(news, key=lambda entry: entry["published"])
-    # news.reverse()
+newsfeed.load()
 
 # building Flask
 app = Flask(__name__,
@@ -54,15 +27,12 @@ CORS(app)
 
 # REST Resources
 class Feed(Resource):
-    def get(self, num_pages=None):
-        if num_pages is not None:
-            return news[:num_pages], 200
-        else:
-            return news, 200
+    def get(self, num_articles=None):
+        return newsfeed.sorted_feed(num_articles), 200
 
 
 # rest routes
-api.add_resource(Feed, "/api/feed", "/api/feed/<int:num_pages>")
+api.add_resource(Feed, "/api/feed", "/api/feed/<int:num_articles>")
 
 # frontend routes
 @app.route('/')
