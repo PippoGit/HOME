@@ -46,7 +46,6 @@ footer {
   margin-top: 50px;
   filter: grayscale();
   /* opacity: 0.5; */
-  background:     background: whitesmoke;
   background: whitesmoke;
   padding: 40px 0;
   border-top: 1px solid rgb(232, 232, 232);
@@ -70,7 +69,6 @@ footer img {
   box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.13);
   outline: none;
   font-family: monospace;
-  vertical-align: middle;
   color: black;
 }
 
@@ -260,7 +258,7 @@ footer img {
 }
 
 .list-header {
- /**/
+ background: inherit; /* just to remove the csslint error */
 }
 
 .list-img {
