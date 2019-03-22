@@ -55,20 +55,16 @@ function loadNews(pageSize = 30) {
   loadArticlesFromUrl(url, pageSize);
 }
 
+function learning(pageSize = 50) {
+  var url = "http://" + CONFIG.server + ":" + CONFIG.port + CONFIG.API_LEARN_URL;
+  loadArticlesFromUrl(url, pageSize);
+}
+
 function loadConfig() {
   $.getJSON('/config/config.json', function(data) {
     CONFIG = data;
     loadNews(30)
   });
-}
-
-function getCmdAction(config, val) {
-  for(var i=0; i<config.cmds.length; i++)
-  {
-    if(config.cmds[i].cmd == val)
-      return config.cmds[i].url;
-  }
-  return 0;
 }
 
 function man()
@@ -77,7 +73,7 @@ function man()
   var text = "";// = "<ul>";
   for(var i =0; i < CONFIG.cmds.length; i++)
   {
-    text += " - " + CONFIG.cmds[i].name + ": !" + CONFIG.cmds[i].cmd+"\n";
+    text += " - " + CONFIG.cmds[i].name + ": " + CONFIG.cmds[i].description+"\n";
   }
   swal({
     title: "Lista comandi",
@@ -94,34 +90,24 @@ $(document).ready(function() {
   $("#search").on('submit', function (e) {
     e.preventDefault();
     var query = $("#searchbar").val();
-    var cmd = 0;
-
-    query = query.split(" ");
-    cmd = getCmdAction(CONFIG, query[0]);
-    if(cmd == 0) cmd =-1; //CMD NOT FOUND
-    query.shift();
-    query = query.join(" ");
+    var cmd = query.split(" ")[0];
     
     switch(cmd)
     {
-      case 1:
+      case 'learn':
         $("#searchbar").val('');
-        loadNews(30);
+        learning();
         break;
 
-      case 3:
+      case 'man':
         $("#searchbar").val('');
         man();
         break;
       
-      case 4:
+      case 'more':
         $("#searchbar").val('');
         more();
         break;
-       
-      default:
-        var win = window.open(cmd.replace("*", encodeURIComponent(query)), '_blank');
- 	  	win.focus();
     }
   });
 

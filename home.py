@@ -5,18 +5,18 @@ from bs4 import BeautifulSoup
 import hashlib
 import datetime
 
-# import mysql.connector as mysql
+import random
 
-
+# some util function 
 def load_config():
     with open("config/config.json") as f:
         config = json.load(f)
     return config
 
 
-# init with list of urls
+# NewsFeed class
 class NewsFeed:
-    def __init__(self, sources, dbconfig):
+    def __init__(self, sources):
         self.sources = sources
         self.feed = []
 
@@ -47,6 +47,8 @@ class NewsFeed:
                 # feed the feeder
                 self.feed.append(article)
 
+            print("{} loaded!".format(source['name']))
+
     
     def sorted_feed(self, num_articles=None):
         feed = self.feed[:num_articles] if num_articles is not None else self.feed
@@ -54,9 +56,14 @@ class NewsFeed:
         return feed
 
 
+    def training_samples(self, num_articles=50):
+        return random.sample(self.feed, num_articles)
+
+# DataMining stuff HERE!
 class Miner:
   pass
 
+# MongoDB connector
 class DBConnector:
     def __init__(self, host, user, password, name):
         # connecting with mongodb
@@ -64,6 +71,7 @@ class DBConnector:
         self.host = host
         self.password = password
         self.name = name
+
 
     def query(self, query):
         pass

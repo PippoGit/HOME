@@ -57,6 +57,11 @@
       "name" : "TGCom 24",
       "category" : "News",
       "url": "http://www.tgcom24.mediaset.it/rss/homepage.xml"
+    },
+    {
+      "name": "Gazzetta dello Sport",
+      "category" : "Sport",
+      "url" : "https://www.gazzetta.it/rss/home.xml"
     }
   ]
 }

@@ -1,34 +1,37 @@
 {
   "server" : "127.0.0.1",
   "port" : "5000",
+  
   "API_FEED_URL" : "/api/feed/",
+  "API_LEARN_URL": "/api/learn",
+
 
   "cmds":
   [
     {
-      "name" : "Show only news of a certain category",
-      "cmd"  : "cat",
-      "url"  : "*"
+      "description" : "Show only news of a certain category",
+      "name"  : "cat",
+      "code"  : 4
     },
     {
-       "name": "Show more articles",
-       "cmd": "more",
-       "url": 3
+      "description": "Show more articles",
+      "name": "more",
+      "code": 3
     },
     {
-      "name": "Commands list",
-      "cmd" : "man",
-      "url" : 2
+      "description": "Commands list",
+      "name" : "man",
+      "code" : 2
     },
     {
-      "name": "Refresh newsfeed",
-      "cmd" : "refresh",
-      "url" : 1
+      "description": "Refresh newsfeed",
+      "name" : "refresh",
+      "code" : 1
     },
     {
-      "name" : "Learning mode",
-      "cmd"  : "learn",
-      "url"  : 0
+      "description" : "Learning mode",
+      "name"  : "learn",
+      "code"  : 0
     }
   ]
 }
