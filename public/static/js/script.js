@@ -26,7 +26,7 @@ function loadArticlesFromUrl(url, pageSize = 30) {
 }
 
 function loadNews(pageSize = 30) {
-  var url = "http://" + CONFIG.server + ":" + CONFIG.port + CONFIG.API_NEWS_URL + pageSize;
+  var url = "http://" + CONFIG.server + ":" + CONFIG.port + CONFIG.API_FEED_URL + pageSize;
   loadArticlesFromUrl(url, pageSize);
 }
 

@@ -1,22 +1,23 @@
-import feedparser
-import json
+import home
+
 from flask import Flask, render_template
 from flask_restful import Api, Resource, reqparse
 from flask_cors import CORS
+
+import feedparser
 from bs4 import BeautifulSoup
+import hashlib
 
-app = Flask(__name__,
-            static_url_path='', 
-            static_folder='public/static',
-            template_folder='public/template')
-api = Api(app)
-CORS(app)
-
-# importing dataset
+# importing configuration 
 print("\nimporting config file...") 
-with open("config/config.json") as f:
-    config = json.load(f)
+config = home.load_config()
 
+# preparing the components
+db = home.DBConnector()
+newsfeed = home.NewsFeed()
+miner = home.Miner()
+
+# loading initial feed
 print("\nloading feeds...") 
 news = []
 for source in config["feeds"]:
@@ -26,8 +27,10 @@ for source in config["feeds"]:
         #value = e.summary[0]['value']
         soup = BeautifulSoup(e['summary'], features="html.parser")
         imgurl = soup.find('img')
+        idn = e['title'] + source['name']
 
         news.append({
+            'id' : hashlib.sha1(idn.encode()).hexdigest(),
             'title' : e['title'] if ('title' in e) else "",
             'author': e['author'] if ('author' in e) else "",
             'description' : soup.text if soup is not None else "",
@@ -36,35 +39,33 @@ for source in config["feeds"]:
             'link': e['link'] if ('link' in e) else "",
             'source' : source['name']
         })
-
-    # news.extend(entries)
     # news = sorted(news, key=lambda entry: entry["published"])
     # news.reverse()
 
+# building Flask
+app = Flask(__name__,
+            static_url_path='', 
+            static_folder='public/static',
+            template_folder='public/template')
+api = Api(app)
+CORS(app)
 
 # REST Resources
-class News(Resource):
+class Feed(Resource):
     def get(self, num_pages=None):
         if num_pages is not None:
             return news[:num_pages], 200
         else:
             return news, 200
 
-    def post(self, name):
-        parser = reqparse.RequestParser()
-        parser.add_argument("name")
-        parser.add_argument("occupation")
-        args = parser.parse_args()
-
-        return args, 201
 
 # rest routes
-api.add_resource(News, "/api/news", "/api/news/<int:num_pages>")
+api.add_resource(Feed, "/api/feed", "/api/feed/<int:num_pages>")
 
 # frontend routes
 @app.route('/')
 def render_home():
-    return render_template('index.html', name="Nyca")
+    return render_template('index.html')
 
 
 # main
