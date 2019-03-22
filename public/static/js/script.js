@@ -11,46 +11,68 @@ function url_request(api_url, params="") {
 
 function like(index) {
   var li = $(event.srcElement).closest('li');
-  n = JSON.parse(JSON.stringify(news[index]));
+  var n = JSON.parse(JSON.stringify(news[index]));
+  var method = (!news[index].like)?'POST':'DELETE';
   n.like = !n.like;
   n.dislike = false;
 
-  if(!news[index].like) { //should be liked
-    $.ajax({
-      type: "POST",
-      url: url_request(CONFIG.API_LIKE_URL),
-      data: JSON.stringify(n),
-      contentType:"application/json; charset=utf-8"
-    })
-    .done(function(data) {
+  $.ajax({
+    type: method,
+    url: url_request(CONFIG.API_LIKE_URL),
+    data: JSON.stringify(n),
+    contentType:"application/json; charset=utf-8"
+  })
+  .done(function(data) {
+    if(method == 'POST') {
       li.removeClass('disliked');
       li.addClass('liked');
-      news[index] = n;
-    })
-    .fail(function(data) {
-      alert("Error");
-    });
-  }
-  else {
-    li.removeClass('liked');
+    }
+    else {
+      li.removeClass('liked');
+    }
     news[index] = n;
-    alert("notworkingyet");
-  }
+  })
+  .fail(function(data) {
+    alert("Error");
+  });
 }
 
 function dislike(index) {
   var li = $(event.srcElement).closest('li');
+  var n = JSON.parse(JSON.stringify(news[index]));
+  var method = (!news[index].dislike)?'POST':'DELETE';
+  n.dislike = !n.dislike;
+  n.like = false;
 
-  if(news[index].dislike) {
-    li.removeClass('disliked');
-  }
-  else {
-    li.removeClass('liked');
-    li.addClass('disliked');
-  }
+  $.ajax({
+    type: method,
+    url: url_request(CONFIG.API_DISLIKE_URL),
+    data: JSON.stringify(n),
+    contentType:"application/json; charset=utf-8"
+  })
+  .done(function(data) {
+    if(method == 'POST') {
+      li.removeClass('liked');
+      li.addClass('disliked');
+    }
+    else {
+      li.removeClass('disliked');
+    }
+    news[index] = n;
+  })
+  .fail(function(data) {
+    alert("Error");
+  });
 }
 
 function readArticle(index) {
+  $.ajax({
+    type: 'POST',
+    url: url_request(CONFIG.API_READ_URL),
+    data: JSON.stringify(news[index]),
+    contentType:"application/json; charset=utf-8"
+  });
+
   var win = window.open(news[index].link, '_blank');
   win.blur();
   window.focus();

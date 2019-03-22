@@ -45,25 +45,42 @@ class Learn(Resource):
 
 class Like(Resource):
     def post(self):
-
-        print("\n\nRECEIVING REQUEST.....")
         article = request.get_json()
-        db.insert_like(article)
+        db.change_like_dislike(article, like=True)
+        return 200
+    
+    def delete(self):
+        article = request.get_json()
+        db.change_like_dislike(article)
         return 200
 
 
 class Dislike(Resource):
-    pass
+    def post(self):
+        article = request.get_json()
+        db.change_like_dislike(article, dislike=True)
+        return 200
+    
+    def delete(self):
+        article = request.get_json()
+        db.change_like_dislike(article)
+        return 200
 
 
 class Read(Resource):
-    pass
+    def post(self):
+        article = request.get_json()
+        db.insert_read(article)
+        return 200
 
 
 # rest API routes
 api.add_resource(Feed, "/api/feed", "/api/feed/<int:num_articles>")
 api.add_resource(Learn, "/api/learn")
 api.add_resource(Like, "/api/like")
+api.add_resource(Dislike, "/api/dislike")
+api.add_resource(Read, "/api/read")
+
 
 # front-end routes
 @app.route('/')

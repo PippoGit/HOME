@@ -3,8 +3,7 @@
 
 RSS Feed news aggregator + machinelearning 
 
-## Learning phase/Building the initial database
-RSS => Database => Learning => Manual dataset preparation
+RSS Feed => Machine Learning Filter => Database => User => Read/Like/Dislike => Update ML Model
 
 ## Operational phase
 RSS => | MODEL | => | DB | => | USER | => | DB |
@@ -17,15 +16,16 @@ RSS => | MODEL | => | DB | => | USER | => | DB |
 5) User Likes/Dislikes/Read news (Update the database with Like/Dislike/Read)
 
 ## DB Structure
+MongoDB database
 
-* IdNews (not used for the model, just to keep track of the likes/dislikes. it's a sha1(title|source|datetime) (i know it's bad, butwhocares))
+* IdNews (not used for the model, just to keep track of the likes/dislikes. it's a sha1(title|source|datetime))
 * Title
 * Digest
 * URL
+* ImgUrl
 * Author
 * Datetime
 * Source
-* Category 
 * Like
 * Dislike
 * Read
@@ -34,7 +34,6 @@ RSS => | MODEL | => | DB | => | USER | => | DB |
 
 * Title
 * Author
-* Category
 * Like
 * Dislike
 * Read
