@@ -7,14 +7,26 @@ function more() {
 
 function like(index) {
   var li = $(event.srcElement).closest('li');
-  li.removeClass('disliked');
-  li.addClass('liked');
+
+  if(li.hasClass('liked')) {
+    li.removeClass('liked');
+  }
+  else {
+    li.removeClass('disliked');
+    li.addClass('liked');
+  }
 }
 
 function dislike(index) {
   var li = $(event.srcElement).closest('li');
-  li.removeClass('liked');
-  li.addClass('disliked');
+
+  if(li.hasClass('disliked')) {
+    li.removeClass('disliked');
+  }
+  else {
+    li.removeClass('liked');
+    li.addClass('disliked');
+  }
 }
 
 function readArticle(index) {

@@ -7,6 +7,7 @@ from flask_cors import CORS
 import feedparser
 from bs4 import BeautifulSoup
 import hashlib
+import datetime
 
 # importing configuration 
 print("\nimporting config file...") 
@@ -34,11 +35,12 @@ for source in config["feeds"]:
             'title' : e['title'] if ('title' in e) else "",
             'author': e['author'] if ('author' in e) else "",
             'description' : soup.text if soup is not None else "",
-            'datetime' : e['published'][:-5] if ('published' in e) else "",
+            'datetime' : e['published'][:-6] if ('published' in e) else "",
             'img' : imgurl['src'] if imgurl is not None else "",
             'link': e['link'] if ('link' in e) else "",
             'source' : source['name']
         })
+news = sorted(news, key=lambda kv: datetime.datetime.strptime(kv['datetime'], '%a, %d %b %Y %H:%M:%S'), reverse=True)
     # news = sorted(news, key=lambda entry: entry["published"])
     # news.reverse()
 
