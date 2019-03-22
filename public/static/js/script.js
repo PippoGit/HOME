@@ -5,9 +5,22 @@ function more() {
   loadNews(100);
 }
 
+function like(index) {
+  var li = $(event.srcElement).closest('li');
+  li.removeClass('disliked');
+  li.addClass('liked');
+}
+
+function dislike(index) {
+  var li = $(event.srcElement).closest('li');
+  li.removeClass('liked');
+  li.addClass('disliked');
+}
+
 function readArticle(index) {
   var win = window.open(news[index].link, '_blank');
   win.focus();
+  return false;
 }
 
 function loadArticlesFromUrl(url, pageSize = 30) {
@@ -20,7 +33,7 @@ function loadArticlesFromUrl(url, pageSize = 30) {
     {
       var imgUrl;      
       imgUrl = (news[i].img == "")?"/img/unipi.gif":news[i].img;
-      list.append("<li onclick='readArticle("+ i + ")' class='deck' data-index='" + i + "' > <div class='card card-news'><div class='list-header'> <img class='list-img' src='"+ imgUrl + "'></img> <div class='list-category'>"+news[i].source +"</div> <div class='list-title'>" + news[i].title + "</div><div class='list-author'>"+ news[i].author +"</div> <div class='list-datetime'> <i class='fas fa-clock'></i> " + news[i].datetime + "</div><div class='list-content'>"+ news[i].description + "</div> <div class='list-footer'> <i class='far fa-thumbs-up likebtn'></i> | <i class='far fa-thumbs-down dislikebtn'></i></div></div></li>");
+      list.append("<li data-index='" + i + "' > <div class='card card-news'><div class='list-header'> <img class='list-img' src='"+ imgUrl + "'></img> <div class='list-category'>"+news[i].source +"</div> <a class='list-title' href='#' onclick='readArticle("+ i + ")' >" + news[i].title + "</a><div class='list-author'>"+ news[i].author +"</div> <div class='list-datetime'> <i class='fas fa-clock'></i> " + news[i].datetime + "</div><div class='list-content'>"+ news[i].description + "</div> <div class='list-footer'> <i  onclick='like("+ i + ")'  class='far fa-thumbs-up likebtn'></i> | <i  onclick='dislike("+ i + ")'  class='far fa-thumbs-down dislikebtn'></i></div></div></li>");
     }
   });
 }
@@ -99,6 +112,7 @@ $(document).ready(function() {
  	  	win.focus();
     }
   });
+
 });
 
 $(document).on('keypress', function (e) {

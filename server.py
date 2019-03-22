@@ -34,7 +34,7 @@ for source in config["feeds"]:
             'title' : e['title'] if ('title' in e) else "",
             'author': e['author'] if ('author' in e) else "",
             'description' : soup.text if soup is not None else "",
-            'datetime' : e['published'] if ('published' in e) else "",
+            'datetime' : e['published'][:-5] if ('published' in e) else "",
             'img' : imgurl['src'] if imgurl is not None else "",
             'link': e['link'] if ('link' in e) else "",
             'source' : source['name']

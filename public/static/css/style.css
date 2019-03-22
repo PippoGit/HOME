@@ -127,7 +127,6 @@ footer img {
 
 #feed .card:hover {
   /* box-shadow: 0px 4px 11px 0px rgba(37, 34, 34, 0.12); */
-  cursor: pointer;
   filter: brightness(1.1);
   /* filter: opacity(0.8); */
 }
@@ -299,6 +298,12 @@ footer img {
   font-weight: bold;
   /* border-top: 1px solid gray; */
   color: #ce2359;
+  display: block;
+  text-decoration: none;
+}
+
+.list-title:hover {
+  text-decoration: underline;
 }
 
 .list-content {
@@ -331,7 +336,6 @@ footer img {
   font-weight: 500;
   font-size: 0.9rem;
   padding-left: 8px;
-  display: none;
 }
 
 .list-datetime {
@@ -359,6 +363,7 @@ footer img {
 
 .list-footer i:hover {
   color: #d33c50;
+  cursor: pointer;
 }
 
 .list-footer i:active {
@@ -371,4 +376,16 @@ footer img {
 
 #frontpage {
   display: none;
+}
+
+.disliked {
+  opacity: 0.5 !important;
+}
+
+.disliked .dislikebtn {
+  color: #d33c50;
+}
+
+.liked .likebtn {
+  color: #d33c50;
 }
