@@ -4,6 +4,7 @@
   
   "API_FEED_URL" : "/api/feed/",
   "API_LEARN_URL": "/api/learn",
+  "API_LIKE_URL" : "/api/like",
 
 
   "cmds":

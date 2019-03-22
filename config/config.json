@@ -1,9 +1,9 @@
 {
   "db" : {
-    "host" : "host",
-    "name" : "nome",
-    "user": "user",
-    "password": "password"
+    "host" : "mongodb://localhost:27017/",
+    "name": "homedb",
+    "user": "",
+    "password": ""
   },
   
   "feeds": 
@@ -14,6 +14,11 @@
       "url" : "http://xml2.corriereobjects.it/rss/homepage.xml"
     },
     {
+      "name" : "La Stampa",
+      "category" : "News",
+      "url" : "http://www.lastampa.it/rss.xml"
+    },
+    {
       "name" : "La Repubblica",
       "category" : "News",
       "url" : "http://www.repubblica.it/rss/homepage/rss2.0.xml"
@@ -21,37 +26,32 @@
     {
       "name" : "ANSA",
       "category" : "News",
-      "url" : "http://www.ansa.it/main/html/ansa_rss.html"
+      "url" : "http://www.ansa.it/sito/ansait_rss.xml"
     },
     {
       "name" : "Fanpage.it",
       "category" : "News",
-      "url" : "https://www.fanpage.it/feed/"
+      "url" : "http://www.fanpage.it/feed/"
     },
     {
       "name" : "Il Fatto Quotidiano",
       "category" : "News",
-      "url" : "https://www.ilfattoquotidiano.it/feed/"
+      "url" : "http://www.ilfattoquotidiano.it/feed/"
     },
     {
       "name" : "Il Sole 24 Ore",
       "category" : "News",
-      "url" : "https://www.ilsole24ore.com/rss/primapagina.xml"
+      "url" : "http://www.ilsole24ore.com/rss/primapagina.xml"
     },
     {
       "name" : "Internazionale",
       "category" : "News",
-      "url" : "https://www.internazionale.it/sitemaps/rss.xml"
-    },
-    {
-      "name" : "La Stampa",
-      "category" : "News",
-      "url" : "http://www.lastampa.it/rss.xml"
+      "url" : "http://www.internazionale.it/sitemaps/rss.xml"
     },
     {
       "name" : "Linkiesta",
       "category" : "News",
-      "url": "https://www.linkiesta.it/it/feed/latest/?format=rss"
+      "url": "http://www.linkiesta.it/it/feed/latest/?format=rss"
     },
     {
       "name" : "TGCom 24",
@@ -61,7 +61,7 @@
     {
       "name": "Gazzetta dello Sport",
       "category" : "Sport",
-      "url" : "https://www.gazzetta.it/rss/home.xml"
+      "url" : "http://www.gazzetta.it/rss/home.xml"
     }
   ]
 }

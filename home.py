@@ -4,8 +4,11 @@ import feedparser
 from bs4 import BeautifulSoup
 import hashlib
 import datetime
+import ssl
 
 import random
+
+import pymongo
 
 # some util function 
 def load_config():
@@ -22,8 +25,16 @@ class NewsFeed:
 
 
     def load(self):
+        if hasattr(ssl, '_create_unverified_context'):
+            ssl._create_default_https_context = ssl._create_unverified_context
+
         for source in self.sources:
-            entries = feedparser.parse(source['url']).entries
+            parsed = feedparser.parse(source['url'])
+            if parsed.bozo == 1:
+                print(parsed.bozo_exception)
+
+            entries = parsed.entries
+            
             for e in entries:
                 # parsing the content of the summary
                 soup = BeautifulSoup(e['summary'], features="html.parser")
@@ -37,17 +48,23 @@ class NewsFeed:
                     'datetime' : e['published'][:-6] if ('published' in e) else "",
                     'img' : imgurl['src'] if imgurl is not None else "",
                     'link': e['link'] if ('link' in e) else "",
-                    'source' : source['name']
+                    'source' : source['name'],
+
+                    'like' : False,
+                    'dislike' : False,
+                    'read' : False
                 }
 
                 # adding the id
                 ida = ''.join('{}{}'.format(key, val) for key, val in article.items())
-                article['id'] = hashlib.sha1(ida.encode()).hexdigest()
+                article['_id'] = hashlib.sha1(ida.encode()).hexdigest()
                 
                 # feed the feeder
                 self.feed.append(article)
 
-            print("{} loaded!".format(source['name']))
+            print("{} loaded! ({} entries)".format(source['name'], len(entries)))
+
+        print("whole newsfeed loaded ({} entries)".format(len(self.feed)))
 
     
     def sorted_feed(self, num_articles=None):
@@ -65,16 +82,28 @@ class Miner:
 
 # MongoDB connector
 class DBConnector:
-    def __init__(self, host, user, password, name):
+    def __init__(self, host, name, user=None, password=None):
         # connecting with mongodb
-        self.user = user
-        self.host = host
-        self.password = password
-        self.name = name
+        self.client = pymongo.MongoClient(host)
+        self.db = self.client[name]
 
 
-    def query(self, query):
-        pass
+
+    def insert_like(self, article):
+        articles = self.db['articles']
+        
+        results = [o for o in articles.find(article, {'_id': 1}).limit(1)]
+        print(results)
+
+        if(len(results) is 0):
+            # insert article
+            articles.insert(article)
+        else:
+            # update old article
+            articles.update(
+                article,
+                { '$set': { 'like': True, 'dislike': False} },
+            )
 
     
     def close(self):
