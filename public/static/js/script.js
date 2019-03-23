@@ -10,20 +10,28 @@ function url_request(api_url, params="") {
 }
 
 function liked() {
-  var url = url_request(CONFIG.API_LIKED_URL, pageSize);
+  $("#feed_section h1").text("liked articles");
+  var url = url_request(CONFIG.API_LIKED_URL);
   loadArticlesFromUrl(url);
 }
 
 function disliked() {
-  var url = url_request(CONFIG.API_DISLIKED_URL, pageSize);
+  $("#feed_section h1").text("disliked articles");
+  var url = url_request(CONFIG.API_DISLIKED_URL);
   loadArticlesFromUrl(url);
 }
 
 function read_articles() {
-  var url = url_request(CONFIG.API_READARTICLES_URL, pageSize);
+  var url = url_request(CONFIG.API_READARTICLES_URL);
+  $("#feed_section h1").text("read articles");
   loadArticlesFromUrl(url);
 }
 
+function learning(pageSize = 50) {
+  var url = url_request(CONFIG.API_LEARN_URL);
+  $("#feed_section h1").text("learning mode");
+  loadArticlesFromUrl(url, pageSize);
+}
 
 function like(index) {
   var li = $(event.srcElement).closest('li');
@@ -105,18 +113,30 @@ function loadArticlesFromUrl(url, pageSize = 30) {
     {
       var imgUrl;      
       imgUrl = (news[i].img == "")?"/img/unipi.gif":news[i].img;
-      list.append("<li data-index='" + i + "' > <div class='card card-news'><div class='list-header'> <img class='list-img' src='"+ imgUrl + "'></img> <div class='list-category'>"+news[i].source +"</div> <a class='list-title' href='javascript:void(0)' onclick='readArticle("+ i + ")' >" + news[i].title + "</a><div class='list-author'>"+ news[i].author +"</div> <div class='list-datetime'> <i class='fas fa-clock'></i> " + news[i].datetime + "</div><div class='list-content'>"+ news[i].description + "</div> <div class='list-footer'> <i  onclick='like("+ i + ")'  class='far fa-thumbs-up likebtn'></i> | <i  onclick='dislike("+ i + ")'  class='far fa-thumbs-down dislikebtn'></i></div></div></li>");
+      var liked = (news[i].like)?" liked ": "";
+      var disliked = (news[i].dislike)?" disliked ": "";
+      
+      list.append("<li data-index='" + i + "' class='" + liked + disliked + "'  >" +
+                    "<div class='card card-news'>" + 
+                      "<div class='list-header'>" +  
+                        "<img class='list-img' src='"+ imgUrl + "'></img>" +
+                        "<div class='list-category'>"+news[i].source +"</div>" + 
+                        "<a class='list-title' href='javascript:void(0)' onclick='readArticle("+ i + ")' >" + news[i].title + "</a>" +
+                        "<div class='list-author'>"+ news[i].author +"</div>" + 
+                        "<div class='list-datetime'> <i class='fas fa-clock'></i> " + news[i].datetime + "</div>" + 
+                      "</div>" +
+                      "<div class='list-content'>"+ news[i].description + "</div>" + 
+                      "<div class='list-footer'>" +
+                        "<i  onclick='like("+ i + ")' class='far fa-thumbs-up likebtn'></i> | <i  onclick='dislike("+ i + ")'  class='far fa-thumbs-down dislikebtn'></i>" + 
+                      "</div>" + 
+                    "</div>" +
+                  "</li>");
     }
   });
 }
 
 function loadNews(pageSize = 30) {
   var url = url_request(CONFIG.API_FEED_URL, pageSize);
-  loadArticlesFromUrl(url, pageSize);
-}
-
-function learning(pageSize = 50) {
-  var url = url_request(CONFIG.API_LEARN_URL);
   loadArticlesFromUrl(url, pageSize);
 }
 

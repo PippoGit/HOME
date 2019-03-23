@@ -22,6 +22,7 @@ header {
 
 main {
   width: 100%;
+  min-height: 800px;
 }
 
 section h1 {
