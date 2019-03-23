@@ -50,31 +50,32 @@ class Learn(Resource):
 class Like(Resource):
     def post(self):
         article = request.get_json()
-        db.change_like_dislike(article, like=True)
+        db.update_article(article, {'dislike':False, 'like':True})
         return 200
     
     def delete(self):
         article = request.get_json()
-        db.change_like_dislike(article)
+        db.update_article(article, {'dislike':False, 'like':False})
         return 200
 
 
 class Dislike(Resource):
     def post(self):
         article = request.get_json()
-        db.change_like_dislike(article, dislike=True)
+        db.update_article(article, {'dislike':True, 'like':False} )
         return 200
     
     def delete(self):
         article = request.get_json()
-        db.change_like_dislike(article)
+        db.update_article(article, {'dislike':False, 'like':False})
+
         return 200
 
 
 class Read(Resource):
     def post(self):
         article = request.get_json()
-        db.insert_read(article)
+        db.update_article(article, {'read':True})
         return 200
 
 
