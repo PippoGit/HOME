@@ -43,8 +43,8 @@ class Feed(Resource):
 
 
 class Learn(Resource):
-    def get(self):
-        return newsfeed.training_samples(50), 200
+    def get(self, num_articles=50):
+        return newsfeed.training_samples(num_articles), 200
 
 
 class Like(Resource):
@@ -95,7 +95,7 @@ class ReadArticles(Resource):
 
 # rest API routes
 api.add_resource(Feed, "/api/feed", "/api/feed/<int:num_articles>")
-api.add_resource(Learn, "/api/learn")
+api.add_resource(Learn, "/api/learn", "/api/learn/<int:num_articles>")
 
 api.add_resource(Like, "/api/like")
 api.add_resource(Dislike, "/api/dislike")
