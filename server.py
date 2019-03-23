@@ -29,7 +29,7 @@ app = Flask(__name__,
             static_folder='public/static',
             template_folder='public/template')
 api = Api(app)
-CORS(app)
+CORS(app, origins=['http://localhost:5000', 'http://imac.local:5000', 'http://127.0.0.1:5000', "http://192.168.1.200:5000"])
 
 # REST Resources
 class Feed(Resource):

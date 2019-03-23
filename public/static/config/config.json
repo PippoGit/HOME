@@ -7,28 +7,25 @@
   "API_LIKE_URL" : "/api/like",
   "API_DISLIKE_URL" : "/api/dislike",
   "API_READ_URL" : "/api/read",
-
+  "API_LIKED_URL": "/api/liked_articles",
+  "API_DISLIKED_URL": "/api/disliked_articles",
+  "API_READARTICLES_URL": "/api/read_articles",
 
   "cmds":
   [
     {
-      "description" : "Show only news of a certain category",
-      "name"  : "cat",
-      "code"  : 4
-    },
-    {
-      "description": "Show more articles",
-      "name": "more",
+      "description": "View read articles",
+      "name": "read",
       "code": 3
     },
     {
-      "description": "Commands list",
-      "name" : "man",
+      "description": "View disliked articles",
+      "name" : "disliked",
       "code" : 2
     },
     {
-      "description": "Refresh newsfeed",
-      "name" : "refresh",
+      "description": "View liked articles",
+      "name" : "liked",
       "code" : 1
     },
     {

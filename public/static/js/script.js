@@ -9,6 +9,22 @@ function url_request(api_url, params="") {
   return window.location.origin + api_url + params;
 }
 
+function liked() {
+  var url = url_request(CONFIG.API_LIKED_URL, pageSize);
+  loadArticlesFromUrl(url);
+}
+
+function disliked() {
+  var url = url_request(CONFIG.API_DISLIKED_URL, pageSize);
+  loadArticlesFromUrl(url);
+}
+
+function read_articles() {
+  var url = url_request(CONFIG.API_READARTICLES_URL, pageSize);
+  loadArticlesFromUrl(url);
+}
+
+
 function like(index) {
   var li = $(event.srcElement).closest('li');
   var n = JSON.parse(JSON.stringify(news[index]));
@@ -148,9 +164,17 @@ $(document).ready(function() {
         man();
         break;
       
-      case 'more':
+      case 'disliked':
         $("#searchbar").val('');
-        more();
+        disliked();
+        break;
+      case 'liked':
+        $("#searchbar").val('');
+        liked();
+        break;
+      case 'read':
+        $("#searchbar").val('');
+        read_articles();
         break;
     }
   });
