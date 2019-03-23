@@ -6,7 +6,7 @@ function more() {
 }
 
 function url_request(api_url, params="") {
-  return "http://" + CONFIG.server + ":" + CONFIG.port + api_url + params;
+  return window.location.origin + api_url + params;
 }
 
 function like(index) {

@@ -62,6 +62,51 @@
       "name": "Gazzetta dello Sport",
       "category" : "Sport",
       "url" : "http://www.gazzetta.it/rss/home.xml"
-    }
+    },
+    {
+      "name": "Wired.it",
+      "category" : "Tech",
+      "url" : "https://www.wired.it/feed/"
+    },    
+    {
+      "name": "Lega Nerd",
+      "category" : "Tech",
+      "url" : "https://leganerd.com/feed/"
+    },    
+    {
+      "name": "Tom's Hardware",
+      "category" : "Tech",
+      "url" : "https://www.tomshw.it/feed/"
+    },    
+    {
+      "name": "Vice",
+      "category" : "Entertainment",
+      "url" : "https://www.vice.com/it/rss"
+    },
+    {
+      "name": "Noisey",
+      "category" : "Entertainment",
+      "url" : "https://noisey.vice.com/it/rss"
+    },
+    {
+      "name": "Movieplayer.it",
+      "category" : "Entertainment",
+      "url" : "https://movieplayer.it/feed/"
+    },
+    {
+      "name": "Multiplayer.it",
+      "category" : "Videogames",
+      "url" : "https://multiplayer.it/feed/rss/homepage/"
+    },
+    {
+      "name": "Le Scienze",
+      "category" : "Tech",
+      "url" : "http://www.lescienze.it/rss/all/rss2.0.xml"
+    },
+    {
+      "name": "il Post",
+      "category" : "News",
+      "url" : "https://www.ilpost.it/feed/"
+    }      
   ]
 }
