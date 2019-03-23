@@ -80,9 +80,12 @@ class DBConnector:
         self.client = pymongo.MongoClient(host)
         self.db = self.client[name]
 
-    def change_like_dislike(self, article, like=False, dislike=False):
+    def update_article(self, article, values):
         articles = self.db['articles']
         
+        for k, v in values.items():
+            article[k] = v
+
         results = articles.find_one({'_id':article['_id']})
         if results is None:
             # insert article
@@ -91,16 +94,22 @@ class DBConnector:
             # update old article
             articles.update(
                 {'_id':article['_id']},
-                { '$set': { 'like': like, 'dislike': dislike} },
+                { '$set': values },
             )
 
-    def insert_read(self, article):
+    def find(self, query):
         articles = self.db['articles']
-        articles.update(
-                {'_id':article['_id']},
-                { '$set': { 'read': True} },
-        )
+        results = articles.find(query)
+        return list(results)
 
+    def find_liked(self):
+        return self.find({'like':True})
+
+    def find_disliked(self):
+        return self.find({'dislike':True})
+
+    def find_read(self):
+        return self.find({'read':True})
 
     def close(self):
         pass

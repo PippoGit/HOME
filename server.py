@@ -21,7 +21,7 @@ newsfeed.load()
 
 
 # inserting the results into the db
-
+# print(db.find_liked())
 
 # building Flask
 app = Flask(__name__,
@@ -43,47 +43,67 @@ class Feed(Resource):
 
 
 class Learn(Resource):
-    def get(self):
-        return newsfeed.training_samples(50), 200
+    def get(self, num_articles=50):
+        return newsfeed.training_samples(num_articles), 200
 
 
 class Like(Resource):
     def post(self):
         article = request.get_json()
-        db.change_like_dislike(article, like=True)
+        db.update_article(article, {'dislike':False, 'like':True})
         return 200
     
     def delete(self):
         article = request.get_json()
-        db.change_like_dislike(article)
+        db.update_article(article, {'dislike':False, 'like':False})
         return 200
 
 
 class Dislike(Resource):
     def post(self):
         article = request.get_json()
-        db.change_like_dislike(article, dislike=True)
+        db.update_article(article, {'dislike':True, 'like':False} )
         return 200
     
     def delete(self):
         article = request.get_json()
-        db.change_like_dislike(article)
+        db.update_article(article, {'dislike':False, 'like':False})
         return 200
 
 
 class Read(Resource):
     def post(self):
         article = request.get_json()
-        db.insert_read(article)
+        db.update_article(article, {'read':True})
         return 200
+
+
+class LikedArticles(Resource):
+    def get(self):
+        return db.find_liked(), 200
+
+
+class DislikedArticles(Resource):
+    def get(self):
+        return db.find_disliked(), 200
+
+
+class ReadArticles(Resource):
+    def get(self):
+        return db.find_read(), 200
 
 
 # rest API routes
 api.add_resource(Feed, "/api/feed", "/api/feed/<int:num_articles>")
-api.add_resource(Learn, "/api/learn")
+api.add_resource(Learn, "/api/learn", "/api/learn/<int:num_articles>")
+
 api.add_resource(Like, "/api/like")
 api.add_resource(Dislike, "/api/dislike")
 api.add_resource(Read, "/api/read")
+
+api.add_resource(LikedArticles, "/api/liked_articles")
+api.add_resource(DislikedArticles, "/api/disliked_articles")
+api.add_resource(ReadArticles, "/api/read_articles")
 
 
 # front-end routes
