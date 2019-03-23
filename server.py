@@ -21,7 +21,7 @@ newsfeed.load()
 
 
 # inserting the results into the db
-
+# print(db.find_liked())
 
 # building Flask
 app = Flask(__name__,
@@ -68,7 +68,6 @@ class Dislike(Resource):
     def delete(self):
         article = request.get_json()
         db.update_article(article, {'dislike':False, 'like':False})
-
         return 200
 
 
@@ -79,12 +78,32 @@ class Read(Resource):
         return 200
 
 
+class LikedArticles(Resource):
+    def get(self):
+        return db.find_liked(), 200
+
+
+class DislikedArticles(Resource):
+    def get(self):
+        return db.find_disliked(), 200
+
+
+class ReadArticles(Resource):
+    def get(self):
+        return db.find_read(), 200
+
+
 # rest API routes
 api.add_resource(Feed, "/api/feed", "/api/feed/<int:num_articles>")
 api.add_resource(Learn, "/api/learn")
+
 api.add_resource(Like, "/api/like")
 api.add_resource(Dislike, "/api/dislike")
 api.add_resource(Read, "/api/read")
+
+api.add_resource(LikedArticles, "/api/liked_articles")
+api.add_resource(DislikedArticles, "/api/disliked_articles")
+api.add_resource(ReadArticles, "/api/read_articles")
 
 
 # front-end routes

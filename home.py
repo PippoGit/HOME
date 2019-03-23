@@ -83,6 +83,9 @@ class DBConnector:
     def update_article(self, article, values):
         articles = self.db['articles']
         
+        for k, v in values.items():
+            article[k] = v
+
         results = articles.find_one({'_id':article['_id']})
         if results is None:
             # insert article
@@ -94,34 +97,19 @@ class DBConnector:
                 { '$set': values },
             )
 
-    def change_like_dislike(self, article, like=False, dislike=False):
+    def find(self, query):
         articles = self.db['articles']
-        
-        results = articles.find_one({'_id':article['_id']})
-        if results is None:
-            # insert article
-            articles.insert(article)
-        else:
-            # update old article
-            articles.update(
-                {'_id':article['_id']},
-                { '$set': { 'like': like, 'dislike': dislike} },
-            )
+        results = articles.find(query)
+        return list(results)
 
-    def insert_read(self, article):
-        articles = self.db['articles']
-        
-        results = articles.find_one({'_id':article['_id']})
-        if results is None:
-            # insert article
-            articles.insert(article)
-        else:
-            # update old article
-            articles.update(
-                {'_id':article['_id']},
-                { '$set': { 'read': True} },
-            )
+    def find_liked(self):
+        return self.find({'like':True})
 
+    def find_disliked(self):
+        return self.find({'dislike':True})
+
+    def find_read(self):
+        return self.find({'read':True})
 
     def close(self):
         pass
