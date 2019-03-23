@@ -5,6 +5,28 @@ function more() {
   loadNews(100);
 }
 
+function getArticleHTMLElement(article, index) {
+  var imgUrl = (article.img == "")?"/img/unipi.gif":article.img;
+  var liked = (article.like)?" liked ": "";
+  var disliked = (article.dislike)?" disliked ": "";
+
+  return  "<li data-index='" + index + "' class='" + liked + disliked + "'  >" +
+            "<div class='card card-news'>" + 
+              "<div class='list-header'>" +  
+                "<img class='list-img' src='"+ imgUrl + "'></img>" +
+                "<div class='list-category'>"+article.source +"</div>" + 
+                "<a class='list-title' href='javascript:void(0)' onclick='readArticle("+ index + ")' >" + article.title + "</a>" +
+                "<div class='list-author'>"+ article.author +"</div>" + 
+                "<div class='list-datetime'> <i class='fas fa-clock'></i> " + article.datetime + "</div>" + 
+              "</div>" +
+              "<div class='list-content'>"+ article.description + "</div>" + 
+              "<div class='list-footer'>" +
+                "<i  onclick='like("+ index + ")' class='far fa-thumbs-up likebtn'></i> | <i  onclick='dislike("+ index + ")'  class='far fa-thumbs-down dislikebtn'></i>" + 
+              "</div>" + 
+            "</div>" +
+          "</li>";
+}
+
 function url_request(api_url, params="") {
   return window.location.origin + api_url + params;
 }
@@ -103,41 +125,23 @@ function readArticle(index) {
   return false;
 }
 
-function loadArticlesFromUrl(url, pageSize = 30) {
-  $.get(url, function(data) {
-    var list = $("#feed");
-    list.empty();
-    news = data;
+function createFeed() {
+  var list = $("#feed");
+  list.empty();
+  for(var i=0; i<news.length;i++)
+    list.append(getArticleHTMLElement(news[i], i));
+}
 
-    for(var i=0; i<news.length;i++)
-    {
-      var imgUrl;      
-      imgUrl = (news[i].img == "")?"/img/unipi.gif":news[i].img;
-      var liked = (news[i].like)?" liked ": "";
-      var disliked = (news[i].dislike)?" disliked ": "";
-      
-      list.append("<li data-index='" + i + "' class='" + liked + disliked + "'  >" +
-                    "<div class='card card-news'>" + 
-                      "<div class='list-header'>" +  
-                        "<img class='list-img' src='"+ imgUrl + "'></img>" +
-                        "<div class='list-category'>"+news[i].source +"</div>" + 
-                        "<a class='list-title' href='javascript:void(0)' onclick='readArticle("+ i + ")' >" + news[i].title + "</a>" +
-                        "<div class='list-author'>"+ news[i].author +"</div>" + 
-                        "<div class='list-datetime'> <i class='fas fa-clock'></i> " + news[i].datetime + "</div>" + 
-                      "</div>" +
-                      "<div class='list-content'>"+ news[i].description + "</div>" + 
-                      "<div class='list-footer'>" +
-                        "<i  onclick='like("+ i + ")' class='far fa-thumbs-up likebtn'></i> | <i  onclick='dislike("+ i + ")'  class='far fa-thumbs-down dislikebtn'></i>" + 
-                      "</div>" + 
-                    "</div>" +
-                  "</li>");
-    }
+function loadArticlesFromUrl(url) {
+  $.get(url, function(data) {
+    news = data;
+    createFeed()
   });
 }
 
 function loadNews(pageSize = 30) {
   var url = url_request(CONFIG.API_FEED_URL, pageSize);
-  loadArticlesFromUrl(url, pageSize);
+  loadArticlesFromUrl(url);
 }
 
 function loadConfig() {
