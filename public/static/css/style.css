@@ -280,7 +280,7 @@ footer img {
   /* margin-bottom: 8px; */
   margin-left: -8px;
   margin-top: -8px;
-  border-bottom: 3px solid #e00a4e;
+  /* border-bottom: 3px solid #e00a4e; */
   /* display: block; */
   z-index: 1;
 }
@@ -295,7 +295,7 @@ footer img {
   /* top: 8px; */
   padding: 14px 8px 8px 8px;
   font-weight: bold;
-  /* border-top: 1px solid gray; */
+  border-top: 3px solid;
   color: #ce2359;
   display: block;
   text-decoration: none;
@@ -323,7 +323,7 @@ footer img {
   font-size: 0.6rem;
   vertical-align: top;
   /* margin-right: 8px; */
-  margin-top: -12px;
+  margin-top: -9px;
   /* margin-bottom: 4px; */
   z-index: 11;
   letter-spacing: 1px;

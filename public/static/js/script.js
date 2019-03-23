@@ -6,14 +6,15 @@ function more() {
 }
 
 function getArticleHTMLElement(article, index) {
-  var imgUrl = (article.img == "")?"/img/unipi.gif":article.img;
+  var imgUrl = (article.img == "")?"/img/news-thumbnail.jpg":article.img;
+  var imgFilter = (article.img == "")?" style='filter:hue-rotate(" + Math.floor(Math.random() * (1 - 360)) + 1 + "deg); '":"";
   var liked = (article.like)?" liked ": "";
   var disliked = (article.dislike)?" disliked ": "";
 
   return  "<li data-index='" + index + "' class='" + liked + disliked + "'  >" +
             "<div class='card card-news'>" + 
               "<div class='list-header'>" +  
-                "<img class='list-img' src='"+ imgUrl + "'></img>" +
+                "<img class='list-img'" + imgFilter + " src='"+ imgUrl + "'></img>" +
                 "<div class='list-category'>"+article.source +"</div>" + 
                 "<a class='list-title' href='javascript:void(0)' onclick='readArticle("+ index + ")' >" + article.title + "</a>" +
                 "<div class='list-author'>"+ article.author +"</div>" + 
@@ -147,7 +148,7 @@ function loadNews(pageSize = 30) {
 function loadConfig() {
   $.getJSON('/config/config.json', function(data) {
     CONFIG = data;
-    loadNews(30)
+    loadNews(30);
   });
 }
 
@@ -167,7 +168,6 @@ function man()
 }
 
 $(document).ready(function() {
-
   loadConfig();
   $("#searchbar").focus();
   
@@ -176,31 +176,31 @@ $(document).ready(function() {
     var query = $("#searchbar").val();
     var cmd = query.split(" ")[0];
     
-    switch(cmd)
-    {
+    switch(cmd) {
       case 'learn':
-        $("#searchbar").val('');
         learning();
         break;
 
       case 'man':
-        $("#searchbar").val('');
         man();
         break;
       
       case 'disliked':
-        $("#searchbar").val('');
         disliked();
         break;
-      case 'liked':
-        $("#searchbar").val('');
+      
+        case 'liked':
         liked();
         break;
+
       case 'read':
-        $("#searchbar").val('');
         read_articles();
         break;
+      
+      default:
+        cmd = false;
     }
+    if(cmd) $("#searchbar").val('');
   });
 
 });
