@@ -44,7 +44,7 @@ function tagging() {
 
 function getArticleHTMLElement(article, tagging=false) {
   var imgUrl = (article.img == "")?"/img/news-thumbnail.jpg":article.img;
-  var imgFilter = (article.img == "")?" style='filter:hue-rotate(" + Math.random() * 360 + "deg); '":"";
+  var imgFilter = (article.img == "")?" style='filter:hue-rotate(" + Math.floor(Math.random() * 360) + "deg); '":"";
   var liked = (article.like)?" liked ": "";
   var disliked = (article.dislike)?" disliked ": "";
 
@@ -265,9 +265,6 @@ $(document).ready(function() {
       alert("Error");
     });
   });
-
-  
-
 });
 
 $(document).on('keypress', function (e) {
