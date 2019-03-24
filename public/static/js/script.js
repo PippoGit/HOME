@@ -5,24 +5,62 @@ function more() {
   loadNews(100);
 }
 
-function getArticleHTMLElement(article, index) {
+function getArticleIndex(id) {
+  for(var i=0; i<news.length;i++)
+    if(news['_id'] == id) return i;
+}
+
+function stop_tagging() {
+  $("#tag_section").slideUp();
+}
+
+function tagging() {
+  var article = {};
+  var url = url_request(CONFIG.API_TAG_URL);
+
+  $.get(url, function(data) {
+    article = data;
+    $("#tag_section").slideDown();
+    $("#tag_article").html(getArticleHTMLElement(article, true));
+  });
+
+  $("#tag_section form").on('submit', function(e){
+    e.preventDefault();
+    article['tag'] = $("#tag_section select").val();
+    $.ajax({
+      type: method,
+      url: url_request(CONFIG.API_LIKE_URL),
+      data: JSON.stringify(article),
+      contentType:"application/json; charset=utf-8"
+    })
+    .done(function(data) {
+      tagging();
+    })
+    .fail(function(data) {
+      alert("Error");
+    });
+  });
+}
+
+
+function getArticleHTMLElement(article, tagging=false) {
   var imgUrl = (article.img == "")?"/img/news-thumbnail.jpg":article.img;
-  var imgFilter = (article.img == "")?" style='filter:hue-rotate(" + Math.floor(Math.random() * (1 - 360)) + 1 + "deg); '":"";
+  var imgFilter = (article.img == "")?" style='filter:hue-rotate(" + Math.random() * 360 + "deg); '":"";
   var liked = (article.like)?" liked ": "";
   var disliked = (article.dislike)?" disliked ": "";
 
-  return  "<li data-index='" + index + "' class='" + liked + disliked + "'  >" +
+  return  "<li data-index='" + article.id + "' class='" + liked + disliked + "'  >" +
             "<div class='card card-news'>" + 
               "<div class='list-header'>" +  
                 "<img class='list-img'" + imgFilter + " src='"+ imgUrl + "'></img>" +
                 "<div class='list-category'>"+article.source +"</div>" + 
-                "<a class='list-title' href='javascript:void(0)' onclick='readArticle("+ index + ")' >" + article.title + "</a>" +
+                "<a class='list-title' href='javascript:void(0)'" + ( (!tagging)? "onclick='readArticle("+ article.id + ")' ": "") + " >" + article.title + "</a>" +
                 "<div class='list-author'>"+ article.author +"</div>" + 
                 "<div class='list-datetime'> <i class='fas fa-clock'></i> " + article.datetime + "</div>" + 
               "</div>" +
               "<div class='list-content'>"+ article.description + "</div>" + 
               "<div class='list-footer'>" +
-                "<i  onclick='like("+ index + ")' class='far fa-thumbs-up likebtn'></i> | <i  onclick='dislike("+ index + ")'  class='far fa-thumbs-down dislikebtn'></i>" + 
+                ((!tagging)?"<i  onclick='like("+ article.id + ")' class='far fa-thumbs-up likebtn'></i> | <i  onclick='dislike("+ article.id + ")'  class='far fa-thumbs-down dislikebtn'></i>":"") + 
               "</div>" + 
             "</div>" +
           "</li>";
@@ -58,8 +96,8 @@ function learning(pageSize = 50) {
 
 function like(index) {
   var li = $(event.srcElement).closest('li');
-  var n = JSON.parse(JSON.stringify(news[index]));
-  var method = (!news[index].like)?'POST':'DELETE';
+  var n = JSON.parse(JSON.stringify(news[getArticleIndex(index)]));
+  var method = (!news[getArticleIndex(index)].like)?'POST':'DELETE';
   n.like = !n.like;
   n.dislike = false;
 
@@ -77,7 +115,7 @@ function like(index) {
     else {
       li.removeClass('liked');
     }
-    news[index] = n;
+    news[getArticleIndex(index)] = n;
   })
   .fail(function(data) {
     alert("Error");
@@ -86,8 +124,8 @@ function like(index) {
 
 function dislike(index) {
   var li = $(event.srcElement).closest('li');
-  var n = JSON.parse(JSON.stringify(news[index]));
-  var method = (!news[index].dislike)?'POST':'DELETE';
+  var n = JSON.parse(JSON.stringify(news[getArticleIndex(index)]));
+  var method = (!news[getArticleIndex(index)].dislike)?'POST':'DELETE';
   n.dislike = !n.dislike;
   n.like = false;
 
@@ -105,7 +143,7 @@ function dislike(index) {
     else {
       li.removeClass('disliked');
     }
-    news[index] = n;
+    news[getArticleIndex(index)] = n;
   })
   .fail(function(data) {
     alert("Error");
@@ -116,11 +154,11 @@ function readArticle(index) {
   $.ajax({
     type: 'POST',
     url: url_request(CONFIG.API_READ_URL),
-    data: JSON.stringify(news[index]),
+    data: JSON.stringify(news[getArticleIndex(index)]),
     contentType:"application/json; charset=utf-8"
   });
 
-  var win = window.open(news[index].link, '_blank');
+  var win = window.open(news[getArticleIndex(index)].link, '_blank');
   win.blur();
   window.focus();
   return false;
@@ -195,6 +233,10 @@ $(document).ready(function() {
 
       case 'read':
         read_articles();
+        break;
+
+      case 'tag':
+        tagging();
         break;
       
       default:

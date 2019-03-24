@@ -94,14 +94,26 @@ class DBConnector:
             # update old article
             articles.update(
                 {'_id':article['_id']},
-                { '$set': values },
+                { '$set': values }
             )
+
+    def tag_article(self, article_id, tag):
+        articles = self.db['articles']
+        articles.update(
+            {'_id':article_id},
+            {'$set':{'tag': tag}}
+        )
+
 
     def find(self, query):
         articles = self.db['articles']
         results = articles.find(query)
         return list(results)
 
+    def find_one(self, query):
+        articles = self.db['articles']
+        return articles.find_one(query)
+        
     def find_liked(self):
         return self.find({'like':True})
 
@@ -110,6 +122,9 @@ class DBConnector:
 
     def find_read(self):
         return self.find({'read':True})
+
+    def find_untagged(self):
+        return self.find_one({'tag':None})
 
     def close(self):
         pass

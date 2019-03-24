@@ -27,6 +27,29 @@
       </div>
     </header>
     <main>
+      <section id="tag_section" class="">
+        <h1> <i onclick="stop_tagging();" class="fas fa-times" style='float: right;cursor:pointer;'></i> tag an article</h1>
+        <div id="tag_wrapper">
+          <ul id="tag_article">
+          </ul>
+          <form>
+            <p>This article is about...</p>
+            <select>
+              <option value="Politica">Politica</option>
+              <option value="Economia">Economia</option>
+              <option value="Scienza">Scienza</option>
+              <option value="Tecnologia">Tecnologia</option>
+              <option value="Cultura">Cultura</option>
+              <option value="Cronaca">Cronaca</option>
+              <option value="Gossip">Gossip</option>
+              <option value="Sport">Sport</option>
+              <option value="Entertainment">Entertainment</option>
+            </select>
+            <button>tag</button>         
+          </form>
+        </div>
+      </section>
+
       <section id="feed_section" class="">
         <h1>your newsfeed</h1>
         <ul id="feed" class="">

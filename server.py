@@ -93,6 +93,16 @@ class ReadArticles(Resource):
         return db.find_read(), 200
 
 
+class Tag(Resource):
+    def get(self):
+        return db.find_untagged(), 200
+    
+    def put(self):
+        article = request.get_json()
+        db.tag_article(article['_id'], article['tag'])
+        return 200
+
+
 # rest API routes
 api.add_resource(Feed, "/api/feed", "/api/feed/<int:num_articles>")
 api.add_resource(Learn, "/api/learn", "/api/learn/<int:num_articles>")
@@ -104,6 +114,8 @@ api.add_resource(Read, "/api/read")
 api.add_resource(LikedArticles, "/api/liked_articles")
 api.add_resource(DislikedArticles, "/api/disliked_articles")
 api.add_resource(ReadArticles, "/api/read_articles")
+
+api.add_resource(Tag, "/api/tag")
 
 
 # front-end routes

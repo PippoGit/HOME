@@ -10,9 +10,16 @@
   "API_LIKED_URL": "/api/liked_articles",
   "API_DISLIKED_URL": "/api/disliked_articles",
   "API_READARTICLES_URL": "/api/read_articles",
+  "API_TAG_URL": "/api/tag",
+
 
   "cmds":
   [
+    {
+      "description": "Tag an article",
+      "name": "tag",
+      "code": 4
+    },
     {
       "description": "View read articles",
       "name": "read",
