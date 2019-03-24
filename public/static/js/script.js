@@ -7,7 +7,7 @@ function more() {
 
 function getArticleIndex(id) {
   for(var i=0; i<news.length;i++)
-    if(news['_id'] == id) return i;
+    if(news[i]['_id'] == id) return i;
 }
 
 function stop_tagging() {
@@ -49,18 +49,18 @@ function getArticleHTMLElement(article, tagging=false) {
   var liked = (article.like)?" liked ": "";
   var disliked = (article.dislike)?" disliked ": "";
 
-  return  "<li data-index='" + article.id + "' class='" + liked + disliked + "'  >" +
+  return  "<li data-index='" + article._id + "' class='" + liked + disliked + "'  >" +
             "<div class='card card-news'>" + 
               "<div class='list-header'>" +  
                 "<img class='list-img'" + imgFilter + " src='"+ imgUrl + "'></img>" +
                 "<div class='list-category'>"+article.source +"</div>" + 
-                "<a class='list-title' href='javascript:void(0)'" + ( (!tagging)? "onclick='readArticle("+ article.id + ")' ": "") + " >" + article.title + "</a>" +
+                "<a class='list-title' href='javascript:void(0)'" + ( (!tagging)? "onclick='readArticle(\""+ article._id + "\")' ": "") + " >" + article.title + "</a>" +
                 "<div class='list-author'>"+ article.author +"</div>" + 
                 "<div class='list-datetime'> <i class='fas fa-clock'></i> " + article.datetime + "</div>" + 
               "</div>" +
               "<div class='list-content'>"+ article.description + "</div>" + 
               "<div class='list-footer'>" +
-                ((!tagging)?"<i  onclick='like("+ article.id + ")' class='far fa-thumbs-up likebtn'></i> | <i  onclick='dislike("+ article.id + ")'  class='far fa-thumbs-down dislikebtn'></i>":"") + 
+                ((!tagging)?"<i  onclick='like(\""+ article._id + "\")' class='far fa-thumbs-up likebtn'></i> | <i  onclick='dislike(\""+ article._id + "\")'  class='far fa-thumbs-down dislikebtn'></i>":"") + 
               "</div>" + 
             "</div>" +
           "</li>";
