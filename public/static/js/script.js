@@ -28,8 +28,8 @@ function tagging() {
     e.preventDefault();
     article['tag'] = $("#tag_section select").val();
     $.ajax({
-      type: method,
-      url: url_request(CONFIG.API_LIKE_URL),
+      type: 'PUT',
+      url: url_request(CONFIG.API_TAG_URL),
       data: JSON.stringify(article),
       contentType:"application/json; charset=utf-8"
     })
