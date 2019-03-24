@@ -37,7 +37,7 @@ class Feed(Resource):
         # getting the best articles from the db...
         return 400 # Not available yet!
     
-    def put(self):
+    def patch(self):
         newsfeed.load()
         return 200
 

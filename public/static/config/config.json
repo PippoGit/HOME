@@ -2,7 +2,7 @@
   "server" : "0.0.0.0",
   "port" : "5000",
   
-  "API_FEED_URL" : "/api/feed/",
+  "API_FEED_URL" : "/api/feed",
   "API_LEARN_URL": "/api/learn",
   "API_LIKE_URL" : "/api/like",
   "API_DISLIKE_URL" : "/api/dislike",
@@ -15,6 +15,11 @@
 
   "cmds":
   [
+    {
+      "description": "Update the newsfeed",
+      "name": "refresh",
+      "code": 5
+    },
     {
       "description": "Tag an article",
       "name": "tag",

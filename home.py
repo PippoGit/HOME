@@ -124,7 +124,11 @@ class DBConnector:
         return self.find({'read':True})
 
     def find_untagged(self):
-        return random.choice(self.find({'tag':None}))
+        articles = self.find({'tag':None})
+        if len(articles) is 0:
+            return {}
+        else:
+            return random.choice(articles)
 
     def close(self):
         pass

@@ -1,8 +1,18 @@
 var CONFIG;
 var news, tagging_article;
 
-function more() {
-  loadNews(100);
+function refresh() {
+  $("#page").addClass('refreshing');
+  $("#refresh").show();
+  $.ajax({
+    type: 'PATCH',
+    url: url_request(CONFIG.API_FEED_URL),
+    contentType: 'application/json'
+  })
+  .done(function(data) {
+    $("#page").removeClass('refreshing');
+    $("#refresh").hide();
+  })
 }
 
 function getArticleIndex(id) {
@@ -18,6 +28,12 @@ function tagging() {
   var url = url_request(CONFIG.API_TAG_URL);
 
   $.get(url, function(data) {
+    if($.isEmptyObject(data)) {
+      alert("All articles have been tagged!");
+      stop_tagging();
+      return;
+    }
+
     tagging_article = data;
     $("#tag_section").slideDown();
     $("#tag_article").html(getArticleHTMLElement(tagging_article, true));
@@ -50,6 +66,7 @@ function getArticleHTMLElement(article, tagging=false) {
 }
 
 function url_request(api_url, params="") {
+  params = (params!='')?'/'+params:'';
   return window.location.origin + api_url + params;
 }
 
@@ -222,6 +239,10 @@ $(document).ready(function() {
         tagging();
         break;
       
+      case 'refresh':
+        refresh();
+        break;
+
       default:
         cmd = false;
     }

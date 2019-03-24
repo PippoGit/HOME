@@ -451,3 +451,18 @@ ul {
   border: 2px solid #d5405d;
   box-sizing: border-box;
 }
+
+.refreshing {
+  filter: blur(25px);
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+}
+
+#refresh {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  height: 100%;
+  width: 100%;
+}
