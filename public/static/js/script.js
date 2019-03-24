@@ -1,5 +1,5 @@
 var CONFIG;
-var news;
+var news, tagging_article;
 
 function more() {
   loadNews(100);
@@ -15,31 +15,14 @@ function stop_tagging() {
 }
 
 function tagging() {
-  var article = {};
   var url = url_request(CONFIG.API_TAG_URL);
 
   $.get(url, function(data) {
-    article = data;
+    tagging_article = data;
     $("#tag_section").slideDown();
-    $("#tag_article").html(getArticleHTMLElement(article, true));
+    $("#tag_article").html(getArticleHTMLElement(tagging_article, true));
   });
 
-  $("#tag_section form").on('submit', function(e){
-    e.preventDefault();
-    article['tag'] = $("#tag_section select").val();
-    $.ajax({
-      type: 'PUT',
-      url: url_request(CONFIG.API_TAG_URL),
-      data: JSON.stringify(article),
-      contentType:"application/json; charset=utf-8"
-    })
-    .done(function(data) {
-      tagging();
-    })
-    .fail(function(data) {
-      alert("Error");
-    });
-  });
 }
 
 
@@ -168,7 +151,7 @@ function createFeed() {
   var list = $("#feed");
   list.empty();
   for(var i=0; i<news.length;i++)
-    list.append(getArticleHTMLElement(news[i], i));
+    list.append(getArticleHTMLElement(news[i]));
 }
 
 function loadArticlesFromUrl(url) {
@@ -244,6 +227,25 @@ $(document).ready(function() {
     }
     if(cmd) $("#searchbar").val('');
   });
+
+  $("#tag_section form").on('submit', function(e){
+    e.preventDefault();
+    tagging_article['tag'] = $("#tag_section select").val();
+    $.ajax({
+      type: 'PUT',
+      url: url_request(CONFIG.API_TAG_URL),
+      data: JSON.stringify(tagging_article),
+      contentType:"application/json; charset=utf-8"
+    })
+    .done(function(data) {
+      tagging();
+    })
+    .fail(function(data) {
+      alert("Error");
+    });
+  });
+
+  
 
 });
 

@@ -124,7 +124,7 @@ class DBConnector:
         return self.find({'read':True})
 
     def find_untagged(self):
-        return self.find_one({'tag':None})
+        return random.choice(self.find({'tag':None}))
 
     def close(self):
         pass

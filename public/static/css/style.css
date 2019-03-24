@@ -426,7 +426,13 @@ ul {
   margin: 10px;
   height: 35px;
   width: 100px;
-  text-align: center;
+}
+
+#tag_wrapper form button:hover {
+  filter: brightness(1.2);
+}
+
+.btn {
   border-radius: 23px;
   background: -webkit-linear-gradient(-45deg, #fd0b58 0px, #a32b68 100%);
   color: white;
@@ -439,6 +445,9 @@ ul {
   box-shadow: 0 0 10px 0px rgba(154, 161, 171, 0.36);
 }
 
-#tag_wrapper form button:hover {
-  filter: brightness(1.2);
+.btn.secondary {
+  background: white;
+  color: #d6405d;
+  border: 2px solid #d5405d;
+  box-sizing: border-box;
 }
