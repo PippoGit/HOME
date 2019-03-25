@@ -115,13 +115,13 @@ class DBConnector:
         return articles.find_one(query)
         
     def find_liked(self):
-        return self.find({'like':True})
+        return self.find({'like':True})[::-1]
 
     def find_disliked(self):
-        return self.find({'dislike':True})
+        return self.find({'dislike':True})[::-1]
 
     def find_read(self):
-        return self.find({'read':True})
+        return self.find({'read':True})[::-1]
 
     def find_untagged(self):
         articles = self.find({'tag':None})
