@@ -242,6 +242,13 @@ $(document).ready(function() {
       case 'refresh':
         refresh();
         break;
+     
+      case 'feed':
+        alert("To be done...");
+
+        $("#feed_section h1").text("your newsfeed");
+        $("#feed").empty();
+        break;
 
       default:
         cmd = false;

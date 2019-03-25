@@ -16,6 +16,11 @@
   "cmds":
   [
     {
+      "description": "View the newsfeed",
+      "name": "feed",
+      "code": 6
+    },
+    {
       "description": "Update the newsfeed",
       "name": "refresh",
       "code": 5
