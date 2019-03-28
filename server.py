@@ -10,7 +10,9 @@ config = home.load_config()
 
 # preparing the components
 db = home.DBConnector(**config['db'])
-feed_parser = home.Parser(config['feeds'])
+feed_parser = home.Parser(config['feeds']) # should the feed be a Pandas Dataframe too? dunno
+newsfeed = home.NewsFeed() # i don't know if i actually need this class (maybe a list will be fine)
+                           # even better: i could use Pandas Dataframe => a lot easier to use!
 miner = home.Miner()
 
 # loading initial feed
@@ -35,10 +37,18 @@ CORS(app, origins=['http://localhost:5000', 'http://imac.local:5000', 'http://12
 class Feed(Resource):
     def get(self, num_articles=None):
         # getting the best articles from the db...
+        
         return 400 # Not available yet!
     
     def patch(self):
+        # update the sources => Parse again RSS
         feed_parser.parse()
+        # re-train the model
+
+        # re-apply the filter
+
+        # return filtered feed (NOT the feed_parser stuff)
+
         return 200
 
 
