@@ -107,6 +107,16 @@
       "name": "il Post",
       "category" : "News",
       "url" : "https://www.ilpost.it/feed/"
-    }      
+    },
+    {
+      "name": "Google News",
+      "category" : "News",
+      "url" : "https://news.google.com/rss?hl=it&gl=IT&ceid=IT:it"
+    },
+    {
+      "name": "Yahoo News",
+      "category" : "News",
+      "url" : "https://it.notizie.yahoo.com/rss"
+    }
   ]
 }
