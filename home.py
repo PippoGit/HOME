@@ -10,11 +10,11 @@ def load_config():
     return config
 
 
-# NewsFeed class
+# RSS Parser class
 class Parser:
     def __init__(self, sources):
         self.sources = sources
-        self.feed = []
+        self.parsed_feed = []
 
 
     def train(self, miner):
@@ -57,21 +57,26 @@ class Parser:
                 article['_id'] = hashlib.sha1(ida.encode()).hexdigest()
                 
                 # feed the feeder
-                self.feed.append(article)
+                self.parsed_feed.append(article)
 
             print("{} loaded! ({} entries)".format(source['name'], len(entries)))
 
-        print("whole newsfeed loaded ({} entries)".format(len(self.feed)))
+        print("whole newsfeed loaded ({} entries)".format(len(self.parsed_feed)))
 
     
     def sorted_feed(self, num_articles=None):
-        feed = self.feed[:num_articles] if num_articles is not None else self.feed
+        feed = self.parsed_feed[:num_articles] if num_articles is not None else self.parsed_feed
         feed = sorted(feed, key=lambda kv: datetime.datetime.strptime(kv['datetime'], '%a, %d %b %Y %H:%M:%S'), reverse=True)
         return feed
 
 
     def training_samples(self, num_articles=50):
-        return random.sample(self.feed, num_articles)
+        return random.sample(self.parsed_feed, num_articles)
+
+
+# NewsFeed class:
+class NewsFeed:
+    pass
 
 # DataMining stuff HERE!
 class Miner:
