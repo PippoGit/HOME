@@ -10,12 +10,12 @@ config = home.load_config()
 
 # preparing the components
 db = home.DBConnector(**config['db'])
-newsfeed = home.NewsFeed(config['feeds'])
+feed_parser = home.Parser(config['feeds'])
 miner = home.Miner()
 
 # loading initial feed
 print("\nloading feeds...") 
-newsfeed.load()
+feed_parser.parse()
 
 # filtering the dataset using some machinelearning magic...
 
@@ -38,13 +38,13 @@ class Feed(Resource):
         return 400 # Not available yet!
     
     def patch(self):
-        newsfeed.load()
+        feed_parser.parse()
         return 200
 
 
 class Learn(Resource):
     def get(self, num_articles=50):
-        return newsfeed.training_samples(num_articles), 200
+        return feed_parser.training_samples(num_articles), 200
 
 
 class Like(Resource):

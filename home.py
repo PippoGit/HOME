@@ -11,17 +11,17 @@ def load_config():
 
 
 # NewsFeed class
-class NewsFeed:
+class Parser:
     def __init__(self, sources):
         self.sources = sources
         self.feed = []
 
 
-    def train(miner):
+    def train(self, miner):
         pass
-        
 
-    def load(self):
+
+    def parse(self):
         if hasattr(ssl, '_create_unverified_context'):
             ssl._create_default_https_context = ssl._create_unverified_context
 
