@@ -16,6 +16,9 @@ class NewsFeed:
         self.sources = sources
         self.feed = []
 
+    def train(miner):
+        pass
+
 
     def load(self):
         if hasattr(ssl, '_create_unverified_context'):
