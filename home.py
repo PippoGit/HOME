@@ -91,13 +91,14 @@ class DBConnector:
 
     def update_article(self, article, values):
         articles = self.db['articles']
-        
-        for k, v in values.items():
-            article[k] = v
 
         results = articles.find_one({'_id':article['_id']})
         if results is None:
-            # insert article
+            # prepare the new article with updated values
+            for k, v in values.items():
+                article[k] = v
+            
+            # insert article into the db
             articles.insert(article)
         else:
             # update old article
@@ -107,11 +108,7 @@ class DBConnector:
             )
 
     def tag_article(self, article_id, tag):
-        articles = self.db['articles']
-        articles.update(
-            {'_id':article_id},
-            {'$set':{'tag': tag}}
-        )
+        self.update_article({'_id':article_id}, {'tag': tag})
 
 
     def find(self, query):
