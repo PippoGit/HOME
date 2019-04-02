@@ -185,7 +185,8 @@ class DBConnector:
             for k, v in values.items():
                 article[k] = v
             
-            article['datetime'] = datetime.datetime.fromisoformat(article['datetime'])
+            if article['datetime'] is not None:
+                article['datetime'] = datetime.datetime.fromisoformat(article['datetime'])
 
             # insert article into the db
             articles.insert(article)
