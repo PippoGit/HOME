@@ -73,19 +73,18 @@ class Parser:
 
         print("whole newsfeed loaded ({} entries)".format(len(self.parsed_feed)))
 
-    
-    # just ignore sorting stuff, dataset is too messy (NOT FIESABLE!)
-    def sorted_feed(self, num_articles=None):
-        pass
-        #feed = self.parsed_feed[:num_articles] if num_articles is not None else self.parsed_feed
-        # ' ', 'Wed, 17 Oct 2011 22:22:22 +0300'.split(None)[1:7])
-        # return sorted(self.parsed_feed, key=lambda kv: datetime.datetime.strptime(str.join(' ',kv['datetime'].split(None)[1:7]), '%d %b %Y %H:%M'), reverse=True)
-    
 
-    # ignore this as well
-    def sort_feed(self):
-        pass
-    #    self.parsed_feed = self.sorted_feed(self)
+    # IGNORE
+    # Still not working, there's too much None values. Just ignore it.
+    #   Feed will be sorted by relevance (i hope)
+    #   History will be sorted by MongoDB (i hope)
+    # def sorted_feed(self, num_articles=None):
+    #     return sorted(self.parsed_feed, key=lambda kv: kv['datetime'], reverse=True)
+    #
+    #
+    # def sort_feed(self):
+    #     self.parsed_feed = self.sorted_feed()
+    # IGNORE 
 
 
     def training_samples(self, num_articles=50):
@@ -101,6 +100,7 @@ class Miner:
     def __init__(self, dataset=None):
         self.dataset = [] if dataset is None else pd.DataFrame(dataset)
         self.model = None
+
 
     def update_dataset(self, dataset):
         self.training_set = pd.DataFrame(dataset)
@@ -140,7 +140,6 @@ class Miner:
 
     def tokenize(self, filter=False):
         tokens = []
-        
         for _, article in self.dataset.iterrows():
             t = {'title' : [], 'description': []}
             t['title'] = nltk.word_tokenize(article['title'])
@@ -149,25 +148,23 @@ class Miner:
         return tokens
 
 
+    # ????
     def extract_features(self):
         pass
 
 
     def preprocess(self):
         tokens = self.tokenize(filter=True)
-        return
+        return tokens
 
     
     def classify(self):
-        pass
-    
-
-    def apply_clustering(self):
         pass
 
 
     def build_model(self):
         pass
+
 
 # MongoDB connector
 class DBConnector:
