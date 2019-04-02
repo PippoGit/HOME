@@ -3,6 +3,15 @@ from bs4 import BeautifulSoup
 import hashlib, datetime, ssl, random, json
 import pymongo
 
+import pandas as pd
+import numpy as np
+
+import nltk
+from nltk.corpus import stopwords
+
+
+
+
 # some util function 
 def load_config():
     with open("config/config.json") as f:
@@ -42,7 +51,7 @@ class Parser:
                     'title' : e['title'] if ('title' in e) else "",
                     'author': e['author'] if ('author' in e) else "",
                     'description' : soup.text if soup is not None else "",
-                    'datetime' : e['published'][:-6] if ('published' in e) else "",
+                    'datetime' : datetime.datetime(*e['published_parsed'][:6]).isoformat() if ('published_parsed' in e) else None,
                     'img' : imgurl['src'] if imgurl is not None else "",
                     'link': e['link'] if ('link' in e) else "",
                     'source' : source['name'],
@@ -51,6 +60,7 @@ class Parser:
                     'dislike' : False,
                     'read' : False
                 }
+                #datetime.datetime.strptime("2017-10-13T10:53:53.000Z", "%Y-%m-%dT%H:%M:%S.000Z")
 
                 # adding the id
                 ida = ''.join('{}{}'.format(key, val) for key, val in article.items())
@@ -64,10 +74,18 @@ class Parser:
         print("whole newsfeed loaded ({} entries)".format(len(self.parsed_feed)))
 
     
+    # just ignore sorting stuff, dataset is too messy (NOT FIESABLE!)
     def sorted_feed(self, num_articles=None):
-        feed = self.parsed_feed[:num_articles] if num_articles is not None else self.parsed_feed
-        feed = sorted(feed, key=lambda kv: datetime.datetime.strptime(kv['datetime'], '%a, %d %b %Y %H:%M:%S'), reverse=True)
-        return feed
+        pass
+        #feed = self.parsed_feed[:num_articles] if num_articles is not None else self.parsed_feed
+        # ' ', 'Wed, 17 Oct 2011 22:22:22 +0300'.split(None)[1:7])
+        # return sorted(self.parsed_feed, key=lambda kv: datetime.datetime.strptime(str.join(' ',kv['datetime'].split(None)[1:7]), '%d %b %Y %H:%M'), reverse=True)
+    
+
+    # ignore this as well
+    def sort_feed(self):
+        pass
+    #    self.parsed_feed = self.sorted_feed(self)
 
 
     def training_samples(self, num_articles=50):
@@ -80,7 +98,76 @@ class NewsFeed:
 
 # DataMining stuff HERE!
 class Miner:
-  pass
+    def __init__(self, dataset=None):
+        self.dataset = [] if dataset is None else pd.DataFrame(dataset)
+        self.model = None
+
+    def update_dataset(self, dataset):
+        self.training_set = pd.DataFrame(dataset)
+
+
+    def fix_null(self):
+        self.dataset.replace('', np.nan, regex=True, inplace=True)
+        print(self.dataset)
+
+    
+    def train(self, num_folds=10):
+        pass
+    
+
+    def get_model(self):
+        pass
+
+
+    def remove_stopwords(self, tokens):
+        tokens_nsw = []        
+        stop_words=set(stopwords.words("italian"))
+
+        for t in tokens:
+            filtered_t = []
+            filtered_d = []
+            for w in t['title']:
+                if w not in stop_words:
+                    filtered_t.append(w)
+            
+            for w in t['description']:
+                if w not in stop_words:
+                    filtered_d.append(w)
+            
+            tokens_nsw.append({'title': filtered_t, 'description':filtered_d})
+        
+        return tokens_nsw
+
+    def tokenize(self, filter=False):
+        tokens = []
+        
+        for _, article in self.dataset.iterrows():
+            t = {'title' : [], 'description': []}
+            t['title'] = nltk.word_tokenize(article['title'])
+            t['description'] = nltk.word_tokenize(article['description'])
+            tokens.append(t) 
+        return tokens
+
+
+    def extract_features(self):
+        pass
+
+
+    def preprocess(self):
+        tokens = self.tokenize(filter=True)
+        return
+
+    
+    def classify(self):
+        pass
+    
+
+    def apply_clustering(self):
+        pass
+
+
+    def build_model(self):
+        pass
 
 # MongoDB connector
 class DBConnector:
@@ -98,6 +185,8 @@ class DBConnector:
             for k, v in values.items():
                 article[k] = v
             
+            article['datetime'] = datetime.datetime.fromisoformat(article['datetime'])
+
             # insert article into the db
             articles.insert(article)
         else:
