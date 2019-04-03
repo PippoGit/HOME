@@ -139,6 +139,7 @@ class Miner:
     def set_likability_predictor(self):
         pass
 
+
     def get_model(self):
         pass
 
@@ -149,9 +150,6 @@ class Miner:
 
     def fix_null(self):
         self.dataset.replace('', np.nan, regex=True, inplace=True)
-        print(self.dataset)
-
-
 
 
     @classmethod
@@ -287,17 +285,9 @@ class DBConnector:
 
     def find_untagged(self):
         articles = self.find({'tag':None})
-
-        if len(articles) is 0:
-            return {}
-        else:
-            return random.choice(articles)
+        return {} if len(articles) is 0 else random.choice(articles)
 
 
     def close(self):
-        pass
-    
-    def insert_feed(self, feed):
-        pass
-
+        self.client.close()
 
