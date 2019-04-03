@@ -117,19 +117,29 @@ class NewsFeed:
 class Miner:
     stopwords = set(stopwords.words("italian"))
 
-    def __init__(self, dataset=None, stemmer=nltk.stem.PorterStemmer(), vectorizer=Miner.tfidf_vectorizer()):
-        self.dataset = [] if dataset is None else pd.DataFrame(dataset)
+    stemmer = {
+        'porter': nltk.stem.PorterStemmer()
+    }
+
+    vectorizer = {
+        'tf-idf': TfidfVectorizer(analyzer='word', tokenizer=lambda doc: doc, preprocessor=lambda doc: doc, token_pattern=None)
+    }
+
+    def __init__(self, dataset=None, stemmer='porter', vectorizer='tf-idf'):
+        self.dataset = pd.DataFrame(dataset)
+
         self.model = None
-        self.stemmer = stemmer
-        self.vectorizer = vectorizer
+
+        self.stemmer = Miner.stemmer[stemmer]
+        self.vectorizer = Miner.vectorizer[vectorizer]
 
 
     def set_stemmer(self, st):
-        self.stemmer = st
+        self.stemmer = Miner.stemmer[st]
 
 
     def set_vectorizer(self, vt):
-        self.vectorizer = vt
+        self.vectorizer = Miner.vectorizer[vt]
 
 
     def set_tag_classifier(self):
@@ -207,13 +217,12 @@ class Miner:
         # vectorize
         self.vectorizer.fit(tokens)
 
-        return self.vectorizer.vocabulary_
+        return self.vectorizer.toarray()
 
 
     def tag_classification(self):
         input_features = self.extract_features()
         target = self.dataset['tag']
-        
         return [input_features, target]
 
 
@@ -290,4 +299,3 @@ class DBConnector:
 
     def close(self):
         self.client.close()
-
