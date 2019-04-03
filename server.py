@@ -47,7 +47,7 @@ class Feed(Resource):
     def patch(self):
         # update the sources => Parse again RSS
         feed_parser.parse()
-        feed_parser.sort_feed()
+        # feed_parser.sort_feed()
 
         # re-train the model
 

@@ -9,7 +9,8 @@ import numpy as np
 import nltk
 from nltk.corpus import stopwords
 
-
+from bson import json_util
+import json
 
 
 # some util function 
@@ -17,6 +18,14 @@ def load_config():
     with open("config/config.json") as f:
         config = json.load(f)
     return config
+
+
+def json_serial(obj):
+    """JSON serializer for objects not serializable by default json code"""
+
+    if isinstance(obj, (datetime.datetime, datetime.date)):
+        return obj.isoformat()
+    raise TypeError ("Type %s not serializable" % type(obj))
 
 
 # RSS Parser class
@@ -218,10 +227,13 @@ class DBConnector:
 
     def find_untagged(self):
         articles = self.find({'tag':None})
+
         if len(articles) is 0:
             return {}
         else:
-            return random.choice(articles)
+            article = random.choice(articles)
+            article['datetime'] = str(article['datetime'])
+            return article
 
     def close(self):
         pass
