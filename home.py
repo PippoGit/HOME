@@ -131,7 +131,19 @@ class Miner:
     def set_vectorizer(self, vt):
         self.vectorizer = vt
 
-    def update_dataset(self, dataset):
+
+    def set_tag_classifier(self):
+        pass
+
+
+    def set_likability_predictor(self):
+        pass
+
+    def get_model(self):
+        pass
+
+
+    def set_dataset(self, dataset):
         self.dataset = pd.DataFrame(dataset)
 
 
@@ -139,20 +151,15 @@ class Miner:
         self.dataset.replace('', np.nan, regex=True, inplace=True)
         print(self.dataset)
 
-    
-    def train(self, num_folds=10):
-        pass
-    
 
-    def get_model(self):
-        pass
+
 
     @classmethod
     def tfidf_vectorizer(cls):
         tfidf = TfidfVectorizer(
             analyzer='word',
-            tokenizer=`tokenizer=lambda doc: doc`,
-            preprocessor=`tokenizer=lambda doc: doc`,
+            tokenizer=lambda doc: doc,
+            preprocessor=lambda doc: doc,
             token_pattern=None)
         return tfidf
 
@@ -163,17 +170,17 @@ class Miner:
 
 
     @classmethod
-    def word_tokenize(cls, text, stopwords=False):
+    def word_tokenize(cls, text, ignore_stopwords=False):
         tokens = nltk.word_tokenize(text)
-        tokens = cls.remove_stopwords(tokens) if stopwords else tokens
+        tokens = cls.remove_stopwords(tokens) if ignore_stopwords else tokens
         return tokens
 
 
     @classmethod
-    def build_token(cls, article, merge=False, stopwords=False):
+    def build_token(cls, article, merge=False, ignore_stopwords=False):
         t = dict()
-        t['title'] = cls.word_tokenize(article['title'], stopwords)
-        t['description'] = cls.word_tokenize(article['description'], stopwords)
+        t['title'] = cls.word_tokenize(article['title'], ignore_stopwords)
+        t['description'] = cls.word_tokenize(article['description'], ignore_stopwords)
         return (t['title'] + t['description']) if merge else t
 
 
@@ -183,8 +190,8 @@ class Miner:
         return [x for x in token if regex.match(x)]
 
 
-    def tokenize(self, merge=False, stopwords=False):
-        return [Miner.build_token(a, merge, stopwords) for _,a in self.dataset.iterrows()]
+    def tokenize(self, merge=False, ignore_stopwords=False):
+        return [Miner.build_token(a, merge, ignore_stopwords) for _,a in self.dataset.iterrows()]
 
 
     def stem_token(self, token):
@@ -193,7 +200,7 @@ class Miner:
 
     def extract_features(self):
         # tokenize
-        tokens = self.tokenize(merge=True, stopwords=True)
+        tokens = self.tokenize(merge=True, ignore_stopwords=True)
         tokens = [Miner.clean_token(t) for t in tokens]
         
         # stemmatize

@@ -36,14 +36,9 @@ CORS(app, origins=['http://localhost:5000', 'http://imac.local:5000', 'http://12
 class Feed(Resource):
     def get(self, num_articles=None):
         # getting the best articles from the db...
+        return 404
 
-        # miner.update_dataset(feed_parser.parsed_feed)
-        # miner.fix_null()
-        tokens = miner.tokenize(filter=True)
-        tokens_nsw = miner.remove_stopwords(tokens)
 
-        return tokens_nsw # Not available yet!
-    
     def patch(self):
         # update the sources => Parse again RSS
         feed_parser.parse()
@@ -119,6 +114,12 @@ class Tag(Resource):
         return 200
 
 
+class Model(Resource):
+    def put(self):
+        # fit again the model
+        pass
+
+
 # rest API routes
 api.add_resource(Feed, "/api/feed", "/api/feed/<int:num_articles>")
 api.add_resource(Learn, "/api/learn", "/api/learn/<int:num_articles>")
@@ -132,6 +133,8 @@ api.add_resource(DislikedArticles, "/api/disliked_articles")
 api.add_resource(ReadArticles, "/api/read_articles")
 
 api.add_resource(Tag, "/api/tag")
+
+api.add_resource(Model, "/api/model")
 
 
 # front-end routes
