@@ -31,7 +31,7 @@ def test():
     feed_parser.parse()
 
     # filtering the dataset using some machinelearning magic...
-    miner = Miner(feed_parser.parsed_feed)
+    miner = Miner(db.find())
 
     return {'config': config, 'db': db, 'feed_parser': feed_parser, 'newsfeed': newsfeed, 'miner': miner}
 
@@ -263,7 +263,7 @@ class DBConnector:
         self.update_article({'_id':article_id}, {'tag': tag})
 
 
-    def find(self, query):
+    def find(self, query=None):
         articles = self.db['articles']
         results = list(articles.find(query))
         
