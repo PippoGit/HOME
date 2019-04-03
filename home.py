@@ -13,7 +13,7 @@ import nltk
 from nltk.corpus import stopwords
 
 # machine learning
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 def test():
@@ -117,11 +117,19 @@ class NewsFeed:
 class Miner:
     stopwords = set(stopwords.words("italian"))
 
-    def __init__(self, dataset=None, st=nltk.stem.PorterStemmer()):
+    def __init__(self, dataset=None, stemmer=nltk.stem.PorterStemmer(), vectorizer=Miner.tfidf_vectorizer()):
         self.dataset = [] if dataset is None else pd.DataFrame(dataset)
         self.model = None
+        self.stemmer = stemmer
+        self.vectorizer = vectorizer
+
+
+    def set_stemmer(self, st):
         self.stemmer = st
 
+
+    def set_vectorizer(self, vt):
+        self.vectorizer = vt
 
     def update_dataset(self, dataset):
         self.dataset = pd.DataFrame(dataset)
@@ -138,6 +146,15 @@ class Miner:
 
     def get_model(self):
         pass
+
+    @classmethod
+    def tfidf_vectorizer(cls):
+        tfidf = TfidfVectorizer(
+            analyzer='word',
+            tokenizer=`tokenizer=lambda doc: doc`,
+            preprocessor=`tokenizer=lambda doc: doc`,
+            token_pattern=None)
+        return tfidf
 
 
     @classmethod
@@ -182,7 +199,10 @@ class Miner:
         # stemmatize
         tokens = [self.stem_token(t) for t in tokens]
 
-        return tokens
+        # vectorize
+        self.vectorizer.fit(tokens)
+
+        return self.vectorizer.vocabulary_
 
 
     def tag_classification(self):
