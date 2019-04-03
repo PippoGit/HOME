@@ -109,7 +109,7 @@ class Parser:
         return random.sample(self.parsed_feed, num_articles)
 
 
-# NewsFeed class:
+# NewsFeed class: (useless)
 class NewsFeed:
     pass
 
