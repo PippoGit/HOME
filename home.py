@@ -198,30 +198,30 @@ class Miner:
         return [x for x in token if regex.match(x)]
 
 
-    def tokenize(self, merge=False, ignore_stopwords=False):
-        return [Miner.build_token(a, merge, ignore_stopwords) for _,a in self.dataset.iterrows()]
-
-
     def stem_token(self, token):
         return [self.stemmer.stem(w) for w in token]
 
 
-    def extract_features(self):
-        # tokenize
-        tokens = self.tokenize(merge=True, ignore_stopwords=True)
-        tokens = [Miner.clean_token(t) for t in tokens]
-        
+    def features_from_article(self, article):
+        # tokenize article
+        token = Miner.build_token(article, merge=True, ignore_stopwords=True)
+        token = Miner.clean_token(token)
+
         # stemmatize
-        tokens = [self.stem_token(t) for t in tokens]
+        token = self.stem_token(token)
 
         # vectorize
-        self.vectorizer.fit(tokens)
+        ft = self.vectorizer.fit_transform(token)
+        return ft.toarray()
 
-        return self.vectorizer.toarray()
+
+    def features_from_dataset(self):
+        features = [self.features_from_article(a) for _,a in self.dataset.iterrows()]
+        return features
 
 
     def tag_classification(self):
-        input_features = self.extract_features()
+        input_features = self.features_from_dataset()
         target = self.dataset['tag']
         return [input_features, target]
 
