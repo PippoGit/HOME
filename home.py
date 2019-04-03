@@ -43,6 +43,11 @@ def load_config():
     return config
 
 
+def likability(read=False, like=False, dislike=False):
+    likability = 0.5 + (like)*0.5 - (dislike)*0.5 - (not read)*0.2
+    return max(likability, 0)
+
+
 # useless
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
@@ -114,13 +119,14 @@ class NewsFeed:
 class Miner:
     stopwords = set(stopwords.words("italian"))
 
-    def __init__(self, dataset=None):
+    def __init__(self, dataset=None, st=nltk.stem.PorterStemmer()):
         self.dataset = [] if dataset is None else pd.DataFrame(dataset)
         self.model = None
+        self.stemmer = st
 
 
     def update_dataset(self, dataset):
-        self.training_set = pd.DataFrame(dataset)
+        self.dataset = pd.DataFrame(dataset)
 
 
     def fix_null(self):
@@ -166,10 +172,18 @@ class Miner:
         return [Miner.build_token(a, merge, stopwords) for _,a in self.dataset.iterrows()]
 
 
+    def stem_token(self, token):
+        return [self.stemmer.stem(w) for w in token]
+
+
     def extract_features(self):
-        # features = []
+        # tokenize
         tokens = self.tokenize(merge=True, stopwords=True)
         tokens = [Miner.clean_token(t) for t in tokens]
+        
+        # stemmatize
+        tokens = [self.stem_token(t) for t in tokens]
+
         return tokens
 
 
@@ -229,20 +243,25 @@ class DBConnector:
 
         return results
 
+
     def find_one(self, query):
         articles = self.db['articles']
         o = articles.find_one(query)
         o['datetime'] = str(o['datetime'])
         return articles.find_one(query)
-        
+
+
     def find_liked(self):
         return self.find({'like':True})[::-1]
+
 
     def find_disliked(self):
         return self.find({'dislike':True})[::-1]
 
+
     def find_read(self):
         return self.find({'read':True})[::-1]
+
 
     def find_untagged(self):
         articles = self.find({'tag':None})
