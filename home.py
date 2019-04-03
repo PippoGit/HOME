@@ -1,13 +1,39 @@
+# parsing & db stuff
 import feedparser
 from bs4 import BeautifulSoup
-import hashlib, datetime, ssl, random, json
 import pymongo
 
+# util
 import pandas as pd
 import numpy as np
+import hashlib, datetime, ssl, random, json, re
 
+# natural language text processing
 import nltk
 from nltk.corpus import stopwords
+
+# machine learning
+from sklearn.feature_extraction.text import CountVectorizer
+
+
+def test():
+    # importing configuration 
+    print("\nimporting config file...") 
+    config = load_config()
+
+    # preparing the components
+    db = DBConnector(**config['db'])
+    feed_parser = Parser(config['feeds']) 
+    newsfeed = NewsFeed() 
+
+    # loading initial feed
+    print("\nloading feeds...") 
+    feed_parser.parse()
+
+    # filtering the dataset using some machinelearning magic...
+    miner = Miner(feed_parser.parsed_feed)
+
+    return {'config': config, 'db': db, 'feed_parser': feed_parser, 'newsfeed': newsfeed, 'miner': miner}
 
 
 # some util function 
@@ -31,10 +57,6 @@ class Parser:
     def __init__(self, sources):
         self.sources = sources
         self.parsed_feed = []
-
-
-    def train(self, miner):
-        pass
 
 
     def parse(self):
@@ -80,19 +102,6 @@ class Parser:
         print("whole newsfeed loaded ({} entries)".format(len(self.parsed_feed)))
 
 
-    # IGNORE
-    # Still not working, there's too much None values. Just ignore it.
-    #   Feed will be sorted by relevance (i hope)
-    #   History will be sorted by MongoDB (i hope)
-    # def sorted_feed(self, num_articles=None):
-    #     return sorted(self.parsed_feed, key=lambda kv: kv['datetime'], reverse=True)
-    #
-    #
-    # def sort_feed(self):
-    #     self.parsed_feed = self.sorted_feed()
-    # IGNORE 
-
-
     def training_samples(self, num_articles=50):
         return random.sample(self.parsed_feed, num_articles)
 
@@ -103,6 +112,8 @@ class NewsFeed:
 
 # DataMining stuff HERE!
 class Miner:
+    stopwords = set(stopwords.words("italian"))
+
     def __init__(self, dataset=None):
         self.dataset = [] if dataset is None else pd.DataFrame(dataset)
         self.model = None
@@ -125,45 +136,51 @@ class Miner:
         pass
 
 
-    def remove_stopwords(self, tokens):
-        tokens_nsw = []        
-        stop_words=set(stopwords.words("italian"))
+    @classmethod
+    def remove_stopwords(cls, tokens):
+        return [w for w in tokens if w not in cls.stopwords]
 
-        for t in tokens:
-            filtered_t = []
-            filtered_d = []
-            for w in t['title']:
-                if w not in stop_words:
-                    filtered_t.append(w)
-            
-            for w in t['description']:
-                if w not in stop_words:
-                    filtered_d.append(w)
-            
-            tokens_nsw.append({'title': filtered_t, 'description':filtered_d})
-        
-        return tokens_nsw
 
-    def tokenize(self, filter=False):
-        tokens = []
-        for _, article in self.dataset.iterrows():
-            t = {'title' : [], 'description': []}
-            t['title'] = nltk.word_tokenize(article['title'])
-            t['description'] = nltk.word_tokenize(article['description'])
-            tokens.append(t) 
+    @classmethod
+    def word_tokenize(cls, text, stopwords=False):
+        tokens = nltk.word_tokenize(text)
+        tokens = cls.remove_stopwords(tokens) if stopwords else tokens
+        return tokens
 
-    # ????
+
+    @classmethod
+    def build_token(cls, article, merge=False, stopwords=False):
+        t = dict()
+        t['title'] = cls.word_tokenize(article['title'], stopwords)
+        t['description'] = cls.word_tokenize(article['description'], stopwords)
+        return (t['title'] + t['description']) if merge else t
+
+
+    @classmethod
+    def clean_token(cls, token):
+        regex = re.compile(r'\w+')
+        return [x for x in token if regex.match(x)]
+
+
+    def tokenize(self, merge=False, stopwords=False):
+        return [Miner.build_token(a, merge, stopwords) for _,a in self.dataset.iterrows()]
+
+
     def extract_features(self):
-        pass
+        # features = []
+        tokens = self.tokenize(merge=True, stopwords=True)
+        tokens = [Miner.clean_token(t) for t in tokens]
+        return tokens
 
 
     def preprocess(self):
-        tokens = self.tokenize(filter=True)
+        tokens = self.tokenize()
         return tokens
 
     
-    def classify(self):
-        pass
+    def tag_classification(self):
+        tokens = self.tokenize()
+        return tokens
 
 
     def build_model(self):
@@ -198,17 +215,24 @@ class DBConnector:
                 { '$set': values }
             )
 
+
     def tag_article(self, article_id, tag):
         self.update_article({'_id':article_id}, {'tag': tag})
 
 
     def find(self, query):
         articles = self.db['articles']
-        results = articles.find(query)
-        return list(results)
+        results = list(articles.find(query))
+        
+        for o in results: 
+            o['datetime'] = str(o['datetime'])
+
+        return results
 
     def find_one(self, query):
         articles = self.db['articles']
+        o = articles.find_one(query)
+        o['datetime'] = str(o['datetime'])
         return articles.find_one(query)
         
     def find_liked(self):
@@ -226,9 +250,8 @@ class DBConnector:
         if len(articles) is 0:
             return {}
         else:
-            article = random.choice(articles)
-            article['datetime'] = str(article['datetime'])
-            return article
+            return random.choice(articles)
+
 
     def close(self):
         pass
