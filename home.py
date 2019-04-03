@@ -217,7 +217,7 @@ class Miner:
 
     def features_from_dataset(self):
         features = [self.features_from_article(a) for _,a in self.dataset.iterrows()]
-        return features
+        return np.asarray(features)
 
 
     def tag_classification(self):
