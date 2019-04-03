@@ -9,9 +9,6 @@ import numpy as np
 import nltk
 from nltk.corpus import stopwords
 
-from bson import json_util
-import json
-
 
 # some util function 
 def load_config():
@@ -20,13 +17,14 @@ def load_config():
     return config
 
 
+# useless
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
 
     if isinstance(obj, (datetime.datetime, datetime.date)):
         return obj.isoformat()
     raise TypeError ("Type %s not serializable" % type(obj))
-
+#
 
 # RSS Parser class
 class Parser:
@@ -69,7 +67,6 @@ class Parser:
                     'dislike' : False,
                     'read' : False
                 }
-                #datetime.datetime.strptime("2017-10-13T10:53:53.000Z", "%Y-%m-%dT%H:%M:%S.000Z")
 
                 # adding the id
                 ida = ''.join('{}{}'.format(key, val) for key, val in article.items())
