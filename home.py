@@ -50,8 +50,6 @@ def likability(read=False, like=False, dislike=False):
 
 # useless
 def json_serial(obj):
-    """JSON serializer for objects not serializable by default json code"""
-
     if isinstance(obj, (datetime.datetime, datetime.date)):
         return obj.isoformat()
     raise TypeError ("Type %s not serializable" % type(obj))
@@ -187,14 +185,11 @@ class Miner:
         return tokens
 
 
-    def preprocess(self):
-        tokens = self.tokenize()
-        return tokens
-
-    
     def tag_classification(self):
-        tokens = self.tokenize()
-        return tokens
+        input_features = self.extract_features()
+        target = self.dataset['tag']
+        
+        return [input_features, target]
 
 
     def build_model(self):
