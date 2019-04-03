@@ -6,7 +6,7 @@ import pymongo
 # util
 import pandas as pd
 import numpy as np
-import hashlib, datetime, ssl, random, json
+import hashlib, datetime, ssl, random, json, re
 
 # natural language text processing
 import nltk
@@ -142,19 +142,24 @@ class Miner:
 
 
     @classmethod
+    def word_tokenize(cls, text, stopwords=False):
+        tokens = nltk.word_tokenize(text)
+        tokens = cls.remove_stopwords(tokens) if stopwords else tokens
+        return tokens
+
+
+    @classmethod
     def build_token(cls, article, merge=False, stopwords=False):
         t = dict()
-        t['title'] = nltk.word_tokenize(article['title'])
-        t['description'] = nltk.word_tokenize(article['description'])
+        t['title'] = cls.word_tokenize(article['title'], stopwords)
+        t['description'] = cls.word_tokenize(article['description'], stopwords)
+        return (t['title'] + t['description']) if merge else t
 
-        if stopwords:
-            t['title'] = Miner.remove_stopwords(t['title'])
-            t['description'] = Miner.remove_stopwords(t['description'])  
 
-        if merge:
-            t = t['title'] + t['description']
-
-        return t
+    @classmethod
+    def clean_token(cls, token):
+        regex = re.compile(r'\w+')
+        return [x for x in token if regex.match(x)]
 
 
     def tokenize(self, merge=False, stopwords=False):
@@ -164,6 +169,7 @@ class Miner:
     def extract_features(self):
         # features = []
         tokens = self.tokenize(merge=True, stopwords=True)
+        tokens = [Miner.clean_token(t) for t in tokens]
         return tokens
 
 
