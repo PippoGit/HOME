@@ -206,7 +206,7 @@ class Miner:
 
         # vectorize (PROBLEMS HERE!!!!!!)
         ft = token # ft = self.vectorizer.fit_transform(token)
-        return ft.toarray()
+        return ft  # .toarray()
 
 
     def features_from_dataset(self, as_array=True):
