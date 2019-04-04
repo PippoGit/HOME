@@ -7,6 +7,7 @@ import pymongo
 import pandas as pd
 import numpy as np
 import hashlib, datetime, ssl, random, json, re
+from collections import defaultdict
 
 # natural language text processing
 import nltk
@@ -14,6 +15,7 @@ from nltk.corpus import stopwords
 
 # machine learning
 from sklearn.feature_extraction.text import TfidfVectorizer
+import gensim
 
 
 def test():
@@ -47,17 +49,23 @@ def likability(read=False, like=False, dislike=False):
     likability = 0.5 + (like)*0.5 - (dislike)*0.5 - (not read)*0.2
     return max(likability, 0)
 
+
 def list_union(lst1, lst2): 
     final_list = list(set(lst1) | set(lst2)) 
     return final_list 
 
 
-# useless
-def json_serial(obj):
-    if isinstance(obj, (datetime.datetime, datetime.date)):
-        return obj.isoformat()
-    raise TypeError ("Type %s not serializable" % type(obj))
-#
+def get_categories():
+    return ["Politica",
+            "Economia",
+            "Scienza",
+            "Tecnologia",
+            "Cultura",
+            "Cronaca",
+            "Gossip",
+            "Sport",
+            "Entertainment"]
+
 
 # RSS Parser class
 class Parser:
@@ -117,7 +125,46 @@ class Parser:
 class NewsFeed:
     pass
 
-# DataMining stuff HERE!
+# CustomVectorizer
+class TfidfEmbeddingVectorizer:
+    def __init__(self):
+        self.word2vec = None
+        self.word2weight = None
+        self.dim = None # len(word2vec.itervalues().next())
+
+
+    def setw2v(self, w2v):
+        self.word2vec = w2v
+        self.dim = len(w2v)
+
+
+    def fit(self, X, y=None):
+        tfidf = TfidfVectorizer(analyzer=lambda x: x)
+        tfidf.fit(X)
+        # if a word was never seen - it must be at least as infrequent
+        # as any of the known words - so the default idf is the max of 
+        # known idf's
+        max_idf = max(tfidf.idf_)
+        self.word2weight = defaultdict(
+            lambda: max_idf,
+            [(w, tfidf.idf_[i]) for w, i in tfidf.vocabulary_.items()])
+
+        return self
+
+    def transform(self, X):
+        return np.array([
+                np.mean([self.word2vec[w] * self.word2weight[w]
+                         for w in words if w in self.word2vec] or
+                        [np.zeros(self.dim)], axis=0)
+                for words in X
+            ])
+
+
+    def fit_transform(self, X, y=None):
+        self.fit(X,y)
+        return self.transform(X)
+
+
 class Miner:
     stopwords = set(stopwords.words('italian'))
     max_features = 5000
@@ -129,24 +176,37 @@ class Miner:
     }
 
     vectorizer = {
-        'tf-idf': TfidfVectorizer(max_features=max_features, analyzer='word', tokenizer=ignore, preprocessor=ignore, token_pattern=None)
+        'tfidf': TfidfVectorizer(max_features=max_features, analyzer='word', tokenizer=ignore, preprocessor=ignore, token_pattern=None),
+        'w2v-tfidf' : TfidfEmbeddingVectorizer()
     }
 
-    def __init__(self, dataset=None, stemmer='snowball', vectorizer='tf-idf'):
+
+    def __init__(self, dataset=None, stemmer='snowball', vectorizer='w2v-tfidf'):
         self.dataset = pd.DataFrame(dataset)
 
         self.model = None
 
         self.stemmer = Miner.stemmer[stemmer]
+        self.current_stemmer = stemmer
+
         self.vectorizer = Miner.vectorizer[vectorizer]
+        self.current_vectorizer = vectorizer
 
 
     def set_stemmer(self, st):
         self.stemmer = Miner.stemmer[st]
+        self.current_stemmer = st
 
 
     def set_vectorizer(self, vt):
         self.vectorizer = Miner.vectorizer[vt]
+        self.current_vectorizer = vt
+
+
+    def build_w2v(self, tokens_list):
+        model = gensim.models.Word2Vec(tokens_list, size=Miner.max_features)
+        w2v = dict(zip(model.wv.index2word, model.wv.syn0))
+        self.vectorizer.setw2v(w2v)
 
 
     def set_tag_classifier(self):
@@ -154,10 +214,6 @@ class Miner:
 
 
     def set_likability_predictor(self):
-        pass
-
-
-    def get_model(self):
         pass
 
 
@@ -179,12 +235,12 @@ class Miner:
         
         if clean:
             # replace strange characters and multiple spaces with a single space          
-            text = re.sub('( +)|(\W+)', ' ', text)
+            text = re.sub('( +)|(' + r'\W+' + ')', ' ', text)
 
         tokens = nltk.word_tokenize(text)
         tokens = cls.remove_stopwords(tokens) if ignore_stopwords else tokens
 
-        return tokens # Miner.clean_article_tokens(tokens) if clean else tokens
+        return tokens
 
 
     @classmethod
@@ -207,12 +263,12 @@ class Miner:
 
 
     def tokenize_article(self, article, 
-                        should_merge=True, should_ignore_sw=True, should_clean=True, should_stem=True):
+                         should_merge=True, should_ignore_sw=True, should_clean=True, should_stem=True):
         # tokenize article
-        tokens = Miner.build_article_tokens(article, merge=should_merge, ignore_stopwords=should_ignore_sw, clean=should_clean)
-        
-        # if should_clean:
-        #    tokens = Miner.clean_article_tokens(tokens)
+        tokens = Miner.build_article_tokens(article, 
+                                            merge=should_merge, 
+                                            ignore_stopwords=should_ignore_sw, 
+                                            clean=should_clean)
 
         # stemmatize
         if should_stem:
@@ -220,19 +276,28 @@ class Miner:
 
         return tokens
 
+    # fit and build vocabolary (based on self.dataset)
+    def learn_vocabulary(self, extract_features=False):
+        articles_tokens = [self.tokenize_article(a) for _,a in self.dataset.iterrows()]
 
-    # articles_df should be a pandas.DataFrame !!
-    def features_from_articles(self, articles, as_array=True):
-        if type(articles) is list:
-            articles = pd.DataFrame(articles).iterrows()
+        if current_vectorizer is 'w2v-tfidf':
+            self.build_w2v(articles_tokens)
         
-        article_tokens = [self.tokenize_article(a) for _,a in articles]
-        features = self.vectorizer.fit_transform(article_tokens)
-        return np.asarray(features) if as_array else features
+        if extract_features:
+            return self.vectorizer.fit_transform(articles_tokens)
+        return self.vectorizer.fit(articles_tokens)
 
 
     def features_from_dataset(self, as_array=True):
-        return self.features_from_articles(self.dataset.iterrows(), as_array)
+        return np.asarray(self.learn_vocabulary(extract_features=True)) if as_array else features
+
+
+    def features_from_articles_list(self, articles, as_array=True):
+        articles_tokens = [self.tokenize_article(a) for a in articles]
+        features = self.vectorizer.transform(articles_tokens)
+        return np.asarray(features) if as_array else features
+
+
 
 
     def tag_classification(self):
@@ -241,8 +306,15 @@ class Miner:
         return [input_features, target]
 
 
-    def build_model(self):
+    def build_model(self, target):
         pass
+        # X = self.features_from_dataset(as_array=False)
+        # y = target
+
+        # clf = MultinomialNB()
+        # clf.fit(X, y)
+        # MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)
+
 
 
 # MongoDB connector
