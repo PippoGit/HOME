@@ -176,15 +176,13 @@ class Miner:
     }
 
     vectorizer = {
-        'tfidf': TfidfVectorizer(max_features=max_features, analyzer='word', tokenizer=ignore, preprocessor=ignore, token_pattern=None),
+        'tfidf': TfidfVectorizer(analyzer='word', tokenizer=ignore, preprocessor=ignore, token_pattern=None),
         'w2v-tfidf' : TfidfEmbeddingVectorizer()
     }
 
 
-    def __init__(self, dataset=None, stemmer='snowball', vectorizer='w2v-tfidf'):
+    def __init__(self, dataset=None, stemmer='snowball', vectorizer='tfidf'):
         self.dataset = pd.DataFrame(dataset)
-
-        self.model = None
 
         self.stemmer = Miner.stemmer[stemmer]
         self.current_stemmer = stemmer
@@ -207,14 +205,6 @@ class Miner:
         model = gensim.models.Word2Vec(tokens_list, size=Miner.max_features)
         w2v = dict(zip(model.wv.index2word, model.wv.syn0))
         self.vectorizer.setw2v(w2v)
-
-
-    def set_tag_classifier(self):
-        pass
-
-
-    def set_likability_predictor(self):
-        pass
 
 
     def set_dataset(self, dataset):
@@ -280,7 +270,7 @@ class Miner:
     def learn_vocabulary(self, extract_features=False):
         articles_tokens = [self.tokenize_article(a) for _,a in self.dataset.iterrows()]
 
-        if current_vectorizer is 'w2v-tfidf':
+        if self.current_vectorizer is 'w2v-tfidf':
             self.build_w2v(articles_tokens)
         
         if extract_features:
@@ -289,7 +279,8 @@ class Miner:
 
 
     def features_from_dataset(self, as_array=True):
-        return np.asarray(self.learn_vocabulary(extract_features=True)) if as_array else features
+        features = self.learn_vocabulary(extract_features=True)
+        return np.asarray(features) if as_array else features
 
 
     def features_from_articles_list(self, articles, as_array=True):
@@ -298,23 +289,28 @@ class Miner:
         return np.asarray(features) if as_array else features
 
 
-
-
-    def tag_classification(self):
-        input_features = self.features_from_dataset()
-        target = self.dataset['tag']
-        return [input_features, target]
-
-
-    def build_model(self, target):
+    # this is where you validate the classifiers!
+    def meta_classify(self):
+        # k fold
+        # learn
+        # test
+        # statistics
+        # maybe pipeline stuff?
         pass
-        # X = self.features_from_dataset(as_array=False)
-        # y = target
 
-        # clf = MultinomialNB()
-        # clf.fit(X, y)
-        # MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)
 
+    # this is the actual classifier (for app)
+    def build_news_classifier(self, classifier):
+        pass
+        # learn vocabulary
+
+        # test classifier
+
+        # return the model
+        
+
+    def build_likability_predictor(self):
+        pass
 
 
 # MongoDB connector
@@ -387,18 +383,17 @@ class DBConnector:
     def find_trainingset(self):
         articles = self.db['articles']
         results = list(articles.find({
-                'tag': {'$exists':True},
-                '$or': [{'read': True}, {'dislike': True}, {'like': True}],
+                'tag': {'$exists':True} # ,
+                # '$or': [{'read': True}, {'dislike': True}, {'like': True}],
             }, {
                 'title':1, 
                 'description':1, 
+                'tag':1,
                 'like':1, 
                 'dislike':1, 
-                'read':1, 
-                '_id':0
+                'read':1
             }
         ))
-
         return results
 
 
