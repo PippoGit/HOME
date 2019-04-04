@@ -296,6 +296,21 @@ class DBConnector:
         articles = self.find({'tag':None})
         return {} if len(articles) is 0 else random.choice(articles)
 
+    
+    def find_trainingset(self):
+        articles = self.db['articles']
+        results = list(articles.find({
+            'tag': {'$exists':True}}, {
+            'title':1, 
+            'description':1, 
+            'like':1, 
+            'dislike':1, 
+            'read':1, 
+            '_id':0
+        }))
+
+        return results
+
 
     def close(self):
         self.client.close()
