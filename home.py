@@ -119,17 +119,20 @@ class NewsFeed:
 
 # DataMining stuff HERE!
 class Miner:
-    stopwords = set(stopwords.words("italian"))
+    stopwords = set(stopwords.words('italian'))
+    max_features = 5000
+    ignore = lambda x: x # dumb function to ignore function handler that are not needed
 
     stemmer = {
-        'porter': nltk.stem.PorterStemmer()
+        'porter': nltk.stem.PorterStemmer(),
+        'snowball': nltk.stem.SnowballStemmer('italian'),
     }
 
     vectorizer = {
-        'tf-idf': TfidfVectorizer(analyzer='word', tokenizer=lambda doc: doc, preprocessor=lambda doc: doc, token_pattern=None)
+        'tf-idf': TfidfVectorizer(max_features=max_features, analyzer='word', tokenizer=ignore, preprocessor=ignore, token_pattern=None)
     }
 
-    def __init__(self, dataset=None, stemmer='porter', vectorizer='tf-idf'):
+    def __init__(self, dataset=None, stemmer='snowball', vectorizer='tf-idf'):
         self.dataset = pd.DataFrame(dataset)
 
         self.model = None
@@ -172,46 +175,64 @@ class Miner:
 
 
     @classmethod
-    def word_tokenize(cls, text, ignore_stopwords=False):
+    def word_tokenize(cls, text, ignore_stopwords=False, clean=True):
+        
+        if clean:
+            # replace strange characters and multiple spaces with a single space          
+            text = re.sub('( +)|(\W+)', ' ', text)
+
         tokens = nltk.word_tokenize(text)
         tokens = cls.remove_stopwords(tokens) if ignore_stopwords else tokens
-        return tokens
+
+        return tokens # Miner.clean_article_tokens(tokens) if clean else tokens
 
 
     @classmethod
-    def build_token(cls, article, merge=False, ignore_stopwords=False):
+    def build_article_tokens(cls, article, merge=False, ignore_stopwords=False, clean=True):
         t = dict()
-        t['title'] = cls.word_tokenize(article['title'], ignore_stopwords)
-        t['description'] = cls.word_tokenize(article['description'], ignore_stopwords)
+        t['title'] = cls.word_tokenize(article['title'], ignore_stopwords, clean)
+        t['description'] = cls.word_tokenize(article['description'], ignore_stopwords, clean)
         return list_union(t['title'], t['description']) if merge else t
 
 
     @classmethod
-    def clean_token(cls, token):
-        regex = re.compile(r'\w+')
+    def clean_article_tokens(cls, token):
+        regex = re.compile(r'\w+') # remove punctuation
+
         return [x for x in token if regex.match(x)]
 
 
-    def stem_token(self, token):
+    def stem_article_tokens(self, token):
         return [self.stemmer.stem(w) for w in token]
 
 
-    def features_from_article(self, article):
+    def tokenize_article(self, article, 
+                        should_merge=True, should_ignore_sw=True, should_clean=True, should_stem=True):
         # tokenize article
-        token = Miner.build_token(article, merge=True, ignore_stopwords=True)
-        token = Miner.clean_token(token)
+        tokens = Miner.build_article_tokens(article, merge=should_merge, ignore_stopwords=should_ignore_sw, clean=should_clean)
+        
+        # if should_clean:
+        #    tokens = Miner.clean_article_tokens(tokens)
 
         # stemmatize
-        token = self.stem_token(token)
+        if should_stem:
+            tokens = self.stem_article_tokens(tokens)
 
-        # vectorize (PROBLEMS HERE!!!!!!)
-        ft = token # ft = self.vectorizer.fit_transform(token)
-        return ft  # .toarray()
+        return tokens
+
+
+    # articles_df should be a pandas.DataFrame !!
+    def features_from_articles(self, articles, as_array=True):
+        if type(articles) is list:
+            articles = pd.DataFrame(articles).iterrows()
+        
+        article_tokens = [self.tokenize_article(a) for _,a in articles]
+        features = self.vectorizer.fit_transform(article_tokens)
+        return np.asarray(features) if as_array else features
 
 
     def features_from_dataset(self, as_array=True):
-        features = [self.features_from_article(a) for _,a in self.dataset.iterrows()]
-        return np.asarray(features) if as_array else features
+        return self.features_from_articles(self.dataset.iterrows(), as_array)
 
 
     def tag_classification(self):
