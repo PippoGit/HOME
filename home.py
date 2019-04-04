@@ -31,7 +31,7 @@ def test():
     feed_parser.parse()
 
     # filtering the dataset using some machinelearning magic...
-    miner = Miner(db.find())
+    miner = Miner(db.find_trainingset())
 
     return {'config': config, 'db': db, 'feed_parser': feed_parser, 'newsfeed': newsfeed, 'miner': miner}
 
@@ -46,6 +46,10 @@ def load_config():
 def likability(read=False, like=False, dislike=False):
     likability = 0.5 + (like)*0.5 - (dislike)*0.5 - (not read)*0.2
     return max(likability, 0)
+
+def list_union(lst1, lst2): 
+    final_list = list(set(lst1) | set(lst2)) 
+    return final_list 
 
 
 # useless
@@ -163,16 +167,6 @@ class Miner:
 
 
     @classmethod
-    def tfidf_vectorizer(cls):
-        tfidf = TfidfVectorizer(
-            analyzer='word',
-            tokenizer=lambda doc: doc,
-            preprocessor=lambda doc: doc,
-            token_pattern=None)
-        return tfidf
-
-
-    @classmethod
     def remove_stopwords(cls, tokens):
         return [w for w in tokens if w not in cls.stopwords]
 
@@ -189,7 +183,7 @@ class Miner:
         t = dict()
         t['title'] = cls.word_tokenize(article['title'], ignore_stopwords)
         t['description'] = cls.word_tokenize(article['description'], ignore_stopwords)
-        return (t['title'] + t['description']) if merge else t
+        return list_union(t['title'], t['description']) if merge else t
 
 
     @classmethod
@@ -210,14 +204,14 @@ class Miner:
         # stemmatize
         token = self.stem_token(token)
 
-        # vectorize
-        ft = self.vectorizer.fit_transform(token)
+        # vectorize (PROBLEMS HERE!!!!!!)
+        ft = token # ft = self.vectorizer.fit_transform(token)
         return ft.toarray()
 
 
-    def features_from_dataset(self):
+    def features_from_dataset(self, as_array=True):
         features = [self.features_from_article(a) for _,a in self.dataset.iterrows()]
-        return np.asarray(features)
+        return np.asarray(features) if as_array else features
 
 
     def tag_classification(self):
@@ -300,14 +294,17 @@ class DBConnector:
     def find_trainingset(self):
         articles = self.db['articles']
         results = list(articles.find({
-            'tag': {'$exists':True}}, {
-            'title':1, 
-            'description':1, 
-            'like':1, 
-            'dislike':1, 
-            'read':1, 
-            '_id':0
-        }))
+                'tag': {'$exists':True},
+                '$or': [{'read': True}, {'dislike': True}, {'like': True}],
+            }, {
+                'title':1, 
+                'description':1, 
+                'like':1, 
+                'dislike':1, 
+                'read':1, 
+                '_id':0
+            }
+        ))
 
         return results
 
