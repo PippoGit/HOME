@@ -34,9 +34,8 @@ CORS(app, origins=['http://localhost:5000', 'http://imac.local:5000', 'http://12
 
 # REST Resources
 class Feed(Resource):
-    def get(self, num_articles=None):
-        # getting the best articles from the db...
-        return 404
+    def get(self, descriptor=None):
+        return 404 if descriptor is None else (db.find_feed(descriptor), 200)
 
 
     def patch(self):
@@ -55,7 +54,7 @@ class Feed(Resource):
 
 class Learn(Resource):
     def get(self, num_articles=50):
-        return feed_parser.training_samples(num_articles), 200
+        return feed_parser.training_samples(500), 200
 
 
 class Like(Resource):
@@ -89,21 +88,6 @@ class Read(Resource):
         return 200
 
 
-class LikedArticles(Resource):
-    def get(self):
-        return db.find_liked(), 200
-
-
-class DislikedArticles(Resource):
-    def get(self):
-        return db.find_disliked(), 200
-
-
-class ReadArticles(Resource):
-    def get(self):
-        return db.find_read(), 200
-
-
 class Tag(Resource):
     def get(self):
         return db.find_untagged(), 200
@@ -126,17 +110,12 @@ class Statistics(Resource):
 
 
 # rest API routes
-api.add_resource(Feed, "/api/feed", "/api/feed/<int:num_articles>")
+api.add_resource(Feed, "/api/feed", "/api/feed/<string:descriptor>")
 api.add_resource(Learn, "/api/learn", "/api/learn/<int:num_articles>")
 
 api.add_resource(Like, "/api/like")
 api.add_resource(Dislike, "/api/dislike")
 api.add_resource(Read, "/api/read")
-
-api.add_resource(LikedArticles, "/api/liked_articles")
-api.add_resource(DislikedArticles, "/api/disliked_articles")
-api.add_resource(ReadArticles, "/api/read_articles")
-
 api.add_resource(Tag, "/api/tag")
 
 api.add_resource(Model, "/api/model")

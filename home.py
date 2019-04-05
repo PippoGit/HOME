@@ -143,45 +143,6 @@ class Parser:
 class NewsFeed:
     pass
 
-# CustomVectorizer
-class TfidfEmbeddingVectorizer:
-    def __init__(self):
-        self.word2vec = None
-        self.word2weight = None
-        self.dim = 0
-
-
-    def setw2v(self, w2v):
-        self.word2vec = w2v
-        self.dim = len(w2v)
-
-
-    def fit(self, X, y=None):
-        tfidf = TfidfVectorizer(analyzer=lambda x: x)
-        tfidf.fit(X)
-        # if a word was never seen - it must be at least as infrequent
-        # as any of the known words - so the default idf is the max of 
-        # known idf's
-        max_idf = max(tfidf.idf_)
-        self.word2weight = defaultdict(
-            lambda: max_idf,
-            [(w, tfidf.idf_[i]) for w, i in tfidf.vocabulary_.items()])
-
-        return self
-
-    def transform(self, X):
-        return np.array([
-                np.mean([self.word2vec[w] * self.word2weight[w]
-                         for w in words if w in self.word2vec] or
-                        [np.zeros(self.dim)], axis=0)
-                for words in X
-            ])
-
-
-    def fit_transform(self, X, y=None):
-        self.fit(X,y)
-        return self.transform(X)
-
 
 class Miner:
     stopwords = set(stopwords.words('italian'))
@@ -190,12 +151,11 @@ class Miner:
 
     stemmer = {
         'porter': nltk.stem.PorterStemmer(),
-        'snowball': nltk.stem.SnowballStemmer('italian'),
+        'snowball': nltk.stem.SnowballStemmer('italian')
     }
 
     vectorizer = {
-        'tfidf': TfidfVectorizer(analyzer='word', tokenizer=ignore, preprocessor=ignore, token_pattern=None),
-        'w2v-tfidf' : TfidfEmbeddingVectorizer()
+        'tfidf': TfidfVectorizer(analyzer='word', tokenizer=ignore, preprocessor=ignore, token_pattern=None)
     }
 
 
@@ -408,6 +368,10 @@ class DBConnector:
     def find_read(self):
         return self.find({'read':True})[::-1]
 
+    
+    def find_ignored(self):
+        return self.find({'like':False, 'read':False, 'dislike':False})
+
 
     def find_untagged(self):
         articles = self.find({'tag':None})
@@ -418,7 +382,6 @@ class DBConnector:
         articles = self.db['articles']
         results = list(articles.find({
                 'tag': {'$exists':True} # ,
-                # '$or': [{'read': True}, {'dislike': True}, {'like': True}],
             }, {
                 'title':1, 
                 'description':1, 
@@ -438,7 +401,8 @@ class DBConnector:
                     'count': { '$sum': 1 },
                     'num_likes': {'$sum': { '$cond': ["$like", 1, 0] }},
                     'num_dislikes': {'$sum': { '$cond': ["$dislike", 1, 0] }},
-                    'num_read': {'$sum': { '$cond': ["$read", 1, 0] }}        
+                    'num_read': {'$sum': { '$cond': ["$read", 1, 0] }},
+                    'num_ignored': {'$sum': { '$cond': [{'$not':{'$or':['$like', '$read', '$dislike']}}, 1, 0] }}
                 }
             }])
         return list(dist)
@@ -464,6 +428,17 @@ class DBConnector:
             'read': self.read_distribution
         }
         return stats[distribution]()
+
+
+    def find_feed(self, descriptor):
+        feed_descriptors = {
+            'liked': self.find_liked,
+            'read': self.find_read,
+            'disliked': self.find_disliked,
+            'ignored': self.find_ignored,
+            'training': self.find_trainingset
+        }
+        return feed_descriptors[descriptor]()
 
 
     def close(self):

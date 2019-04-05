@@ -1,6 +1,12 @@
 var CONFIG;
 var news, tagging_article;
 
+String.prototype.trunc = String.prototype.trunc ||
+      function(n){
+          return (this.length > n) ? this.substr(0, n-1) + '&hellip;' : this;
+      };
+
+
 function get_stats(distribution) {
   return {
     type: 'GET',
@@ -21,6 +27,7 @@ function tag_stats() {
   $.ajax(get_stats('tag'))
     .done(function(data) {
       $('#stats_section').slideDown();
+      $('#stats_title').text("tag statistics")
 
       var histogram_ctx = createChartContext('histogram');
       var histogram = new Chart(histogram_ctx, {
@@ -53,17 +60,22 @@ function tag_stats() {
           datasets: [{
             label: '# of Likes',
             data: data.map(a => a.num_likes),
-            backgroundColor: 'blue' // -webkit-linear-gradient(-45deg, #fd0b58 0px, #a32b68 100%);
+            backgroundColor: '#87FC70' // -webkit-linear-gradient(-45deg, #fd0b58 0px, #a32b68 100%);
           },
           {
             label: '# of Disikes',
             data: data.map(a => a.num_dislikes),
-            backgroundColor: 'red' // -webkit-linear-gradient(-45deg, #fd0b58 0px, #a32b68 100%);            
+            backgroundColor: '#FF2A68' // -webkit-linear-gradient(-45deg, #fd0b58 0px, #a32b68 100%);            
           },
           {
             label: '# of Read',
             data: data.map(a => a.num_read),
-            backgroundColor: 'green' // -webkit-linear-gradient(-45deg, #fd0b58 0px, #a32b68 100%);            
+            backgroundColor: '#1AD6FD' // -webkit-linear-gradient(-45deg, #fd0b58 0px, #a32b68 100%);            
+          },
+          {
+            label: '# of Ignored',
+            data: data.map(a => a.num_ignored),
+            backgroundColor: '#e5e5e5'
           }]
         }
       });
@@ -132,7 +144,7 @@ function getArticleHTMLElement(article, tagging=false) {
                 "<div class='list-author'>"+ article.author +"</div>" + 
                 "<div class='list-datetime'> <i class='fas fa-clock'></i> " + article.datetime + "</div>" + 
               "</div>" +
-              "<div class='list-content'>"+ article.description + "</div>" + 
+              "<div class='list-content'>"+ article.description.trunc(300) + "</div>" + 
               "<div class='list-footer'>" +
                 ((!tagging)?"<i  onclick='like(\""+ article._id + "\")' class='far fa-thumbs-up likebtn'></i> | <i  onclick='dislike(\""+ article._id + "\")'  class='far fa-thumbs-down dislikebtn'></i>":"") + 
               "</div>" + 
@@ -145,21 +157,27 @@ function url_request(api_url, params="") {
   return window.location.origin + api_url + params;
 }
 
+
+function ignored() {
+  get_feed('ignored');
+}
+
 function liked() {
-  $("#feed_section h1").text("liked articles");
-  var url = url_request(CONFIG.API_LIKED_URL);
-  loadArticlesFromUrl(url);
+  get_feed('liked');
 }
 
 function disliked() {
-  $("#feed_section h1").text("disliked articles");
-  var url = url_request(CONFIG.API_DISLIKED_URL);
-  loadArticlesFromUrl(url);
+  get_feed('disliked');
 }
 
 function read_articles() {
-  var url = url_request(CONFIG.API_READARTICLES_URL);
-  $("#feed_section h1").text("read articles");
+  get_feed('read');
+}
+
+
+function get_feed(descriptor){
+  var url = url_request(CONFIG.API_FEED_URL, descriptor);
+  $("#feed_section h1").text(descriptor + " articles");
   loadArticlesFromUrl(url);
 }
 
@@ -254,8 +272,8 @@ function loadArticlesFromUrl(url) {
 }
 
 function loadNews(pageSize = 30) {
-  var url = url_request(CONFIG.API_FEED_URL, pageSize);
-  loadArticlesFromUrl(url);
+  // var url = url_request(CONFIG.API_FEED_URL, pageSize);
+  // loadArticlesFromUrl(url);
 }
 
 function loadConfig() {
@@ -329,6 +347,7 @@ var cmd_dict = {
   'tag': tagging,
   'refresh': refresh,
   'feed': undefined,
+  'ignored': ignored,
   'tag-stats': tag_stats
 }
 

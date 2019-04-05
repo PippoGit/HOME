@@ -10,113 +10,120 @@
   [
     {
       "name" : "Corriere della Sera",
-      "category" : "News",
       "url" : "http://xml2.corriereobjects.it/rss/homepage.xml"
     },
     {
       "name" : "La Stampa",
-      "category" : "News",
       "url" : "http://www.lastampa.it/rss.xml"
     },
     {
       "name" : "La Repubblica",
-      "category" : "News",
       "url" : "http://www.repubblica.it/rss/homepage/rss2.0.xml"
     },
     {
       "name" : "ANSA",
-      "category" : "News",
       "url" : "http://www.ansa.it/sito/ansait_rss.xml"
     },
     {
       "name" : "Fanpage.it",
-      "category" : "News",
       "url" : "http://www.fanpage.it/feed/"
     },
     {
       "name" : "Il Fatto Quotidiano",
-      "category" : "News",
       "url" : "http://www.ilfattoquotidiano.it/feed/"
     },
     {
       "name" : "Il Sole 24 Ore",
-      "category" : "News",
       "url" : "http://www.ilsole24ore.com/rss/primapagina.xml"
     },
     {
       "name" : "Internazionale",
-      "category" : "News",
       "url" : "http://www.internazionale.it/sitemaps/rss.xml"
     },
     {
       "name" : "Linkiesta",
-      "category" : "News",
       "url": "http://www.linkiesta.it/it/feed/latest/?format=rss"
     },
     {
       "name" : "TGCom 24",
-      "category" : "News",
       "url": "http://www.tgcom24.mediaset.it/rss/homepage.xml"
     },
     {
       "name": "Gazzetta dello Sport",
-      "category" : "Sport",
       "url" : "http://www.gazzetta.it/rss/home.xml"
     },
     {
       "name": "Wired.it",
-      "category" : "Tech",
       "url" : "https://www.wired.it/feed/"
     },    
     {
       "name": "Lega Nerd",
-      "category" : "Tech",
       "url" : "https://leganerd.com/feed/"
     },    
     {
       "name": "Tom's Hardware",
-      "category" : "Tech",
       "url" : "https://www.tomshw.it/feed/"
     },    
     {
       "name": "Vice",
-      "category" : "Entertainment",
       "url" : "https://www.vice.com/it/rss"
     },
     {
       "name": "Noisey",
-      "category" : "Entertainment",
       "url" : "https://noisey.vice.com/it/rss"
     },
     {
       "name": "Movieplayer.it",
-      "category" : "Entertainment",
       "url" : "https://movieplayer.it/feed/"
     },
     {
       "name": "Multiplayer.it",
-      "category" : "Videogames",
       "url" : "https://multiplayer.it/feed/rss/homepage/"
     },
     {
       "name": "Le Scienze",
-      "category" : "Tech",
       "url" : "http://www.lescienze.it/rss/all/rss2.0.xml"
     },
     {
       "name": "il Post",
-      "category" : "News",
       "url" : "https://www.ilpost.it/feed/"
     },
     {
       "name": "Google News",
-      "category" : "News",
       "url" : "https://news.google.com/rss?hl=it&gl=IT&ceid=IT:it"
     },
     {
       "name": "Yahoo News",
-      "category" : "News",
       "url" : "https://it.notizie.yahoo.com/rss"
+    },
+    {
+      "name": "WallStreet Italia",
+      "url" : "https://www.wallstreetitalia.com/feed/"
+    },
+    {
+      "name": "Huffington Post",
+      "url" : "https://www.huffingtonpost.it/feeds/index.xml"
+    },
+    {
+      "name": "RAI News",
+      "url" : "http://www.rai.it/dl/portale/html/PublishingBlock-15c2c340-e282-473d-b944-661e818d667b-rss.xml"
+    },
+    {
+      "name": "AGI",
+      "url" : "https://www.agi.it/rss/"
+    },
+    {
+      "name": "RollingStone",
+      "url" : "https://www.rollingstone.it/feed/"
+    },
+    {
+      "name": "Deerwaves",
+      "url" : "https://deerwaves.com/feed"
+    },
+    {
+      "name": "National Geographic",
+      "category" : "Science",
+      "url" : "http://www.nationalgeographic.it/rss/all/rss2.0.xml"
     }
   ]
 }
