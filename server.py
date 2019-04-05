@@ -35,26 +35,22 @@ CORS(app, origins=['http://localhost:5000', 'http://imac.local:5000', 'http://12
 # REST Resources
 class Feed(Resource):
     def get(self, descriptor=None):
+        if descriptor=='learn':
+            return feed_parser.training_samples(100), 200
         return 404 if descriptor is None else (db.find_feed(descriptor), 200)
 
 
     def patch(self):
         # update the sources => Parse again RSS
         feed_parser.parse()
-        # feed_parser.sort_feed()
 
-        # re-train the model
+        # fit the model
 
-        # re-apply the filter
+        # update database with the likability-highest articles
 
-        # return filtered feed (NOT the feed_parser stuff)
+        # return all the entries in the db sorted by datetime reverse
 
         return 200
-
-
-class Learn(Resource):
-    def get(self, num_articles=50):
-        return feed_parser.training_samples(500), 200
 
 
 class Like(Resource):
@@ -99,7 +95,7 @@ class Tag(Resource):
 
 
 class Model(Resource):
-    def put(self):
+    def patch(self):
         # fit again the model
         pass
         
@@ -111,7 +107,6 @@ class Statistics(Resource):
 
 # rest API routes
 api.add_resource(Feed, "/api/feed", "/api/feed/<string:descriptor>")
-api.add_resource(Learn, "/api/learn", "/api/learn/<int:num_articles>")
 
 api.add_resource(Like, "/api/like")
 api.add_resource(Dislike, "/api/dislike")

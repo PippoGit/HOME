@@ -181,10 +181,9 @@ function get_feed(descriptor){
   loadArticlesFromUrl(url);
 }
 
-function learning(pageSize = 50) {
-  var url = url_request(CONFIG.API_LEARN_URL);
+function learning() {
+  get_feed('learn')
   $("#feed_section h1").text("learning mode");
-  loadArticlesFromUrl(url, pageSize);
 }
 
 function like(index) {

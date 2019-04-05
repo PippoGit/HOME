@@ -234,13 +234,11 @@ class Miner:
             X_test = [dataset[i] for i in test_index]
             y_train, y_test = labels[train_index], labels[test_index]
 
-            vct = vectorizer(max_features=cls.max_features, tokenizer=cls.ignore, preprocessor=cls.ignore, token_pattern=None)
-            train_features = vct.fit_transform(X_train) 
-            test_features = vct.transform(X_test)
+            train_features = vectorizer.fit_transform(X_train) 
+            test_features = vectorizer.transform(X_test)
 
-            clf = classifier()
-            clf.fit(train_features,y_train)
-            result = clf.predict(test_features)
+            classifier.fit(train_features,y_train)
+            result = classifier.predict(test_features)
             
             totalMat = totalMat + confusion_matrix(y_test, result)
             total = total + sum(y_test==result)
@@ -253,7 +251,7 @@ class Miner:
 
         # preparing modules of the classifier
         vect = Miner.vectorizers['tfidf'](max_features=Miner.max_features, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None)
-        clf = Miner.classifiers['multinominal_nb']()
+        clf = Miner.classifiers['multinomial_nb']()
 
         # cross validating the classifier
         score = Miner.cross_validate(ds, labels, classifier=clf, vectorizer=vect, n_class=len(get_categories()))
@@ -282,6 +280,8 @@ class Miner:
 
     # this is the actual classifier (for app)
     def build_news_classifier(self, classifier):
+        # this function should provide a pipeline trained object 
+        # that i use to fit with the features extracted from the miner
         pass
 
     def build_likability_predictor(self):
