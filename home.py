@@ -16,9 +16,9 @@ from nltk.corpus import stopwords
 # machine learning
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold 
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.svm import SVC
+from sklearn.linear_model import SGDClassifier
 
 def test(skip_parse=False, meta_classify=False):
     # importing configuration 
@@ -40,14 +40,13 @@ def test(skip_parse=False, meta_classify=False):
 
     # filtering the dataset using some machinelearning magic...
     print("preparing dataset for the miner...\n")
-    Miner.max_features = 1000
-    miner = Miner(db.find_trainingset(), vectorizer='tfidf')
+    miner = Miner(db.find_trainingset())
     
     print('done!\nhome is ready! \n\tdict: {"config", "db", "feed_parser", "newsfeed", "miner"}\n')
     
     if meta_classify:
         print('\nmeta-classifing... ')
-        score = miner.meta_classify()
+        miner.meta_classify()
 
     return {'config': config, 'db': db, 'feed_parser': feed_parser, 'newsfeed': newsfeed, 'miner': miner}
 
@@ -150,44 +149,26 @@ class Miner:
     max_features = 5000
     ignore = lambda x: x # dumb function to ignore function handler that are not needed
 
-    stemmer = {
-        'porter': nltk.stem.PorterStemmer(),
-        'snowball': nltk.stem.SnowballStemmer('italian')
+    stemmers = {
+        'porter': nltk.stem.PorterStemmer,
+        'snowball': nltk.stem.SnowballStemmer
     }
 
-    vectorizer = {
-        'tfidf': TfidfVectorizer(max_features=max_features, analyzer='word', tokenizer=ignore, preprocessor=ignore, token_pattern=None)
+    vectorizers = {
+        'tfidf': TfidfVectorizer
+    }
+
+    classifiers = {
+        'multinomial_nb': MultinomialNB,
+        'sgd': SGDClassifier
     }
 
 
-    def __init__(self, dataset=None, stemmer='snowball', vectorizer='tfidf'):
-        self.dataset = pd.DataFrame(dataset)
-
-        self.stemmer = Miner.stemmer[stemmer]
-        self.current_stemmer = stemmer
-
-        self.vectorizer = Miner.vectorizer[vectorizer]
-        self.current_vectorizer = vectorizer
-
-
-    def set_stemmer(self, st):
-        self.stemmer = Miner.stemmer[st]
-        self.current_stemmer = st
-
-
-    def set_vectorizer(self, vt):
-        self.vectorizer = Miner.vectorizer[vt]
-        self.current_vectorizer = vt
-
-
-    def set_dataset(self, dataset):
+    def __init__(self, dataset=None):
         self.dataset = pd.DataFrame(dataset)
 
 
-    def fix_null(self):
-        self.dataset.replace('', np.nan, regex=True, inplace=True)
-
-
+########## TOKENIZATION #############
     @classmethod
     def remove_stopwords(cls, tokens):
         return [w for w in tokens if w not in cls.stopwords]
@@ -220,76 +201,84 @@ class Miner:
         return [x for x in token if regex.match(x)]
 
 
-    def stem_article_tokens(self, token):
-        return [self.stemmer.stem(w) for w in token]
+    @classmethod
+    def stem_article_tokens(cls, token, stemmer):
+        return [stemmer.stem(w) for w in token]
 
 
-    def tokenize_article(self, article, 
+    @classmethod
+    def tokenize_article(cls, article, stemmer='snowball',
                          should_merge=True, should_ignore_sw=True, should_clean=True, should_stem=True):
         # tokenize article
-        tokens = Miner.build_article_tokens(article, 
+        tokens = cls.build_article_tokens(article, 
                                             merge=should_merge, 
                                             ignore_stopwords=should_ignore_sw, 
                                             clean=should_clean)
 
-        return self.stem_article_tokens(tokens) if should_stem else tokens
+        return cls.stem_article_tokens(tokens, cls.stemmers[stemmer]('italian')) if should_stem else tokens
+########## TOKENIZATION #############
 
 
-################### NOT REALLY USEFUL FUNCTIONS ###############################################
-    def learn_vocabulary(self, extract_features=False):
-        articles_tokens = [self.tokenize_article(a) for _,a in self.dataset.iterrows()]
-        
-        if extract_features:
-            return self.vectorizer.fit_transform(articles_tokens)
-        return self.vectorizer.fit(articles_tokens)
-
-
-    def features_from_dataset(self, as_array=True):
-        features = self.learn_vocabulary(extract_features=True)
-        return features.toarray() if as_array else features
-
-
-    def features_from_articles_list(self, articles, as_array=True):
-        articles_tokens = [self.tokenize_article(a) for a in articles]
-        features = self.vectorizer.transform(articles_tokens)
-        return features.toarray() if as_array else features
-################### NOT REALLY USEFUL FUNCTIONS ###############################################
-
-    
-    def cross_validate_tag(self, classifier, folds=10):
-        dataset = [self.tokenize_article(a) for _,a in self.dataset.iterrows()]
-        labels = self.dataset['tag'].to_numpy()
+########## CROSS-VALIDATION + META-CLASSIFICATION #############
+    @classmethod
+    def cross_validate(cls, dataset, labels, classifier, vectorizer, n_class=2, folds=10):
         len_dataset = len(labels)
-            
+
         kf = StratifiedKFold(n_splits=folds)
         
         total = 0
-        totalMat = np.zeros((9,9))
+        totalMat = np.zeros((n_class,n_class))
         
         for train_index, test_index in kf.split(dataset,labels):
             X_train = [dataset[i] for i in train_index]
             X_test = [dataset[i] for i in test_index]
             y_train, y_test = labels[train_index], labels[test_index]
 
-            train_features = self.vectorizer.fit_transform(X_train) 
-            test_features = self.vectorizer.transform(X_test)
-            
-            classifier.fit(train_features,y_train)
-            result = classifier.predict(test_features)
+            vct = vectorizer(max_features=cls.max_features, tokenizer=cls.ignore, preprocessor=cls.ignore, token_pattern=None)
+            train_features = vct.fit_transform(X_train) 
+            test_features = vct.transform(X_test)
+
+            clf = classifier()
+            clf.fit(train_features,y_train)
+            result = clf.predict(test_features)
             
             totalMat = totalMat + confusion_matrix(y_test, result)
             total = total + sum(y_test==result)
             
         return (totalMat, total/len_dataset)
 
-
-    # this is where you validate the classifiers!
     def meta_classify(self):
-        classifier = MultinomialNB()
-        score = self.cross_validate_tag(classifier)
-        print(score)
-        return score
+        ds = [self.tokenize_article(a) for _,a in self.dataset.iterrows()]
+        labels = self.dataset['tag'].to_numpy()
 
+        # preparing modules of the classifier
+        vect = Miner.vectorizers['tfidf'](max_features=Miner.max_features, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None)
+        clf = Miner.classifiers['multinominal_nb']()
+
+        # cross validating the classifier
+        score = Miner.cross_validate(ds, labels, classifier=clf, vectorizer=vect, n_class=len(get_categories()))
+        
+        print(score)
+        return
+
+#####################   MODEL BUILDING   ##########################
+    def learn_vocabulary(self, vectorizer, extract_features=False):
+        articles_tokens = [Miner.tokenize_article(a) for _,a in self.dataset.iterrows()]
+        
+        if extract_features:
+            return vectorizer.fit_transform(articles_tokens)
+        return vectorizer.fit(articles_tokens)
+
+    def features_from_dataset(self, vectorizer, as_array=True):
+        features = self.learn_vocabulary(vectorizer, extract_features=True)
+        return features.toarray() if as_array else features
+
+
+    @classmethod
+    def features_from_articles_list(cls, articles, vectorizer, as_array=True):
+        articles_tokens = [cls.tokenize_article(a) for a in articles]
+        features = vectorizer.transform(articles_tokens)
+        return features.toarray() if as_array else features
 
     # this is the actual classifier (for app)
     def build_news_classifier(self, classifier):
@@ -297,6 +286,7 @@ class Miner:
 
     def build_likability_predictor(self):
         pass
+#####################   MODEL BUILDING   ##########################
 
 
 # MongoDB connector
