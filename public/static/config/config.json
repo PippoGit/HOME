@@ -12,6 +12,7 @@
   "API_READARTICLES_URL": "/api/read_articles",
   "API_TAG_URL": "/api/tag",
 
+  "API_STATS_URL": "/api/stats",
 
   "cmds":
   [

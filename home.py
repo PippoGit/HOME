@@ -14,26 +14,39 @@ import nltk
 from nltk.corpus import stopwords
 
 # machine learning
+import gensim # (idk if i actually need this)
 from sklearn.feature_extraction.text import TfidfVectorizer
-import gensim
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.naive_bayes import MultinomialNB
 
-
-def test():
+def test(skip_parse=False, meta_classify=False):
     # importing configuration 
     print("\nimporting config file...") 
     config = load_config()
 
     # preparing the components
+    print("\npreparing the components...\n")
     db = DBConnector(**config['db'])
     feed_parser = Parser(config['feeds']) 
     newsfeed = NewsFeed() 
 
     # loading initial feed
     print("\nloading feeds...") 
-    feed_parser.parse()
+    if skip_parse:
+        print("actually i'm going to skip this (training purposes)\n")
+    else:
+        feed_parser.parse()
 
     # filtering the dataset using some machinelearning magic...
-    miner = Miner(db.find_trainingset())
+    print("preparing dataset for the miner...\n")
+    Miner.max_features = 1000
+    miner = Miner(db.find_trainingset(), vectorizer='tfidf')
+    
+    print('done!\nhome is ready! \n\tdict: {"config", "db", "feed_parser", "newsfeed", "miner"}\n')
+    
+    if meta_classify:
+        print('\nmeta-classifing... ')
+        score = miner.meta_classify()
 
     return {'config': config, 'db': db, 'feed_parser': feed_parser, 'newsfeed': newsfeed, 'miner': miner}
 
@@ -65,6 +78,11 @@ def get_categories():
             "Gossip",
             "Sport",
             "Entertainment"]
+
+
+def datetime_to_string(article):
+    article['datetime'] = str(article['datetime'])
+    return article
 
 
 # RSS Parser class
@@ -130,7 +148,7 @@ class TfidfEmbeddingVectorizer:
     def __init__(self):
         self.word2vec = None
         self.word2weight = None
-        self.dim = None # len(word2vec.itervalues().next())
+        self.dim = 0
 
 
     def setw2v(self, w2v):
@@ -280,23 +298,43 @@ class Miner:
 
     def features_from_dataset(self, as_array=True):
         features = self.learn_vocabulary(extract_features=True)
-        return np.asarray(features) if as_array else features
+        return features.toarray() if as_array else features
 
 
     def features_from_articles_list(self, articles, as_array=True):
         articles_tokens = [self.tokenize_article(a) for a in articles]
         features = self.vectorizer.transform(articles_tokens)
-        return np.asarray(features) if as_array else features
+        return features.toarray() if as_array else features
 
+    @classmethod
+    def cross_validate(cls, features, target, classifier, scoring='accuracy', n_folds=10):
+        X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.3)
+        scores = cross_val_score(
+            classifier,
+            X_train,
+            y_train,
+            cv=n_folds,
+            scoring=scoring,
+            n_jobs=-1)
+        return(scores)
 
     # this is where you validate the classifiers!
     def meta_classify(self):
-        # k fold
-        # learn
-        # test
-        # statistics
-        # maybe pipeline stuff?
-        pass
+        # prepare data
+        #shuffled_data = self.dataset.random(n=200, replace=False)
+        #train_data = shuffled_data[:200]
+        #train_target = train_data['tag']
+        #test_data  = shuffled_data[200:400]
+        #test_target = test_data['tag']
+
+        features = self.features_from_dataset()
+        target = self.dataset['tag'].values
+        classifier = MultinomialNB()
+
+        score = Miner.cross_validate(features, target, classifier)
+        print(score)
+        print('\navg: {}\n'.format(sum(score)/len(score)))
+        return score
 
 
     # this is the actual classifier (for app)
@@ -348,19 +386,15 @@ class DBConnector:
 
     def find(self, query=None):
         articles = self.db['articles']
-        results = list(articles.find(query))
-        
-        for o in results: 
-            o['datetime'] = str(o['datetime'])
-
+        # returns the articles list, but first convert datetime to string to avoid 
+        # json parsing issues (or whatever)
+        results = [datetime_to_string(o) for o in list(articles.find(query))]
         return results
 
 
     def find_one(self, query):
         articles = self.db['articles']
-        o = articles.find_one(query)
-        o['datetime'] = str(o['datetime'])
-        return articles.find_one(query)
+        return datetime_to_string(articles.find_one(query)) # article
 
 
     def find_liked(self):
@@ -395,6 +429,41 @@ class DBConnector:
             }
         ))
         return results
+
+
+    def tag_distribution(self):
+        dist = self.db.articles.aggregate([{
+                '$group' : {
+                    '_id' : {'$ifNull': ['$tag', 'Unknown']},
+                    'count': { '$sum': 1 },
+                    'num_likes': {'$sum': { '$cond': ["$like", 1, 0] }},
+                    'num_dislikes': {'$sum': { '$cond': ["$dislike", 1, 0] }},
+                    'num_read': {'$sum': { '$cond': ["$read", 1, 0] }}        
+                }
+            }])
+        return list(dist)
+
+
+    def like_distribution(self):
+        pass
+
+    
+    def dislike_distribution(self):
+        pass
+
+    
+    def read_distribution(self):
+        pass
+
+
+    def stats(self, distribution):
+        stats = {
+            'tag': self.tag_distribution,
+            'like': self.like_distribution,
+            'dislike': self.dislike_distribution,
+            'read': self.read_distribution
+        }
+        return stats[distribution]()
 
 
     def close(self):

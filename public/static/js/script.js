@@ -1,6 +1,81 @@
 var CONFIG;
 var news, tagging_article;
 
+function get_stats(distribution) {
+  return {
+    type: 'GET',
+    url: url_request(CONFIG.API_STATS_URL, distribution),
+    contentType: 'application/json'
+  };
+}
+
+function createChartContext(chart) {
+  $('#' + chart).remove();
+  $('#' + chart + '-container').append('<canvas id="' + chart + '"></canvas>');
+
+  var el = document.getElementById(chart);
+  return el.getContext('2d');
+}
+
+function tag_stats() {
+  $.ajax(get_stats('tag'))
+    .done(function(data) {
+      $('#stats_section').slideDown();
+
+      var histogram_ctx = createChartContext('histogram');
+      var histogram = new Chart(histogram_ctx, {
+        type: 'bar',
+        data: {
+          labels: data.map(a => a._id),
+          datasets: [{
+            label: '# of Entries',
+            data: data.map(a => a.count),
+            backgroundColor: '#fd0b58' // -webkit-linear-gradient(-45deg, #fd0b58 0px, #a32b68 100%);
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+              yAxes: [{
+                  ticks: {
+                    beginAtZero: true
+                  }
+            }]
+          } 
+        }
+      });
+
+      var barchart_ctx = createChartContext('barchart');
+      var barchart = new Chart(barchart_ctx, {
+        type: 'bar',
+        data: {
+          labels: data.map(a => a._id),
+          datasets: [{
+            label: '# of Likes',
+            data: data.map(a => a.num_likes),
+            backgroundColor: 'blue' // -webkit-linear-gradient(-45deg, #fd0b58 0px, #a32b68 100%);
+          },
+          {
+            label: '# of Disikes',
+            data: data.map(a => a.num_dislikes),
+            backgroundColor: 'red' // -webkit-linear-gradient(-45deg, #fd0b58 0px, #a32b68 100%);            
+          },
+          {
+            label: '# of Read',
+            data: data.map(a => a.num_read),
+            backgroundColor: 'green' // -webkit-linear-gradient(-45deg, #fd0b58 0px, #a32b68 100%);            
+          }]
+        }
+      });
+
+
+  });
+}
+
+function hide_stats() {
+  $('#stats_section').slideUp();
+}
+
 function refresh() {
   $("#page").addClass('refreshing');
   $("#refresh").show();
@@ -209,51 +284,14 @@ $(document).ready(function() {
   loadConfig();
   $("#searchbar").focus();
   
+  $("#feed_section h1").text("your newsfeed");
+  $("#feed").empty();
+
   $("#search").on('submit', function (e) {
     e.preventDefault();
     var query = $("#searchbar").val();
     var cmd = query.split(" ")[0];
-    
-    switch(cmd) {
-      case 'learn':
-        learning();
-        break;
-
-      case 'man':
-        man();
-        break;
-      
-      case 'disliked':
-        disliked();
-        break;
-      
-        case 'liked':
-        liked();
-        break;
-
-      case 'read':
-        read_articles();
-        break;
-
-      case 'tag':
-        tagging();
-        break;
-      
-      case 'refresh':
-        refresh();
-        break;
-     
-      case 'feed':
-        alert("To be done...");
-
-        $("#feed_section h1").text("your newsfeed");
-        $("#feed").empty();
-        break;
-
-      default:
-        cmd = false;
-    }
-    if(cmd) $("#searchbar").val('');
+    if(exec_cmd(cmd)) $("#searchbar").val(''); // if the command exists clean the command line
   });
 
   $("#tag_section form").on('submit', function(e){
@@ -281,3 +319,23 @@ $(document).on('keypress', function (e) {
     $("#searchbar").focus();
   }
 });
+
+var cmd_dict = {
+  'learn': learning,
+  'man': man,
+  'disliked': disliked,
+  'liked': liked,
+  'read': read_articles,
+  'tag': tagging,
+  'refresh': refresh,
+  'feed': undefined,
+  'tag-stats': tag_stats
+}
+
+function exec_cmd(cmd) {
+  if(cmd_dict[cmd] === undefined)
+    return false;
+
+  cmd_dict[cmd]();
+  return true;
+}

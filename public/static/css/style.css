@@ -374,10 +374,6 @@ ul {
   color: #d33c50;
 }
 
-#tag_section {
-  display: none;
-}
-
 #tag_article {
   width: 35%;
   margin: auto;
@@ -472,6 +468,10 @@ ul {
   text-align: center;
 }
 
+.sliding_section {
+  display: none;
+}
+
 /* SPINNER */
 .lds-grid {
   display: inline-block;
@@ -540,3 +540,4 @@ ul {
     opacity: 0.5;
   }
 }
+

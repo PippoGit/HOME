@@ -118,6 +118,11 @@ class Model(Resource):
     def put(self):
         # fit again the model
         pass
+        
+
+class Statistics(Resource):
+    def get(self, distribution=None):
+        return db.stats(distribution), 200
 
 
 # rest API routes
@@ -135,6 +140,8 @@ api.add_resource(ReadArticles, "/api/read_articles")
 api.add_resource(Tag, "/api/tag")
 
 api.add_resource(Model, "/api/model")
+
+api.add_resource(Statistics, "/api/stats/<string:distribution>")
 
 
 # front-end routes
