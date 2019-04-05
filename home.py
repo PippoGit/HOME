@@ -14,10 +14,11 @@ import nltk
 from nltk.corpus import stopwords
 
 # machine learning
-import gensim # (idk if i actually need this)
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold 
+from sklearn.metrics import confusion_matrix
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import SVC
 
 def test(skip_parse=False, meta_classify=False):
     # importing configuration 
@@ -155,7 +156,7 @@ class Miner:
     }
 
     vectorizer = {
-        'tfidf': TfidfVectorizer(analyzer='word', tokenizer=ignore, preprocessor=ignore, token_pattern=None)
+        'tfidf': TfidfVectorizer(max_features=max_features, analyzer='word', tokenizer=ignore, preprocessor=ignore, token_pattern=None)
     }
 
 
@@ -177,12 +178,6 @@ class Miner:
     def set_vectorizer(self, vt):
         self.vectorizer = Miner.vectorizer[vt]
         self.current_vectorizer = vt
-
-
-    def build_w2v(self, tokens_list):
-        model = gensim.models.Word2Vec(tokens_list, size=Miner.max_features)
-        w2v = dict(zip(model.wv.index2word, model.wv.syn0))
-        self.vectorizer.setw2v(w2v)
 
 
     def set_dataset(self, dataset):
@@ -222,7 +217,6 @@ class Miner:
     @classmethod
     def clean_article_tokens(cls, token):
         regex = re.compile(r'\w+') # remove punctuation
-
         return [x for x in token if regex.match(x)]
 
 
@@ -238,18 +232,12 @@ class Miner:
                                             ignore_stopwords=should_ignore_sw, 
                                             clean=should_clean)
 
-        # stemmatize
-        if should_stem:
-            tokens = self.stem_article_tokens(tokens)
+        return self.stem_article_tokens(tokens) if should_stem else tokens
 
-        return tokens
 
-    # fit and build vocabolary (based on self.dataset)
+################### NOT REALLY USEFUL FUNCTIONS ###############################################
     def learn_vocabulary(self, extract_features=False):
         articles_tokens = [self.tokenize_article(a) for _,a in self.dataset.iterrows()]
-
-        if self.current_vectorizer is 'w2v-tfidf':
-            self.build_w2v(articles_tokens)
         
         if extract_features:
             return self.vectorizer.fit_transform(articles_tokens)
@@ -265,47 +253,47 @@ class Miner:
         articles_tokens = [self.tokenize_article(a) for a in articles]
         features = self.vectorizer.transform(articles_tokens)
         return features.toarray() if as_array else features
+################### NOT REALLY USEFUL FUNCTIONS ###############################################
 
-    @classmethod
-    def cross_validate(cls, features, target, classifier, scoring='accuracy', n_folds=10):
-        X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.3)
-        scores = cross_val_score(
-            classifier,
-            X_train,
-            y_train,
-            cv=n_folds,
-            scoring=scoring,
-            n_jobs=-1)
-        return(scores)
+    
+    def cross_validate_tag(self, classifier, folds=10):
+        dataset = [self.tokenize_article(a) for _,a in self.dataset.iterrows()]
+        labels = self.dataset['tag'].to_numpy()
+        len_dataset = len(labels)
+            
+        kf = StratifiedKFold(n_splits=folds)
+        
+        total = 0
+        totalMat = np.zeros((9,9))
+        
+        for train_index, test_index in kf.split(dataset,labels):
+            X_train = [dataset[i] for i in train_index]
+            X_test = [dataset[i] for i in test_index]
+            y_train, y_test = labels[train_index], labels[test_index]
+
+            train_features = self.vectorizer.fit_transform(X_train) 
+            test_features = self.vectorizer.transform(X_test)
+            
+            classifier.fit(train_features,y_train)
+            result = classifier.predict(test_features)
+            
+            totalMat = totalMat + confusion_matrix(y_test, result)
+            total = total + sum(y_test==result)
+            
+        return (totalMat, total/len_dataset)
+
 
     # this is where you validate the classifiers!
     def meta_classify(self):
-        # prepare data
-        #shuffled_data = self.dataset.random(n=200, replace=False)
-        #train_data = shuffled_data[:200]
-        #train_target = train_data['tag']
-        #test_data  = shuffled_data[200:400]
-        #test_target = test_data['tag']
-
-        features = self.features_from_dataset()
-        target = self.dataset['tag'].values
         classifier = MultinomialNB()
-
-        score = Miner.cross_validate(features, target, classifier)
+        score = self.cross_validate_tag(classifier)
         print(score)
-        print('\navg: {}\n'.format(sum(score)/len(score)))
         return score
 
 
     # this is the actual classifier (for app)
     def build_news_classifier(self, classifier):
         pass
-        # learn vocabulary
-
-        # test classifier
-
-        # return the model
-        
 
     def build_likability_predictor(self):
         pass
