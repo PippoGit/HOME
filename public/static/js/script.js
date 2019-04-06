@@ -15,12 +15,13 @@ function get_stats(distribution) {
   };
 }
 
-function createChartContext(chart) {
-  $('#' + chart).remove();
+function createChartContext(chart, id_elem, type, data, options) {
+  $('#' + chart).remove(); // chart container.empty() in the calling function
+                           // create new canvas jquery 
   $('#' + chart + '-container').append('<canvas id="' + chart + '"></canvas>');
 
   var el = document.getElementById(chart);
-  return el.getContext('2d');
+  return el.getContext('2d'); // return chartjs object
 }
 
 function tag_stats() {

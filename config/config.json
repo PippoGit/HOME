@@ -122,8 +122,19 @@
     },
     {
       "name": "National Geographic",
-      "category" : "Science",
       "url" : "http://www.nationalgeographic.it/rss/all/rss2.0.xml"
-    }
+    },
+    {
+      "name": "Libreriamo",
+      "url" : "https://libreriamo.it/feed/"
+    },
+    {
+      "name": "Adnkronos",
+      "url" : "http://rss.adnkronos.com/RSS_PrimaPagina.xml"
+    },
+    {
+      "name": "Adnkronos",
+      "url" : "https://www.hdblog.it/rss/"
+    }    
   ]
 }
