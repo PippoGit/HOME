@@ -15,33 +15,84 @@ function get_stats(distribution) {
   };
 }
 
-function createChartContext(chart, id_elem, type, data, options) {
-  $('#' + chart).remove(); // chart container.empty() in the calling function
-                           // create new canvas jquery 
-  $('#' + chart + '-container').append('<canvas id="' + chart + '"></canvas>');
+function createChart(chart, type, data, options) {
+  $('#' + chart).remove(); 
+  $('#chart-container').append('<canvas id="' + chart + '"></canvas>');
 
   var el = document.getElementById(chart);
-  return el.getContext('2d'); // return chartjs object
+  var ctx =  el.getContext('2d');
+
+  return new Chart(ctx, {type, data, options});
+}
+
+function like_stats() {
+  $.ajax(get_stats('like'))
+  .done(function(data) {
+    $('#stats_section').slideDown();
+    $('#stats_title').text("like statistics")
+    $('#chart-container').empty();
+
+    var doughnut = createChart(
+      'like-doughnut',
+      'doughnut',
+      {
+        labels: ['Like', 'Dislike', 'Read'],
+        datasets: [{
+          data: [data.num_likes, data.num_dislikes, data.num_read],
+          backgroundColor: ['#87FC70', '#FF2A68', '#1AD6FD']
+        }]
+      }
+    );
+
+    var barchart = createChart(
+      'like-bar',
+      'bar',
+      {
+        labels: ['Non-Dislike', 'Dislike', 'Like', 'Read', 'Read & Like', 'Read & Dislike', 'Ignored'],
+        datasets: [{
+          label: '# of Articles',
+          data: [data.num_non_dislikes, data.num_dislikes, data.num_likes, data.num_read, data.num_read_likes, data.num_read_dislikes, data.num_ignored],
+          backgroundColor: ['#1AD6FD', '#fd0b58']
+        }]
+      },
+      {
+        responsive: true,
+        scales: {
+            yAxes: [{
+                ticks: {
+                  beginAtZero: true
+                }
+          }]
+        },
+        legend: {
+          display: false
+        }
+      }
+    );
+
+  });
 }
 
 function tag_stats() {
   $.ajax(get_stats('tag'))
     .done(function(data) {
       $('#stats_section').slideDown();
-      $('#stats_title').text("tag statistics")
 
-      var histogram_ctx = createChartContext('histogram');
-      var histogram = new Chart(histogram_ctx, {
-        type: 'bar',
-        data: {
+      $('#stats_title').text("tag statistics")
+      $('#chart-container').empty();
+
+      var histogram = createChart(
+        'tag-histogram', 
+        'bar',
+        {
           labels: data.map(a => a._id),
           datasets: [{
             label: '# of Entries',
             data: data.map(a => a.count),
-            backgroundColor: '#fd0b58' // -webkit-linear-gradient(-45deg, #fd0b58 0px, #a32b68 100%);
+            backgroundColor: '#fd0b58'
           }]
         },
-        options: {
+        {
           responsive: true,
           scales: {
               yAxes: [{
@@ -51,12 +102,12 @@ function tag_stats() {
             }]
           } 
         }
-      });
-
-      var barchart_ctx = createChartContext('barchart');
-      var barchart = new Chart(barchart_ctx, {
-        type: 'bar',
-        data: {
+      );
+      
+      var barchart = createChart(
+        'tag-bar',
+        'bar',
+        {
           labels: data.map(a => a._id),
           datasets: [{
             label: '# of Likes',
@@ -78,10 +129,9 @@ function tag_stats() {
             data: data.map(a => a.num_ignored),
             backgroundColor: '#e5e5e5'
           }]
-        }
-      });
-
-
+        },
+        {}
+      );
   });
 }
 
@@ -348,7 +398,8 @@ var cmd_dict = {
   'refresh': refresh,
   'feed': undefined,
   'ignored': ignored,
-  'tag-stats': tag_stats
+  'tag-stats': tag_stats,
+  'like-stats':like_stats
 }
 
 function exec_cmd(cmd) {

@@ -15,10 +15,16 @@ from nltk.corpus import stopwords
 
 # machine learning
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import LabelEncoder
+
 from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold 
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
+
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import SGDClassifier
+from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 
 def test(skip_parse=False, meta_classify=False):
     # importing configuration 
@@ -58,9 +64,14 @@ def load_config():
     return config
 
 
-def likability(read=False, like=False, dislike=False):
-    likability = 0.5 + (like)*0.5 - (dislike)*0.5 - (not read)*0.2
-    return max(likability, 0)
+def likability(article):
+    # likability = max(0.5 + (like)*0.5 - (dislike)*0.5 - (not read)*0.2, 0)
+    
+    if article['dislike']:
+        return "DISLIKE"
+    elif article['read'] or article['like']:
+        return "NOT_DISLIKE"
+    return 'IGNORED' # max(likability, 0) (actually this should never happen during training...)
 
 
 def list_union(lst1, lst2): 
@@ -105,15 +116,21 @@ class Parser:
             
             for e in entries:
                 # parsing the content of the summary
+                if 'summary' not in e: # if the entry has no summary key just skip it... (it won't happen that often)
+                    continue
                 soup = BeautifulSoup(e['summary'], features="html.parser")
                 imgurl = soup.find('img')
+
+                article_date = datetime.datetime(*e['published_parsed'][:6]) if ('published_parsed' in e) else None
+                if article_date is not None and ((datetime.datetime.now() - article_date) > datetime.timedelta(hours=24)):
+                    continue  # skip old articles...
 
                 # building the article
                 article = {
                     'title' : e['title'] if ('title' in e) else "",
                     'author': e['author'] if ('author' in e) else "",
                     'description' : soup.text if soup is not None else "",
-                    'datetime' : datetime.datetime(*e['published_parsed'][:6]).isoformat() if ('published_parsed' in e) else None,
+                    'datetime' : article_date.isoformat() if article_date is not None else None,
                     'img' : imgurl['src'] if imgurl is not None else "",
                     'link': e['link'] if ('link' in e) else "",
                     'source' : source['name'],
@@ -146,7 +163,7 @@ class NewsFeed:
 
 class Miner:
     stopwords = set(stopwords.words('italian'))
-    max_features = 5000
+    max_features = 5555
     ignore = lambda x: x # dumb function to ignore function handler that are not needed
 
     stemmers = {
@@ -160,7 +177,10 @@ class Miner:
 
     classifiers = {
         'multinomial_nb': MultinomialNB,
-        'sgd': SGDClassifier
+        'sgd': SGDClassifier,
+        'linear_svc': LinearSVC,
+        'random_forest': RandomForestClassifier,
+        'logistic_regression': LogisticRegression
     }
 
 
@@ -178,7 +198,7 @@ class Miner:
     def word_tokenize(cls, text, ignore_stopwords=False, clean=True):
         
         if clean:
-            # replace strange characters and multiple spaces with a single space          
+            # replace symbols and multiple spaces with a single space          
             text = re.sub('( +)|(' + r'\W+' + ')', ' ', text)
 
         tokens = nltk.word_tokenize(text)
@@ -188,11 +208,11 @@ class Miner:
 
 
     @classmethod
-    def build_article_tokens(cls, article, merge=False, ignore_stopwords=False, clean=True):
+    def build_article_tokens(cls, article, union=False, ignore_stopwords=False, clean=True):
         t = dict()
         t['title'] = cls.word_tokenize(article['title'], ignore_stopwords, clean)
         t['description'] = cls.word_tokenize(article['description'], ignore_stopwords, clean)
-        return list_union(t['title'], t['description']) if merge else t
+        return list_union(t['title'], t['description']) if union else (t['title']+t['description'])
 
 
     @classmethod
@@ -208,10 +228,10 @@ class Miner:
 
     @classmethod
     def tokenize_article(cls, article, stemmer='snowball',
-                         should_merge=True, should_ignore_sw=True, should_clean=True, should_stem=True):
+                         should_union=False, should_ignore_sw=True, should_clean=True, should_stem=True):
         # tokenize article
         tokens = cls.build_article_tokens(article, 
-                                            merge=should_merge, 
+                                            union=should_union, 
                                             ignore_stopwords=should_ignore_sw, 
                                             clean=should_clean)
 
@@ -222,10 +242,7 @@ class Miner:
 ########## CROSS-VALIDATION + META-CLASSIFICATION #############
     @classmethod
     def cross_validate(cls, dataset, labels, classifier, vectorizer, n_class=2, folds=10):
-        len_dataset = len(labels)
-
         kf = StratifiedKFold(n_splits=folds)
-        
         total = 0
         totalMat = np.zeros((n_class,n_class))
         
@@ -240,23 +257,42 @@ class Miner:
             classifier.fit(train_features,y_train)
             result = classifier.predict(test_features)
             
-            totalMat = totalMat + confusion_matrix(y_test, result)
+            mat = confusion_matrix(y_test, result)
+            # print(classification_report(y_test, result, target_names=get_categories()))
+
+            totalMat = totalMat + mat
             total = total + sum(y_test==result)
             
-        return (totalMat, total/len_dataset)
+        return (totalMat, total/len(labels))
+
 
     def meta_classify(self):
+        print('\nTokenizing the articles in the dataset...')
         ds = [self.tokenize_article(a) for _,a in self.dataset.iterrows()]
         labels = self.dataset['tag'].to_numpy()
 
         # preparing modules of the classifier
+        print('Preparing the modules (vectorizer and list of classifiers)\n')
         vect = Miner.vectorizers['tfidf'](max_features=Miner.max_features, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None)
-        clf = Miner.classifiers['multinomial_nb']()
+        classifiers = [
+            ('Multinomial Naive-Bayes', Miner.classifiers['multinomial_nb']()),
+            ('Linear SVC (Support Vector Machine)', Miner.classifiers['linear_svc']()),
+            ('Random Forest', Miner.classifiers['random_forest'](n_estimators=200, max_depth=3, random_state=42)),
+            ('Logistic Regression', Miner.classifiers['logistic_regression'](solver='lbfgs', multi_class='auto', random_state=42)),
+            ('SGD Classifeir', Miner.classifiers['sgd'](loss='hinge', penalty='l2',     
+                                                        alpha=1e-3, random_state=42,
+                                                        max_iter=5, tol=None))
+        ]
 
         # cross validating the classifier
-        score = Miner.cross_validate(ds, labels, classifier=clf, vectorizer=vect, n_class=len(get_categories()))
-        
-        print(score)
+        for c in classifiers:
+            print('\n---------------------------')
+            print('\nEvaluating ' + c[0] + '\n')
+            score = Miner.cross_validate(ds, labels, classifier=c[1], vectorizer=vect, n_class=len(get_categories()))
+            print(score)
+
+        print('\n---------------------------')
+        print('\nMeta-Classification Done!\n')
         return
 
 #####################   MODEL BUILDING   ##########################
@@ -285,7 +321,8 @@ class Miner:
         pass
 
     def build_likability_predictor(self):
-        pass
+        labels = [likability(a) for _,a in self.dataset.iterrows()]
+        return labels
 #####################   MODEL BUILDING   ##########################
 
 
@@ -374,20 +411,30 @@ class DBConnector:
 
     def tag_distribution(self):
         dist = self.db.articles.aggregate([{
-                '$group' : {
-                    '_id' : {'$ifNull': ['$tag', 'Unknown']},
-                    'count': { '$sum': 1 },
-                    'num_likes': {'$sum': { '$cond': ["$like", 1, 0] }},
-                    'num_dislikes': {'$sum': { '$cond': ["$dislike", 1, 0] }},
-                    'num_read': {'$sum': { '$cond': ["$read", 1, 0] }},
-                    'num_ignored': {'$sum': { '$cond': [{'$not':{'$or':['$like', '$read', '$dislike']}}, 1, 0] }}
-                }
-            }])
+            '$group' : {
+                '_id' : {'$ifNull': ['$tag', 'Unknown']},
+                'count': { '$sum': 1 },
+                'num_likes': {'$sum': { '$cond': ["$like", 1, 0] }},
+                'num_dislikes': {'$sum': { '$cond': ["$dislike", 1, 0] }},
+                'num_read': {'$sum': { '$cond': ["$read", 1, 0] }},
+                'num_ignored': {'$sum': { '$cond': [{'$not':{'$or':['$like', '$read', '$dislike']}}, 1, 0] }}
+            }
+        }])
         return list(dist)
 
 
     def like_distribution(self):
-        pass
+        stats = {
+            'num_likes': self.db.articles.count({'like':True, 'read':False}),
+            'num_dislikes': self.db.articles.count({'dislike':True, 'read': False}),
+            'num_read': self.db.articles.count({'read':True, 'like':False, 'dislike':False}),
+
+            'num_non_dislikes': self.db.articles.count({'like':True, 'read':False}) + self.db.articles.count({'read':True, 'like': False, 'dislike':False}),
+            'num_ignored': self.db.articles.count({'like':False, 'dislike':False, 'read':False}),
+            'num_read_likes':self.db.articles.count({'read':True, 'like':True}),
+            'num_read_dislikes':self.db.articles.count({'read':True, 'dislike':True})
+        }
+        return stats
 
     
     def dislike_distribution(self):
