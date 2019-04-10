@@ -276,7 +276,7 @@ class Miner:
 
 ########## CROSS-VALIDATION + META-CLASSIFICATION #############
     @classmethod
-    def cross_validate(cls, dataset, labels, classifier, vectorizer=None, n_class=2, folds=10, use_w2v=False):
+    def cross_validate(cls, dataset, labels, classifier, vectorizer=None, n_class=2, folds=10):
         kf = StratifiedKFold(n_splits=folds)
         total = 0
         totalMat = np.zeros((n_class,n_class))
@@ -286,8 +286,8 @@ class Miner:
             X_test = [dataset[i] for i in test_index]
             y_train, y_test = labels[train_index], labels[test_index]
 
-            train_features = vectorizer.fit_transform(X_train) if vectorizer else X_train 
-            test_features = vectorizer.transform(X_test) if vectorizer else X_test 
+            train_features = vectorizer.fit_transform(X_train) # if vectorizer else X_train 
+            test_features = vectorizer.transform(X_test) # if vectorizer else X_test 
 
             classifier.fit(train_features,y_train)
             result = classifier.predict(test_features)
@@ -304,16 +304,6 @@ class Miner:
         print('\nTokenizing the articles in the dataset...')
         ds = [Miner.tokenize_article(a) for _,a in self.dataset.iterrows()]
 
-
-        # if i'm going to use word2vector i'll need to vectorize text in a different way...
-        if use_w2v:
-            # here you should do the things with tokens2vector... but nothing really happens :(
-            # model = Miner.build_w2v()
-            # ds = ([np.asarray(model.wv[t]) for t in ds])
-            # model = Word2Vec(ds, size=100)
-            # w2v = dict(zip(model.wv.index2word, model.wv.syn0))
-            pass
-
         # preparing the labels...
         labels = self.dataset['tag'].to_numpy()
 
@@ -321,12 +311,13 @@ class Miner:
         print('Preparing the modules (vectorizer and list of classifiers)\n')
         
         # vectorizer (if use_w2v the vectorizer will be None)
-        # vect = Miner.vectorizers['tfidf'](max_features=Miner.max_features, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None) if not use_w2v else None
-        vect = Miner.vectorizers['w2v'](dm=0, size=300, negative=5, hs=0, min_count=2, sample = 0, workers=2) if use_w2v else Miner.vectorizers['tfidf'](max_features=Miner.max_features, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None)
+        # vect = Miner.vectorizers['w2v'](dm=0, size=300, negative=5, hs=0, min_count=2, sample = 0, workers=2) if use_w2v else Miner.vectorizers['tfidf'](max_features=Miner.max_features, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None)
 
+        vect = Miner.vectorizers['tfidf'](max_features=Miner.max_features, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None)
+        
         # classifiers' list 
         classifiers = [
-            # ('Multinomial Naive-Bayes', Miner.classifiers['multinomial_nb']()),
+            ('Multinomial Naive-Bayes', Miner.classifiers['multinomial_nb']()),
             ('Linear SVC (Support Vector Machine)', Miner.classifiers['linear_svc']()),
             ('Random Forest', Miner.classifiers['random_forest'](n_estimators=200, max_depth=3, random_state=42)),
             ('Logistic Regression', Miner.classifiers['logistic_regression'](solver='lbfgs', multi_class='auto', random_state=42)),
@@ -339,7 +330,7 @@ class Miner:
         for c in classifiers:
             print('\n---------------------------')
             print('\nEvaluating ' + c[0] + '\n')
-            score = Miner.cross_validate(ds, labels, classifier=c[1], vectorizer=vect, n_class=len(get_categories()), use_w2v=use_w2v)
+            score = Miner.cross_validate(ds, labels, classifier=c[1], vectorizer=vect, n_class=len(get_categories()))
             print(score)
 
         print('\n---------------------------')
