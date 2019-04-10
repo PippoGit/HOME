@@ -1,3 +1,6 @@
+# NOTE TO SELF:
+# I think i'll just ignore all the w2v stuff!!!!!!!!!!!!!!!!!!!
+
 # parsing & db stuff
 import feedparser
 from bs4 import BeautifulSoup
@@ -16,8 +19,8 @@ from nltk.corpus import stopwords
 # machine learning
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import LabelEncoder
-# from gensim.models import Word2Vec TODO: NON FUNZIONA
-# from gensim.sklearn_api import D2VTransformer TODO: NON FUNZIONA
+from gensim.models import Word2Vec # TODO: NON FUNZIONA
+from gensim.sklearn_api import D2VTransformer # TODO: NON FUNZIONA
 
 from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold 
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
@@ -175,7 +178,7 @@ class Miner:
 
     vectorizers = {
         'tfidf': TfidfVectorizer,
-        # 'w2v': D2VTransformer TODO NON FUNZIONA!!!!!
+        'w2v': D2VTransformer # TODO NON FUNZIONA!!!!!
     }
 
     classifiers = {
@@ -273,7 +276,7 @@ class Miner:
 
 ########## CROSS-VALIDATION + META-CLASSIFICATION #############
     @classmethod
-    def cross_validate(cls, dataset, labels, classifier, vectorizer=None, n_class=2, folds=10):
+    def cross_validate(cls, dataset, labels, classifier, vectorizer=None, n_class=2, folds=10, use_w2v=False):
         kf = StratifiedKFold(n_splits=folds)
         total = 0
         totalMat = np.zeros((n_class,n_class))
@@ -303,13 +306,13 @@ class Miner:
 
 
         # if i'm going to use word2vector i'll need to vectorize text in a different way...
-        # if use_w2v:
-            # here you should do the things with tokens2vector
-            # model =  Word2Vec(ds, min_count=1)# Miner.build_w2v()
-            # print(model.wv[ds[0]])
+        if use_w2v:
+            # here you should do the things with tokens2vector... but nothing really happens :(
+            # model = Miner.build_w2v()
             # ds = ([np.asarray(model.wv[t]) for t in ds])
-            # model = W2VTransformer(size=Miner.max_features, min_count=1, seed=1)
-
+            # model = Word2Vec(ds, size=100)
+            # w2v = dict(zip(model.wv.index2word, model.wv.syn0))
+            pass
 
         # preparing the labels...
         labels = self.dataset['tag'].to_numpy()
@@ -318,12 +321,12 @@ class Miner:
         print('Preparing the modules (vectorizer and list of classifiers)\n')
         
         # vectorizer (if use_w2v the vectorizer will be None)
-        vect = Miner.vectorizers['tfidf'](max_features=Miner.max_features, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None) if not use_w2v else None
-        # vect = Miner.vectorizers['w2v'](size=20, min_count=1, seed=1)
+        # vect = Miner.vectorizers['tfidf'](max_features=Miner.max_features, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None) if not use_w2v else None
+        vect = Miner.vectorizers['w2v'](dm=0, size=300, negative=5, hs=0, min_count=2, sample = 0, workers=2) if use_w2v else Miner.vectorizers['tfidf'](max_features=Miner.max_features, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None)
 
         # classifiers' list 
         classifiers = [
-            ('Multinomial Naive-Bayes', Miner.classifiers['multinomial_nb']()),
+            # ('Multinomial Naive-Bayes', Miner.classifiers['multinomial_nb']()),
             ('Linear SVC (Support Vector Machine)', Miner.classifiers['linear_svc']()),
             ('Random Forest', Miner.classifiers['random_forest'](n_estimators=200, max_depth=3, random_state=42)),
             ('Logistic Regression', Miner.classifiers['logistic_regression'](solver='lbfgs', multi_class='auto', random_state=42)),
@@ -336,7 +339,7 @@ class Miner:
         for c in classifiers:
             print('\n---------------------------')
             print('\nEvaluating ' + c[0] + '\n')
-            score = Miner.cross_validate(ds, labels, classifier=c[1], vectorizer=vect, n_class=len(get_categories()))
+            score = Miner.cross_validate(ds, labels, classifier=c[1], vectorizer=vect, n_class=len(get_categories()), use_w2v=use_w2v)
             print(score)
 
         print('\n---------------------------')
