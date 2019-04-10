@@ -1,6 +1,3 @@
-# NOTE TO SELF:
-# I think i'll just ignore all the w2v stuff!!!!!!!!!!!!!!!!!!!
-
 # parsing & db stuff
 import feedparser
 from bs4 import BeautifulSoup
@@ -17,10 +14,12 @@ import nltk
 from nltk.corpus import stopwords
 
 # machine learning
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.preprocessing import LabelEncoder
-from gensim.models import Word2Vec # TODO: NON FUNZIONA
-from gensim.sklearn_api import D2VTransformer # TODO: NON FUNZIONA
+
+
+from gensim.models import Word2Vec # NOTE: NON FUNZIONA
+from gensim.sklearn_api import D2VTransformer # NOTE: NON FUNZIONA
 
 from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold 
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
@@ -177,8 +176,9 @@ class Miner:
     }
 
     vectorizers = {
+        'count': CountVectorizer,
         'tfidf': TfidfVectorizer,
-        'w2v': D2VTransformer # TODO NON FUNZIONA!!!!!
+        'w2v': D2VTransformer # NOTE NON FUNZIONA!!!!!
     }
 
     classifiers = {
