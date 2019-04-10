@@ -16,6 +16,7 @@ from nltk.corpus import stopwords
 # machine learning
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import LabelEncoder
+from gensim.models import Word2Vec
 
 from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold 
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
@@ -172,7 +173,8 @@ class Miner:
     }
 
     vectorizers = {
-        'tfidf': TfidfVectorizer
+        'tfidf': TfidfVectorizer,
+        'w2v': Word2Vec
     }
 
     classifiers = {
@@ -239,9 +241,38 @@ class Miner:
 ########## TOKENIZATION #############
 
 
+########## GloVe and Word2Vec ###########
+    @classmethod
+    def build_w2v(cls, wordemb_path='w2v/glove_WIKI'):
+        return Word2Vec(wordemb_path) # load CNR Glove Model (PRETRAINED)
+########## GloVe and Word2Vec ###########
+
+
+######### FEATURES EXTRACTION ###########
+    def learn_vocabulary(self, vectorizer, extract_features=False):
+        articles_tokens = [Miner.tokenize_article(a) for _,a in self.dataset.iterrows()]
+        
+        if extract_features:
+            return vectorizer.fit_transform(articles_tokens)
+        return vectorizer.fit(articles_tokens)
+
+    def features_from_dataset(self, vectorizer, as_array=True):
+        features = self.learn_vocabulary(vectorizer, extract_features=True)
+        return features.toarray() if as_array else features
+
+
+    @classmethod
+    def features_from_articles_list(cls, articles, vectorizer, as_array=True):
+        articles_tokens = [cls.tokenize_article(a) for a in articles]
+        features = vectorizer.transform(articles_tokens)
+        return features.toarray() if as_array else features
+
+######### FEATURES EXTRACTION ###########
+
+
 ########## CROSS-VALIDATION + META-CLASSIFICATION #############
     @classmethod
-    def cross_validate(cls, dataset, labels, classifier, vectorizer, n_class=2, folds=10):
+    def cross_validate(cls, dataset, labels, classifier, vectorizer=None, n_class=2, folds=10):
         kf = StratifiedKFold(n_splits=folds)
         total = 0
         totalMat = np.zeros((n_class,n_class))
@@ -251,14 +282,13 @@ class Miner:
             X_test = [dataset[i] for i in test_index]
             y_train, y_test = labels[train_index], labels[test_index]
 
-            train_features = vectorizer.fit_transform(X_train) 
-            test_features = vectorizer.transform(X_test)
+            train_features = vectorizer.fit_transform(X_train) if vectorizer else X_train 
+            test_features = vectorizer.transform(X_test) if vectorizer else X_test 
 
             classifier.fit(train_features,y_train)
             result = classifier.predict(test_features)
             
             mat = confusion_matrix(y_test, result)
-            # print(classification_report(y_test, result, target_names=get_categories()))
 
             totalMat = totalMat + mat
             total = total + sum(y_test==result)
@@ -266,14 +296,26 @@ class Miner:
         return (totalMat, total/len(labels))
 
 
-    def meta_classify(self):
+    def meta_classify(self, use_w2v=False):
         print('\nTokenizing the articles in the dataset...')
-        ds = [self.tokenize_article(a) for _,a in self.dataset.iterrows()]
+        ds = [Miner.tokenize_article(a) for _,a in self.dataset.iterrows()]
+        
+        # if i'm going to use word2vector i'll need to vectorize text in a different way...
+        if use_w2v:
+            # here you should do the things with tokens2vector
+            model = Miner.build_w2v()
+            ds = [model.w2v(t) for t in ds]
+
+        # preparing the labels...
         labels = self.dataset['tag'].to_numpy()
 
         # preparing modules of the classifier
         print('Preparing the modules (vectorizer and list of classifiers)\n')
-        vect = Miner.vectorizers['tfidf'](max_features=Miner.max_features, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None)
+        
+        # vectorizer (if use_w2v the vectorizer will be None)
+        vect = Miner.vectorizers['tfidf'](max_features=Miner.max_features, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None) if use_w2v else None
+        
+        # classifiers' list
         classifiers = [
             ('Multinomial Naive-Bayes', Miner.classifiers['multinomial_nb']()),
             ('Linear SVC (Support Vector Machine)', Miner.classifiers['linear_svc']()),
@@ -294,26 +336,10 @@ class Miner:
         print('\n---------------------------')
         print('\nMeta-Classification Done!\n')
         return
+########## CROSS-VALIDATION + META-CLASSIFICATION #############
 
-#####################   MODEL BUILDING   ##########################
-    def learn_vocabulary(self, vectorizer, extract_features=False):
-        articles_tokens = [Miner.tokenize_article(a) for _,a in self.dataset.iterrows()]
         
-        if extract_features:
-            return vectorizer.fit_transform(articles_tokens)
-        return vectorizer.fit(articles_tokens)
-
-    def features_from_dataset(self, vectorizer, as_array=True):
-        features = self.learn_vocabulary(vectorizer, extract_features=True)
-        return features.toarray() if as_array else features
-
-
-    @classmethod
-    def features_from_articles_list(cls, articles, vectorizer, as_array=True):
-        articles_tokens = [cls.tokenize_article(a) for a in articles]
-        features = vectorizer.transform(articles_tokens)
-        return features.toarray() if as_array else features
-
+#####################   MODEL BUILDING   ##########################
     # this is the actual classifier (for app)
     def build_news_classifier(self, classifier):
         # this function should provide a pipeline trained object 

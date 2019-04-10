@@ -13,6 +13,11 @@ Thumbs.db
 *.zip
 *.arff
 
+# glove/w2v
+glove_WIKI
+glove_WIKI.syn0.npy
+
+
 # vscode
 .vscode/*
 .vscode/launch.json
