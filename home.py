@@ -16,7 +16,8 @@ from nltk.corpus import stopwords
 # machine learning
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import LabelEncoder
-from gensim.models import Word2Vec
+# from gensim.models import Word2Vec TODO: NON FUNZIONA
+# from gensim.sklearn_api import D2VTransformer TODO: NON FUNZIONA
 
 from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold 
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
@@ -27,7 +28,7 @@ from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 
-def test(skip_parse=False, meta_classify=False):
+def test(skip_parse=False, meta_classify=False, use_w2v=False):
     # importing configuration 
     print("\nimporting config file...") 
     config = load_config()
@@ -53,7 +54,7 @@ def test(skip_parse=False, meta_classify=False):
     
     if meta_classify:
         print('\nmeta-classifing... ')
-        miner.meta_classify()
+        miner.meta_classify(use_w2v=use_w2v)
 
     return {'config': config, 'db': db, 'feed_parser': feed_parser, 'newsfeed': newsfeed, 'miner': miner}
 
@@ -174,7 +175,7 @@ class Miner:
 
     vectorizers = {
         'tfidf': TfidfVectorizer,
-        'w2v': Word2Vec
+        # 'w2v': D2VTransformer TODO NON FUNZIONA!!!!!
     }
 
     classifiers = {
@@ -299,12 +300,16 @@ class Miner:
     def meta_classify(self, use_w2v=False):
         print('\nTokenizing the articles in the dataset...')
         ds = [Miner.tokenize_article(a) for _,a in self.dataset.iterrows()]
-        
+
+
         # if i'm going to use word2vector i'll need to vectorize text in a different way...
-        if use_w2v:
+        # if use_w2v:
             # here you should do the things with tokens2vector
-            model = Miner.build_w2v()
-            ds = [model.w2v(t) for t in ds]
+            # model =  Word2Vec(ds, min_count=1)# Miner.build_w2v()
+            # print(model.wv[ds[0]])
+            # ds = ([np.asarray(model.wv[t]) for t in ds])
+            # model = W2VTransformer(size=Miner.max_features, min_count=1, seed=1)
+
 
         # preparing the labels...
         labels = self.dataset['tag'].to_numpy()
@@ -313,9 +318,10 @@ class Miner:
         print('Preparing the modules (vectorizer and list of classifiers)\n')
         
         # vectorizer (if use_w2v the vectorizer will be None)
-        vect = Miner.vectorizers['tfidf'](max_features=Miner.max_features, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None) if use_w2v else None
-        
-        # classifiers' list
+        vect = Miner.vectorizers['tfidf'](max_features=Miner.max_features, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None) if not use_w2v else None
+        # vect = Miner.vectorizers['w2v'](size=20, min_count=1, seed=1)
+
+        # classifiers' list 
         classifiers = [
             ('Multinomial Naive-Bayes', Miner.classifiers['multinomial_nb']()),
             ('Linear SVC (Support Vector Machine)', Miner.classifiers['linear_svc']()),
