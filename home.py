@@ -9,9 +9,11 @@ import numpy as np
 import hashlib, datetime, ssl, random, json, re, string
 from collections import defaultdict
 
+# plot
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+import seaborn as sn
 from wordcloud import WordCloud
 
 # natural language text processing
@@ -143,6 +145,30 @@ def likability(article):
 def list_union(lst1, lst2): 
     final_list = list(set(lst1) | set(lst2)) 
     return final_list 
+
+
+def get_aggr_categories():
+# db.articles.find().forEach(function (article){
+#    var new_tag = article.tag;
+#    if((['Scienza', 'Tecnologia']).includes(article.tag))
+#        new_tag = "Scienza&Tecnologia";
+#    else if(['Politica', 'Economia'].includes(article.tag))
+#        new_tag = "Politica&Economia";
+#    else if(['Gossip', 'Entertainment'].includes(article.tag))
+#        new_tag = "Gossip&Entertainment";
+    
+#    db.articles.update({_id: article._id},{$set:{"tag__": new_tag}});
+# })
+
+    return [
+        "Cronaca",
+        "Cultura",
+        "Entertainment",
+        "Gossip",
+        "Politica&Economia",
+        "Scienza&Tecnologia",
+        "Sport",
+    ]
 
 
 def get_categories():
@@ -448,7 +474,7 @@ class Miner:
 
     @classmethod
     def cross_validate(cls, dataset, labels, classifier, vectorizer=None, n_class=2, folds=10):
-        kf = StratifiedKFold(n_splits=folds, random_state=42, shuffle=True)
+        kf = StratifiedKFold(n_splits=folds, random_state=42)
         total = 0
         totalMat = np.zeros((n_class,n_class))
         
@@ -488,7 +514,7 @@ class Miner:
         
         # classifiers' list 
         classifiers = [
-            ('Decision Tree Classifier', Miner.classifiers['tree']()),
+            # ('Decision Tree Classifier', Miner.classifiers['tree']()),
             ('Multinomial Naive-Bayes', Miner.classifiers['multinomial_nb']()),
             ('Linear SVC (Support Vector Machine)', Miner.classifiers['linear_svc']()),
             ('Random Forest', Miner.classifiers['random_forest'](n_estimators=200, max_depth=3, random_state=42)),
@@ -510,15 +536,10 @@ class Miner:
 
             print(score)
 
-            fig = plt.figure()
-            ax = fig.add_subplot(111)
-            cax = ax.matshow(score[0])
-            plt.title('Confusion matrix of ' + c[0])
-            fig.colorbar(cax)
-            ax.set_xticklabels([''] + get_categories())
-            ax.set_yticklabels([''] + get_categories())
-            plt.xlabel('Predicted')
-            plt.ylabel('True')
+            df_cm = pd.DataFrame(score[0], index = [i for i in get_categories()],
+                            columns = [i for i in get_categories()])
+            plt.figure(figsize = (len(get_categories()),len(get_categories())))
+            sn.heatmap(df_cm, annot=True,  fmt='g')
             plt.show()
 
         print('\n---------------------------')
@@ -623,7 +644,8 @@ class DBConnector:
             }, {
                 'title':1, 
                 'description':1, 
-                'tag':1,
+                'tag':1, 
+                'tag__':1, 
                 'like':1, 
                 'dislike':1, 
                 'read':1
@@ -635,7 +657,7 @@ class DBConnector:
     def tag_distribution(self):
         dist = self.db.articles.aggregate([{
             '$group' : {
-                '_id' : {'$ifNull': ['$tag', 'Unknown']},
+                '_id' : {'$ifNull': ['$tag__', 'Unknown']},
                 'count': { '$sum': 1 },
                 'num_likes': {'$sum': { '$cond': ["$like", 1, 0] }},
                 'num_dislikes': {'$sum': { '$cond': ["$dislike", 1, 0] }},
