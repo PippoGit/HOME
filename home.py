@@ -29,13 +29,48 @@ from gensim.sklearn_api import D2VTransformer # NOTE: NON FUNZIONA
 from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold 
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
 
+from sklearn.pipeline import Pipeline
+
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import SGDClassifier
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+
+
+def test_classifier():
+    print("\nimporting config file...") 
+    config = load_config()
+
+    # preparing the components
+    print("\npreparing the components...\n")
+    db = DBConnector(**config['db'])
+    feed_parser = Parser(random.sample(config['feeds'], 5)) # taking just 5 random sources
+
+    # loading initial feed
+    print("\nloading feeds...") 
+    feed_parser.parse()
+
+    print('\nbuilding the model...')
+    miner = Miner(db.find_trainingset())
+
+    model = miner.build_news_classifier()
+    X = Miner.tokenize_list(feed_parser.parsed_feed)
+
+    results = model.predict(X)
+
+    for i in range(1, 20):
+        print('article ' + str(i) + ': ')
+        print(feed_parser.parsed_feed[i])
+        print('predicted category: ')
+        print(results[i])
+
+
 
 def test(skip_parse=False, meta_classify=False, use_w2v=False):
+
     # importing configuration 
     print("\nimporting config file...") 
     config = load_config()
@@ -66,7 +101,7 @@ def test(skip_parse=False, meta_classify=False, use_w2v=False):
 
 
     from collections import Counter
-    l = [Miner.tokenize_article(a) for _,a in miner.dataset.iterrows()]
+    l = Miner.tokenize_list(miner.dataset)
     flatten = [e for sl in l for e in sl]
 
     should_not_happen = [e for e in flatten if e in Miner.stopwords]
@@ -96,13 +131,13 @@ def load_config():
 
 
 def likability(article):
-    # likability = max(0.5 + (like)*0.5 - (dislike)*0.5 - (not read)*0.2, 0)
+    likability = max(0.5 + (article['like'])*0.5 - (article['dislike'])*0.5 - (not article['read'])*0.2, 0)
     
     if article['dislike']:
-        return "DISLIKE"
+        return ("DISLIKE", likability)
     elif article['read'] or article['like']:
-        return "NOT_DISLIKE"
-    return 'IGNORED' # max(likability, 0) (actually this should never happen during training...)
+        return ("NOT_DISLIKE", likability)
+    return ('IGNORED', likability) # (actually this should never happen during training...)
 
 
 def list_union(lst1, lst2): 
@@ -111,20 +146,106 @@ def list_union(lst1, lst2):
 
 
 def get_categories():
-    return ["Politica",
-            "Economia",
-            "Scienza",
-            "Tecnologia",
-            "Cultura",
+    return [
             "Cronaca",
+            "Cultura",
+            "Economia",
+            "Entertainment",
             "Gossip",
+            "Politica",
+            "Scienza",
             "Sport",
-            "Entertainment"]
+            "Tecnologia"
+    ]
 
 
 def datetime_to_string(article):
     article['datetime'] = str(article['datetime'])
     return article
+
+
+def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
+                        n_jobs=None, train_sizes=np.linspace(.1, 1.0, 5)):
+    """
+    Generate a simple plot of the test and training learning curve.
+
+    Parameters
+    ----------
+    estimator : object type that implements the "fit" and "predict" methods
+        An object of that type which is cloned for each validation.
+
+    title : string
+        Title for the chart.
+
+    X : array-like, shape (n_samples, n_features)
+        Training vector, where n_samples is the number of samples and
+        n_features is the number of features.
+
+    y : array-like, shape (n_samples) or (n_samples, n_features), optional
+        Target relative to X for classification or regression;
+        None for unsupervised learning.
+
+    ylim : tuple, shape (ymin, ymax), optional
+        Defines minimum and maximum yvalues plotted.
+
+    cv : int, cross-validation generator or an iterable, optional
+        Determines the cross-validation splitting strategy.
+        Possible inputs for cv are:
+          - None, to use the default 3-fold cross-validation,
+          - integer, to specify the number of folds.
+          - :term:`CV splitter`,
+          - An iterable yielding (train, test) splits as arrays of indices.
+
+        For integer/None inputs, if ``y`` is binary or multiclass,
+        :class:`StratifiedKFold` used. If the estimator is not a classifier
+        or if ``y`` is neither binary nor multiclass, :class:`KFold` is used.
+
+        Refer :ref:`User Guide <cross_validation>` for the various
+        cross-validators that can be used here.
+
+    n_jobs : int or None, optional (default=None)
+        Number of jobs to run in parallel.
+        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        for more details.
+
+    train_sizes : array-like, shape (n_ticks,), dtype float or int
+        Relative or absolute numbers of training examples that will be used to
+        generate the learning curve. If the dtype is float, it is regarded as a
+        fraction of the maximum size of the training set (that is determined
+        by the selected validation method), i.e. it has to be within (0, 1].
+        Otherwise it is interpreted as absolute sizes of the training sets.
+        Note that for classification the number of samples usually have to
+        be big enough to contain at least one sample from each class.
+        (default: np.linspace(0.1, 1.0, 5))
+    """
+    plt.figure()
+    plt.title(title)
+    if ylim is not None:
+        plt.ylim(*ylim)
+    plt.xlabel("Training examples")
+    plt.ylabel("Score")
+    train_sizes, train_scores, test_scores = learning_curve(
+        estimator, X, y, cv=cv, n_jobs=n_jobs, train_sizes=train_sizes)
+    train_scores_mean = np.mean(train_scores, axis=1)
+    train_scores_std = np.std(train_scores, axis=1)
+    test_scores_mean = np.mean(test_scores, axis=1)
+    test_scores_std = np.std(test_scores, axis=1)
+    plt.grid()
+
+    plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
+                     train_scores_mean + train_scores_std, alpha=0.1,
+                     color="r")
+    plt.fill_between(train_sizes, test_scores_mean - test_scores_std,
+                     test_scores_mean + test_scores_std, alpha=0.1, color="g")
+    plt.plot(train_sizes, train_scores_mean, 'o-', color="r",
+             label="Training score")
+    plt.plot(train_sizes, test_scores_mean, 'o-', color="g",
+             label="Cross-validation score")
+
+    plt.legend(loc="best")
+    return plt
+
 
 
 # RSS Parser class
@@ -135,6 +256,8 @@ class Parser:
 
 
     def parse(self):
+        curr_count = 0
+
         if hasattr(ssl, '_create_unverified_context'):
             ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -178,7 +301,8 @@ class Parser:
                 # feed the feeder
                 self.parsed_feed.append(article)
 
-            print("{} loaded! ({} entries)".format(source['name'], len(entries)))
+            print("{} loaded! ({} entries)".format(source['name'], len(self.parsed_feed) - curr_count))
+            curr_count = len(self.parsed_feed)
 
         print("whole newsfeed loaded ({} entries)".format(len(self.parsed_feed)))
 
@@ -215,7 +339,8 @@ class Miner:
         'sgd': SGDClassifier,
         'linear_svc': LinearSVC,
         'random_forest': RandomForestClassifier,
-        'logistic_regression': LogisticRegression
+        'logistic_regression': LogisticRegression,
+        'tree': DecisionTreeClassifier
     }
 
 
@@ -239,7 +364,7 @@ class Miner:
             text = re.sub('( +)|(' + r'\W+' + ')', ' ', text)            
 
             # remove numbers that are not part of a word            
-            # text = re.sub(r"\b\d+\b", "", text)
+            text = re.sub(r"\b\d+\b", "", text)
 
         table = str.maketrans('', '', string.punctuation)
         tokens = [t.lower().translate(table) for t in nltk.word_tokenize(text)]
@@ -280,42 +405,50 @@ class Miner:
                                             clean=should_clean)
 
         return cls.stem_article_tokens(tokens, cls.stemmers[stemmer]('italian')) if should_stem else tokens
+
+
+    @classmethod
+    def tokenize_list(cls, articles):
+        if type(articles) is list:
+            articles = pd.DataFrame(articles)
+        return [Miner.tokenize_article(a) for _,a in articles.iterrows()]
+
 ########## TOKENIZATION #############
 
 
-########## GloVe and Word2Vec ###########
+########## GloVe and Word2Vec ########### (KINDA-USELESS)
     @classmethod
     def build_w2v(cls, wordemb_path='w2v/glove_WIKI'):
         return Word2Vec(wordemb_path) # load CNR Glove Model (PRETRAINED)
 ########## GloVe and Word2Vec ###########
 
 
-######### FEATURES EXTRACTION ###########
-    def learn_vocabulary(self, vectorizer, extract_features=False):
-        articles_tokens = [Miner.tokenize_article(a) for _,a in self.dataset.iterrows()]
-        
-        if extract_features:
-            return vectorizer.fit_transform(articles_tokens)
-        return vectorizer.fit(articles_tokens)
-
-    def features_from_dataset(self, vectorizer, as_array=True):
-        features = self.learn_vocabulary(vectorizer, extract_features=True)
-        return features.toarray() if as_array else features
-
-
-    @classmethod
-    def features_from_articles_list(cls, articles, vectorizer, as_array=True):
-        articles_tokens = [cls.tokenize_article(a) for a in articles]
-        features = vectorizer.transform(articles_tokens)
-        return features.toarray() if as_array else features
-
-######### FEATURES EXTRACTION ###########
-
-
 ########## CROSS-VALIDATION + META-CLASSIFICATION #############
     @classmethod
-    def cross_validate(cls, dataset, labels, classifier, vectorizer=None, n_class=2, folds=10):
+    def cross_validate_pipeline(cls, pipeline, dataset, labels, n_class=2, folds=10):
         kf = StratifiedKFold(n_splits=folds)
+        total = 0
+        totalMat = np.zeros((n_class,n_class))
+
+        for train_index, test_index in kf.split(dataset,labels):
+            X_train = [dataset[i] for i in train_index]
+            X_test = [dataset[i] for i in test_index]
+            y_train, y_test = labels[train_index], labels[test_index]
+
+            pipeline.fit(X_train, y_train)
+            result = pipeline.predict(X_test)
+            
+            mat = confusion_matrix(y_test, result)
+
+            totalMat = totalMat + mat
+            total = total + sum(y_test==result)
+            
+        return (totalMat, total/len(labels))
+
+
+    @classmethod
+    def cross_validate(cls, dataset, labels, classifier, vectorizer=None, n_class=2, folds=10):
+        kf = StratifiedKFold(n_splits=folds, random_state=42, shuffle=True)
         total = 0
         totalMat = np.zeros((n_class,n_class))
         
@@ -340,7 +473,7 @@ class Miner:
 
     def meta_classify(self, use_w2v=False):
         print('\nTokenizing the articles in the dataset...')
-        ds = [Miner.tokenize_article(a) for _,a in self.dataset.iterrows()]
+        ds = Miner.tokenize_list(self.dataset)
 
         # preparing the labels...
         labels = self.dataset['tag'].to_numpy()
@@ -355,6 +488,7 @@ class Miner:
         
         # classifiers' list 
         classifiers = [
+            ('Decision Tree Classifier', Miner.classifiers['tree']()),
             ('Multinomial Naive-Bayes', Miner.classifiers['multinomial_nb']()),
             ('Linear SVC (Support Vector Machine)', Miner.classifiers['linear_svc']()),
             ('Random Forest', Miner.classifiers['random_forest'](n_estimators=200, max_depth=3, random_state=42)),
@@ -368,8 +502,24 @@ class Miner:
         for c in classifiers:
             print('\n---------------------------')
             print('\nEvaluating ' + c[0] + '\n')
-            score = Miner.cross_validate(ds, labels, classifier=c[1], vectorizer=vect, n_class=len(get_categories()))
+            pl = Pipeline([
+                ('vect', vect),
+                ('clf', c[1])
+            ])
+            score = Miner.cross_validate_pipeline(pl, ds, labels, n_class=len(get_categories()))
+
             print(score)
+
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            cax = ax.matshow(score[0])
+            plt.title('Confusion matrix of ' + c[0])
+            fig.colorbar(cax)
+            ax.set_xticklabels([''] + get_categories())
+            ax.set_yticklabels([''] + get_categories())
+            plt.xlabel('Predicted')
+            plt.ylabel('True')
+            plt.show()
 
         print('\n---------------------------')
         print('\nMeta-Classification Done!\n')
@@ -379,10 +529,19 @@ class Miner:
         
 #####################   MODEL BUILDING   ##########################
     # this is the actual classifier (for app)
-    def build_news_classifier(self, classifier):
+    def build_news_classifier(self):
         # this function should provide a pipeline trained object 
         # that i use to fit with the features extracted from the miner
-        pass
+        model = Pipeline([
+            ('vect', Miner.vectorizers['tfidf'](max_features=Miner.max_features, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None)),
+            ('clf', Miner.classifiers['linear_svc']())
+        ])
+
+        ds = Miner.tokenize_list(self.dataset)
+        labels = self.dataset['tag'].to_numpy()
+
+        model.fit(ds, labels)
+        return model
 
     def build_likability_predictor(self):
         labels = [likability(a) for _,a in self.dataset.iterrows()]
@@ -469,7 +628,7 @@ class DBConnector:
                 'dislike':1, 
                 'read':1
             }
-        ))
+        ).sort([('tag',1)]))
         return results
 
 
