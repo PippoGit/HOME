@@ -28,7 +28,7 @@ from sklearn.preprocessing import LabelEncoder
 from gensim.models import Word2Vec # NOTE: NON FUNZIONA
 from gensim.sklearn_api import D2VTransformer # NOTE: NON FUNZIONA
 
-from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold 
+from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, learning_curve
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
 
 from sklearn.pipeline import Pipeline
