@@ -6,8 +6,13 @@ import pymongo
 # util
 import pandas as pd
 import numpy as np
-import hashlib, datetime, ssl, random, json, re
+import hashlib, datetime, ssl, random, json, re, string
 from collections import defaultdict
+
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
 
 # natural language text processing
 import nltk
@@ -57,6 +62,28 @@ def test(skip_parse=False, meta_classify=False, use_w2v=False):
     if meta_classify:
         print('\nmeta-classifing... ')
         miner.meta_classify(use_w2v=use_w2v)
+
+
+
+    from collections import Counter
+    l = [Miner.tokenize_article(a) for _,a in miner.dataset.iterrows()]
+    flatten = [e for sl in l for e in sl]
+
+    should_not_happen = [e for e in flatten if e in Miner.stopwords]
+    print(len(should_not_happen))
+
+    # WORLDCLOUDSTUFF...
+    # word_cloud_dict = Counter(flatten)
+    # wordcloud = WordCloud(width = 1000, height = 500).generate_from_frequencies(word_cloud_dict)
+
+    # plt.figure(figsize=(15,8))
+    # plt.imshow(wordcloud)
+    # plt.axis("off")
+    # plt.show()
+
+    # plt.savefig('yourfile.png', bbox_inches='tight')
+    # plt.close()
+
 
     return {'config': config, 'db': db, 'feed_parser': feed_parser, 'newsfeed': newsfeed, 'miner': miner}
 
@@ -135,7 +162,7 @@ class Parser:
                     'author': e['author'] if ('author' in e) else "",
                     'description' : soup.text if soup is not None else "",
                     'datetime' : article_date.isoformat() if article_date is not None else None,
-                    'img' : imgurl['src'] if imgurl is not None else "",
+                    'img' : imgurl['src'] if (imgurl is not None and 'src' in imgurl) else "",
                     'link': e['link'] if ('link' in e) else "",
                     'source' : source['name'],
 
@@ -166,8 +193,10 @@ class NewsFeed:
 
 
 class Miner:
-    stopwords = set(stopwords.words('italian'))
-    max_features = 5555
+    custom_sw = set(line.strip() for line in open('config/stopwords-it.txt'))
+    stopwords = set(stopwords.words('italian')).union(custom_sw)
+
+    max_features = 8000 # 5555 
     ignore = lambda x: x # dumb function to ignore function handler that are not needed
 
     stemmers = {
@@ -197,28 +226,37 @@ class Miner:
 ########## TOKENIZATION #############
     @classmethod
     def remove_stopwords(cls, tokens):
-        return [w for w in tokens if w not in cls.stopwords]
+        # print("Removing stopwords...")
+        rmvd =  [w for w in tokens if w not in cls.stopwords]
+        return rmvd
 
 
     @classmethod
     def word_tokenize(cls, text, ignore_stopwords=False, clean=True):
         
         if clean:
-            # replace symbols and multiple spaces with a single space          
-            text = re.sub('( +)|(' + r'\W+' + ')', ' ', text)
+            # replace symbols and multiple spaces with a single space
+            text = re.sub('( +)|(' + r'\W+' + ')', ' ', text)            
 
-        tokens = nltk.word_tokenize(text)
+            # remove numbers that are not part of a word            
+            # text = re.sub(r"\b\d+\b", "", text)
+
+        table = str.maketrans('', '', string.punctuation)
+        tokens = [t.lower().translate(table) for t in nltk.word_tokenize(text)]
         tokens = cls.remove_stopwords(tokens) if ignore_stopwords else tokens
 
         return tokens
 
 
     @classmethod
-    def build_article_tokens(cls, article, union=False, ignore_stopwords=False, clean=True):
+    def build_article_tokens(cls, article, remove_duplicates=False, ignore_stopwords=False, clean=True):
         t = dict()
         t['title'] = cls.word_tokenize(article['title'], ignore_stopwords, clean)
         t['description'] = cls.word_tokenize(article['description'], ignore_stopwords, clean)
-        return list_union(t['title'], t['description']) if union else (t['title']+t['description'])
+
+        t_td = t['title'] + t['description']
+
+        return list(set(t_td)) if remove_duplicates else t_td
 
 
     @classmethod
@@ -234,10 +272,10 @@ class Miner:
 
     @classmethod
     def tokenize_article(cls, article, stemmer='snowball',
-                         should_union=False, should_ignore_sw=True, should_clean=True, should_stem=True):
+                         should_remove_duplicates=False, should_ignore_sw=True, should_clean=True, should_stem=True):
         # tokenize article
         tokens = cls.build_article_tokens(article, 
-                                            union=should_union, 
+                                            remove_duplicates=should_remove_duplicates, 
                                             ignore_stopwords=should_ignore_sw, 
                                             clean=should_clean)
 
