@@ -4,10 +4,12 @@ from bs4 import BeautifulSoup
 import pymongo
 
 # util
+import math
 import pandas as pd
 import numpy as np
 import hashlib, datetime, ssl, random, json, re, string
-from collections import defaultdict
+from collections import defaultdict, Counter
+from statistics import mean
 
 # plot
 import matplotlib
@@ -19,6 +21,9 @@ from wordcloud import WordCloud
 # natural language text processing
 import nltk
 from nltk.corpus import stopwords
+from nltk.stem.snowball import ItalianStemmer
+
+from unidecode import unidecode
 
 # machine learning
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
@@ -29,17 +34,21 @@ from gensim.models import Word2Vec # NOTE: NON FUNZIONA
 from gensim.sklearn_api import D2VTransformer # NOTE: NON FUNZIONA
 
 from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, learning_curve
-from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
+from sklearn.metrics import confusion_matrix, accuracy_score, classification_report, roc_auc_score, f1_score, recall_score, precision_score
+
 
 from sklearn.pipeline import Pipeline
 
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import SGDClassifier
-from sklearn.svm import LinearSVC
+from sklearn.svm import LinearSVC, SVC
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, VotingClassifier, AdaBoostClassifier, GradientBoostingClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
+
+
+from sklearn.cluster import KMeans
 
 
 def test_classifier():
@@ -70,8 +79,7 @@ def test_classifier():
         print(results[i])
 
 
-
-def test(skip_parse=False, meta_classify=False, use_w2v=False):
+def test(skip_parse=False, meta_classify=False, use_w2v=False, show_mat=True):
 
     # importing configuration 
     print("\nimporting config file...") 
@@ -96,31 +104,19 @@ def test(skip_parse=False, meta_classify=False, use_w2v=False):
     
     print('done!\nhome is ready! \n\tdict: {"config", "db", "feed_parser", "newsfeed", "miner"}\n')
     
+
+    ################### DUMB AF IDEA
+    # miner.parallel_classifier()
+    ################### (IGNORE IT)
+
+
     if meta_classify:
         print('\nmeta-classifing... ')
-        miner.meta_classify(use_w2v=use_w2v)
-
-
-
-    from collections import Counter
-    l = Miner.tokenize_list(miner.dataset)
-    flatten = [e for sl in l for e in sl]
-
-    should_not_happen = [e for e in flatten if e in Miner.stopwords]
-    print(len(should_not_happen))
+        # miner.dataset = pd.DataFrame(db.find_likabilityset())
+        miner.meta_classify(use_w2v=use_w2v, show_mat=show_mat)
 
     # WORLDCLOUDSTUFF...
-    # word_cloud_dict = Counter(flatten)
-    # wordcloud = WordCloud(width = 1000, height = 500).generate_from_frequencies(word_cloud_dict)
-
-    # plt.figure(figsize=(15,8))
-    # plt.imshow(wordcloud)
-    # plt.axis("off")
-    # plt.show()
-
-    # plt.savefig('yourfile.png', bbox_inches='tight')
-    # plt.close()
-
+    # show_wordcloud(flatten(Miner.tokenize_list(miner.dataset, should_stem=False)))
 
     return {'config': config, 'db': db, 'feed_parser': feed_parser, 'newsfeed': newsfeed, 'miner': miner}
 
@@ -190,6 +186,44 @@ def datetime_to_string(article):
     return article
 
 
+def try_parse_date(article_date):
+    now = datetime.datetime.now()
+    dt = datetime.datetime.strptime(article_date, "%Y-%m-%dT%H:%M:%S")  if article_date is not None else datetime.datetime(now.year, now.month, now.day)
+    return dt
+
+
+flatten = lambda l: [item for sublist in l for item in sublist]
+
+
+def show_wordcloud(dataset):
+    word_cloud_dict = Counter(dataset)
+    wordcloud = WordCloud(width = 1000, height = 500).generate_from_frequencies(word_cloud_dict)
+    plt.figure(figsize=(15,8))
+    plt.imshow(wordcloud)
+    plt.axis("off")
+    plt.show()
+
+
+def show_confusion_matrix(mat, labels):
+    n_class = len(labels)
+    df_cm = pd.DataFrame(mat, index = [i for i in labels],
+                              columns = [i for i in labels])
+
+    plt.figure(figsize = (n_class,n_class))
+    sn.heatmap(df_cm, annot=True,  fmt='g')
+    plt.show()
+
+
+# test function.... (THIS SHOULD PROBABLY BE IGNORED!)
+def check_category(row, cat):
+    if row['tag'] == cat:
+        return 'True'
+    return 'False'
+# test function.... (THIS SHOULD PROBABLY BE IGNORED!)
+
+
+
+######################################################################## 
 def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
                         n_jobs=None, train_sizes=np.linspace(.1, 1.0, 5)):
     """
@@ -271,6 +305,7 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
 
     plt.legend(loc="best")
     return plt
+######################################################################## 
 
 
 
@@ -302,16 +337,16 @@ class Parser:
                 imgurl = soup.find('img')
 
                 article_date = datetime.datetime(*e['published_parsed'][:6]) if ('published_parsed' in e) else None
-                if article_date is not None and ((datetime.datetime.now() - article_date) > datetime.timedelta(hours=24)):
+                if article_date is not None and ((datetime.datetime.now() - article_date) > datetime.timedelta(hours=12)):
                     continue  # skip old articles...
 
-                # building the article
+                # building the article 
                 article = {
                     'title' : e['title'] if ('title' in e) else "",
                     'author': e['author'] if ('author' in e) else "",
                     'description' : soup.text if soup is not None else "",
                     'datetime' : article_date.isoformat() if article_date is not None else None,
-                    'img' : imgurl['src'] if (imgurl is not None and 'src' in imgurl) else "",
+                    'img' : imgurl['src'] if (imgurl is not None and imgurl.has_attr('src')) else "",
                     'link': e['link'] if ('link' in e) else "",
                     'source' : source['name'],
 
@@ -337,6 +372,10 @@ class Parser:
         return random.sample(self.parsed_feed, num_articles)
 
 
+    def sorted_feed(self):
+        return sorted(self.parsed_feed, key=lambda x: try_parse_date(x['datetime']), reverse=True)
+
+
 # NewsFeed class: (useless)
 class NewsFeed:
     pass
@@ -351,7 +390,7 @@ class Miner:
 
     stemmers = {
         'porter': nltk.stem.PorterStemmer,
-        'snowball': nltk.stem.SnowballStemmer
+        'snowball': ItalianStemmer
     }
 
     vectorizers = {
@@ -385,17 +424,19 @@ class Miner:
     @classmethod
     def word_tokenize(cls, text, ignore_stopwords=False, clean=True):
         
-        if clean:
+        # if i should clean the text... (ignore...)
+        # if clean:
             # replace symbols and multiple spaces with a single space
-            text = re.sub('( +)|(' + r'\W+' + ')', ' ', text)            
-
+            # text = re.sub('( +)|(' + r'\W+' + ')', ' ', text)            
             # remove numbers that are not part of a word            
-            text = re.sub(r"\b\d+\b", "", text)
+            # text = re.sub(r"\b\d+\b", "", text)
+            
+        # tokenize (test)
+        tokens = re.split(r'\W+', text, flags = re.UNICODE)
+        tokens = [unidecode(t.lower()) for t in tokens if len(t) >= 2]
 
-        table = str.maketrans('', '', string.punctuation)
-        tokens = [t.lower().translate(table) for t in nltk.word_tokenize(text)]
+        # finally remove stopwords
         tokens = cls.remove_stopwords(tokens) if ignore_stopwords else tokens
-
         return tokens
 
 
@@ -408,12 +449,6 @@ class Miner:
         t_td = t['title'] + t['description']
 
         return list(set(t_td)) if remove_duplicates else t_td
-
-
-    @classmethod
-    def clean_article_tokens(cls, token):
-        regex = re.compile(r'\w+') # remove punctuation
-        return [x for x in token if regex.match(x)]
 
 
     @classmethod
@@ -430,14 +465,15 @@ class Miner:
                                             ignore_stopwords=should_ignore_sw, 
                                             clean=should_clean)
 
-        return cls.stem_article_tokens(tokens, cls.stemmers[stemmer]('italian')) if should_stem else tokens
+        return cls.stem_article_tokens(tokens, cls.stemmers[stemmer]()) if should_stem else tokens
 
 
     @classmethod
-    def tokenize_list(cls, articles):
+    def tokenize_list(cls, articles,
+                      should_remove_duplicates=False, should_ignore_sw=True, should_clean=True, should_stem=True):
         if type(articles) is list:
             articles = pd.DataFrame(articles)
-        return [Miner.tokenize_article(a) for _,a in articles.iterrows()]
+        return [Miner.tokenize_article(a, should_remove_duplicates=should_remove_duplicates, should_ignore_sw=should_ignore_sw, should_clean=should_clean, should_stem=should_stem) for _,a in articles.iterrows()]
 
 ########## TOKENIZATION #############
 
@@ -451,10 +487,19 @@ class Miner:
 
 ########## CROSS-VALIDATION + META-CLASSIFICATION #############
     @classmethod
-    def cross_validate_pipeline(cls, pipeline, dataset, labels, n_class=2, folds=10):
+    def cross_validate_pipeline(cls, pipeline, dataset, labels, n_class=None, folds=10):
         kf = StratifiedKFold(n_splits=folds)
         total = 0
         totalMat = np.zeros((n_class,n_class))
+        n_class = len(np.unique(labels)) if n_class is None else n_class
+
+
+        # metrics
+        f1 = []
+        acc = []
+        prc = []
+        rcl = []
+
 
         for train_index, test_index in kf.split(dataset,labels):
             X_train = [dataset[i] for i in train_index]
@@ -465,19 +510,32 @@ class Miner:
             result = pipeline.predict(X_test)
             
             mat = confusion_matrix(y_test, result)
+            f1.append(f1_score(y_test, result, average='weighted'))
+            acc.append(accuracy_score(y_test, result))
+            prc.append(precision_score(y_test, result, average='weighted'))
+            rcl.append(recall_score(y_test, result, average='weighted'))
 
             totalMat = totalMat + mat
             total = total + sum(y_test==result)
-            
+        
+        print("---\n")
+        print("F1 Scores: {}".format(mean(f1)))
+        print("Accuracy Scores: {}".format(mean(acc)))
+        print("Precision Scores: {}".format(mean(prc)))
+        print("Recall Scores: {}".format(mean(rcl)))
+        print("---\n")
+
         return (totalMat, total/len(labels))
 
 
     @classmethod
-    def cross_validate(cls, dataset, labels, classifier, vectorizer=None, n_class=2, folds=10):
+    def cross_validate(cls, dataset, labels, classifier, vectorizer=None, n_class=None, folds=10):
         kf = StratifiedKFold(n_splits=folds, random_state=42)
+        n_class = len(np.unique(labels)) if n_class is None else n_class
         total = 0
         totalMat = np.zeros((n_class,n_class))
-        
+        n_iter = 0
+
         for train_index, test_index in kf.split(dataset,labels):
             X_train = [dataset[i] for i in train_index]
             X_test = [dataset[i] for i in test_index]
@@ -487,22 +545,63 @@ class Miner:
             test_features = vectorizer.transform(X_test) # if vectorizer else X_test 
 
             classifier.fit(train_features,y_train)
+            
             result = classifier.predict(test_features)
             
             mat = confusion_matrix(y_test, result)
 
             totalMat = totalMat + mat
             total = total + sum(y_test==result)
-            
+            n_iter = n_iter+1
+        
         return (totalMat, total/len(labels))
 
 
-    def meta_classify(self, use_w2v=False):
+    ######################################################
+    # this is not so bad... maybe it makes sense... 
+    # but how am i supposed to test this shit?
+    def parallel_classifier(self):
+        # ds = Miner.tokenize_list(self.dataset)
+        labels = pd.DataFrame()
+
+        for c in get_categories():
+
+            ds0 = self.dataset.copy()
+
+            ds1 = ds0[ds0['tag'] != c].sample(170, random_state=42)
+            ds2 = ds0[ds0['tag'] == c].sample(170, random_state=42)
+            ds  = pd.concat([ds1, ds2])  
+
+            labels = ds.apply(lambda row: check_category(row, c), axis=1)           
+
+            vect = Miner.vectorizers['tfidf'](max_features=Miner.max_features, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None)
+            clf = Miner.classifiers['linear_svc'](random_state=42)
+
+            print('\n---------------------------')
+            print('\nEvaluating ' + c + '\n')
+            pl = Pipeline([
+                ('vect', vect),
+                ('clf', clf)
+            ])
+            score = Miner.cross_validate_pipeline(pl, Miner.tokenize_list(ds), labels.values, n_class=2) 
+
+            # fitting the model
+            pl.fit(ds, labels)
+            print(score)
+
+        exit(-1)
+    ######################################################
+
+
+
+    def meta_classify(self, use_w2v=False, show_mat=True):
         print('\nTokenizing the articles in the dataset...')
         ds = Miner.tokenize_list(self.dataset)
 
         # preparing the labels...
+        # labels = np.array([likability(a)[0] for _,a in self.dataset.iterrows()])   (trying likability classification)
         labels = self.dataset['tag'].to_numpy()
+        n_class = len(get_categories())
 
         # preparing modules of the classifier
         print('Preparing the modules (vectorizer and list of classifiers)\n')
@@ -516,12 +615,16 @@ class Miner:
         classifiers = [
             # ('Decision Tree Classifier', Miner.classifiers['tree']()),
             ('Multinomial Naive-Bayes', Miner.classifiers['multinomial_nb']()),
-            ('Linear SVC (Support Vector Machine)', Miner.classifiers['linear_svc']()),
-            ('Random Forest', Miner.classifiers['random_forest'](n_estimators=200, max_depth=3, random_state=42)),
+            ('Linear SVC (Support Vector Machine)', Miner.classifiers['linear_svc'](random_state=42)),
+            # ('SVC with kernel = Linear', SVC(kernel='linear', probability=True)),
+            ('Random Forest', Miner.classifiers['random_forest'](n_estimators=int(2*math.sqrt(Miner.max_features)), random_state=42)),
             ('Logistic Regression', Miner.classifiers['logistic_regression'](solver='lbfgs', multi_class='auto', random_state=42)),
             ('SGD Classifeir', Miner.classifiers['sgd'](loss='hinge', penalty='l2',     
                                                         alpha=1e-3, random_state=42,
-                                                        max_iter=5, tol=None))
+                                                        max_iter=5, tol=None)),
+            # ('XGB Classifier', xgb.XGBClassifier(objective="multi:softprob", random_state=42))
+            # ('GradientBoostingClassifier', GradientBoostingClassifier())
+            ('Ada Boost Classifier', AdaBoostClassifier(n_estimators=10, algorithm='SAMME'))
         ]
 
         # cross validating the classifier
@@ -532,18 +635,22 @@ class Miner:
                 ('vect', vect),
                 ('clf', c[1])
             ])
-            score = Miner.cross_validate_pipeline(pl, ds, labels, n_class=len(get_categories()))
+            score = Miner.cross_validate_pipeline(pl, ds, labels, n_class=n_class) #, n_class=len(get_categories()))
 
             print(score)
 
-            df_cm = pd.DataFrame(score[0], index = [i for i in get_categories()],
-                            columns = [i for i in get_categories()])
-            plt.figure(figsize = (len(get_categories()),len(get_categories())))
-            sn.heatmap(df_cm, annot=True,  fmt='g')
-            plt.show()
+
+            if show_mat:
+                show_confusion_matrix(score[0], get_categories())
 
         print('\n---------------------------')
-        print('\nMeta-Classification Done!\n')
+        
+        
+       # print("\n\nTrying some actual meta-classification...\n\n")
+       # eclf = VotingClassifier(classifiers)
+       # eclf.fit(vect.fit_transform(ds), labels)
+       # print(eclf.predict(vect.transform(ds))) # wtf
+       # print('\nMeta-Classification Done!\n')
         return
 ########## CROSS-VALIDATION + META-CLASSIFICATION #############
 
@@ -654,10 +761,28 @@ class DBConnector:
         return results
 
 
+    def find_likabilityset(self):
+        articles = self.db['articles']
+        results = list(articles.find({
+                'tag': {'$exists':True},
+                '$or': [{ 'like': True }, { 'dislike': True }, { 'read': True }]
+            }, {
+                'title':1, 
+                'description':1, 
+                'tag':1, 
+                'tag__':1, 
+                'like':1, 
+                'dislike':1, 
+                'read':1
+            }
+        ).sort([('tag',1)]))
+        return results    
+
+
     def tag_distribution(self):
         dist = self.db.articles.aggregate([{
             '$group' : {
-                '_id' : {'$ifNull': ['$tag__', 'Unknown']},
+                '_id' : {'$ifNull': ['$tag', 'Unknown']},
                 'count': { '$sum': 1 },
                 'num_likes': {'$sum': { '$cond': ["$like", 1, 0] }},
                 'num_dislikes': {'$sum': { '$cond': ["$dislike", 1, 0] }},
@@ -706,7 +831,8 @@ class DBConnector:
             'read': self.find_read,
             'disliked': self.find_disliked,
             'ignored': self.find_ignored,
-            'training': self.find_trainingset
+            'training': self.find_trainingset,
+            'training_likability': self.find_likabilityset
         }
         return feed_descriptors[descriptor]()
 

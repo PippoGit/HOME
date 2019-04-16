@@ -36,7 +36,7 @@ CORS(app, origins=['http://localhost:5000', 'http://imac.local:5000', 'http://12
 class Feed(Resource):
     def get(self, descriptor=None):
         if descriptor=='learn':
-            return  feed_parser.parsed_feed, 200 # feed_parser.training_samples(168), 200
+            return  feed_parser.sorted_feed(), 200 # feed_parser.training_samples(168), 200
         return 404 if descriptor is None else (db.find_feed(descriptor), 200)
 
 
