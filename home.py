@@ -23,6 +23,8 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem.snowball import ItalianStemmer
 
+# from polyglot.text import Text
+
 from unidecode import unidecode
 
 # machine learning
@@ -422,7 +424,7 @@ class Miner:
 
 
     @classmethod
-    def word_tokenize(cls, text, ignore_stopwords=False, clean=True):
+    def word_tokenize(cls, corpus, ignore_stopwords=False, clean=True):
         
         # if i should clean the text... (ignore...)
         # if clean:
@@ -432,7 +434,9 @@ class Miner:
             # text = re.sub(r"\b\d+\b", "", text)
             
         # tokenize (test)
-        tokens = re.split(r'\W+', text, flags = re.UNICODE)
+        # tokens = re.split(r'\W+', text, flags = re.UNICODE)
+        
+        tokens = text.Text(corpus).words
         tokens = [unidecode(t.lower()) for t in tokens if len(t) >= 2]
 
         # finally remove stopwords
