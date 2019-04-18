@@ -49,6 +49,8 @@ from mlxtend.classifier import StackingCVClassifier
 from sklearn.cluster import KMeans
 
 from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import SelectPercentile, chi2
+from sklearn.decomposition import TruncatedSVD
 
 # SPACY and Stuff...
 import spacy
@@ -106,22 +108,14 @@ def test(skip_parse=False, meta_classify=False, show_mat=True, tuning=False):
     print("preparing dataset for the miner...\n")
     miner = Miner(db.find_trainingset())
     
-    print('done!\nhome is ready! \n\tdict: {"config", "db", "feed_parser", "newsfeed", "miner"}\n')
-    
-
-    ################### DUMB AF IDEA
-    # miner.parallel_classifier()
-    ################### (IGNORE IT)
-
-
     if meta_classify:
         print('\nmeta-classifing... ')
-        # miner.dataset = pd.DataFrame(db.find_likabilityset())
         miner.meta_classify(show_mat=show_mat, tuning=tuning)
 
     # WORLDCLOUDSTUFF...
     # show_wordcloud(flatten(Miner.tokenize_list(miner.dataset, should_stem=False)))
 
+    print('done!\nhome is ready! \n\tdict: {"config", "db", "feed_parser", "newsfeed", "miner"}\n')
     return {'config': config, 'db': db, 'feed_parser': feed_parser, 'newsfeed': newsfeed, 'miner': miner}
 
 
@@ -462,12 +456,14 @@ class Miner:
         # preparing the vectorizer
         vect = Miner.vect['tfidf'](
             #best parameters:
-            max_features=14500,
+            max_features=None,
 
             # init
             tokenizer=Miner.ignore, 
             preprocessor=Miner.ignore, 
-            token_pattern=None
+            token_pattern=None,
+
+            # sublinear_tf=True
         )
         
         # classifiers initialization
@@ -487,7 +483,7 @@ class Miner:
                 'clf__n_estimators': [800, 1550, 2000],
                 'clf__bootstrap': [True, False],
                 'clf__max_depth': [10, 50, 100, None],
-                'clf__max_features': ['auto', 'sqrt'],
+                'clf__max_features': ['sqrt'],
                 # 'clf__min_samples_leaf': [2, 4],
                 # 'clf__min_samples_split': [5, 10]
             },
@@ -510,6 +506,7 @@ class Miner:
             # building the model
             pl = Pipeline([
                 ('vect', vect),
+                ('sel', SelectPercentile(chi2, percentile=33)),
                 ('clf', c[1])
             ])
 
@@ -541,7 +538,6 @@ class Miner:
         for c in classifiers:
             pl = Pipeline([
                 ('vect', vect),
-                ('sel', SelectKBest(k=50)), # i'll give this a try...
                 ('clf', c[1])
             ])
 
