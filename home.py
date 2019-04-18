@@ -38,17 +38,18 @@ from sklearn.metrics import confusion_matrix, accuracy_score, classification_rep
 from sklearn.pipeline import Pipeline
 
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.linear_model import SGDClassifier
+from sklearn.linear_model import SGDClassifier, LogisticRegression
 from sklearn.svm import LinearSVC, SVC
-from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier, AdaBoostClassifier, GradientBoostingClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import GridSearchCV
+from mlxtend.classifier import StackingCVClassifier
 
 from sklearn.cluster import KMeans
 
-from mlxtend.classifier import StackingCVClassifier
+from sklearn.feature_selection import SelectKBest
+
 
 # SPACY and Stuff...
 import spacy
@@ -451,11 +452,11 @@ class Miner:
 
 
     def meta_classify(self, show_mat=True, tuning=False):
-        # preparing the trainingset...
+        # preparing the trainingset
         ds =  Miner.tokenize_list(self.dataset) # apparently my tokenizer and spacy's one preduce the same results
                                                 # but mine is way faster, so i think i'm not going to use spacy
 
-        # preparing the labels...  labels = np.array([likability(a)[0] for _,a in self.dataset.iterrows()])   (trying likability classification)
+        # preparing the target
         labels = self.dataset['tag'].to_numpy()
         n_class = len(get_categories())
 
@@ -470,31 +471,31 @@ class Miner:
             token_pattern=None
         )
         
-        # classifiers' list + init
+        # classifiers initialization
         classifiers = [
-            # ('Decision Tree Classifier', Miner.clf['tree']()),
-            ('mnb', Miner.clf['mnb']()),
-            ('svc', Miner.clf['svc'](C=5.1, random_state=42)),
-            ('rf', Miner.clf['random_forest'](random_state=42)),
+            # ('dt', Miner.clf['tree']()),
+            # ('mnb', Miner.clf['mnb']()),
+            ('svc', Miner.clf['svc'](C=0.46, random_state=42)),
+            ('rf', Miner.clf['random_forest'](random_state=42, n_estimators=10)),
             # ('Logistic Regression', Miner.clf['log_reg'](solver='lbfgs', multi_class='auto', random_state=42)),
-            ('ada', Miner.clf['ada']())
+            ('ada', Miner.clf['ada'](n_estimators=10))
         ]
 
 
         # params tuning (is this really helpful?)
         params = { 
             'rf' : {
-                'clf__n_estimators': [200, 800, 1000, 2000],
+                'clf__n_estimators': [800, 1550, 2000],
                 'clf__bootstrap': [True, False],
-                'clf__max_depth': [10, 50, 80, 100, None],
+                'clf__max_depth': [10, 50, 100, None],
                 'clf__max_features': ['auto', 'sqrt'],
-                'clf__min_samples_leaf': [2, 4],
-                'clf__min_samples_split': [5, 10]
+                # 'clf__min_samples_leaf': [2, 4],
+                # 'clf__min_samples_split': [5, 10]
             },
             'mnb' : {},
             'svc' : {
-                'vect__max_features' : [8000, 12500, 14500], # best MF: 14500
-                'clf__C': np.arange(0.01,20,2) # best C: 5.1
+                # 'vect__max_features' : [8000, 12500, 14500], # best MF: 14500
+                # 'clf__C': np.arange(0.01, 3, 0.05) # best C: 0.46
             },
             'ada' : {
                 'clf__n_estimators': [200, 800, 1000, 1200, 1400, 1800, 2000],
@@ -515,9 +516,9 @@ class Miner:
 
 
             if tuning:
-                print("\nTuning Hyper-Parameters with GridSearchCV (5 Folds): \n")
+                print("\nTuning Hyper-Parameters with GridSearchCV: \n")
                 model = GridSearchCV(pl, params[c[0]], iid=True,
-                    scoring='accuracy', cv=StratifiedKFold(random_state=42, n_splits=5, shuffle=True),
+                    scoring='accuracy', cv=StratifiedKFold(random_state=42, n_splits=10, shuffle=True),
                     verbose=1,
                     n_jobs=2
                 )
@@ -535,10 +536,23 @@ class Miner:
 
 
         print("\n\nDoing some actual metaclassification:\n")
-        sclf = StackingCVClassifier(classifiers=classifiers, 
+        sclf = StackingCVClassifier(classifiers=[c[1] for c in classifiers], 
                                     meta_classifier=LogisticRegression())
-        score = Miner.cross_validate_score(sclf, ds, labels, n_class=n_class)
-        print(score, mean(score))
+        classifiers.append(('stacking', sclf))
+        for c in classifiers:
+            pl = Pipeline([
+                ('vect', vect),
+                ('sel', SelectKBest(k=50)), # i'll give this a try...
+                ('clf', c[1])
+            ])
+
+            scores = cross_val_score(
+                pl, 
+                ds, labels, 
+                cv=10, scoring='accuracy'
+            )
+            print("Accuracy: %0.2f (+/- %0.2f) [%s]"  % (scores.mean(), scores.std(), c[0]))
+
 ########## CROSS-VALIDATION + META-CLASSIFICATION #############
 
         
