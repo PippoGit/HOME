@@ -43,7 +43,7 @@ from sklearn.svm import LinearSVC, SVC
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier, AdaBoostClassifier, GradientBoostingClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from mlxtend.classifier import StackingCVClassifier
 
 from sklearn.cluster import KMeans
@@ -51,6 +51,8 @@ from sklearn.cluster import KMeans
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import SelectPercentile, chi2
 from sklearn.decomposition import TruncatedSVD
+
+from gensim.sklearn_api import D2VTransformer
 
 # SPACY and Stuff...
 import spacy
@@ -85,7 +87,7 @@ def test_classifier():
         print(results[i])
 
 
-def test(skip_parse=False, meta_classify=False, show_mat=True, tuning=False):
+def test(skip_parse=False, meta_classify=False, show_mat=True, tuning=False, w2v=False):
 
     # importing configuration 
     print("\nimporting config file...") 
@@ -110,7 +112,7 @@ def test(skip_parse=False, meta_classify=False, show_mat=True, tuning=False):
     
     if meta_classify:
         print('\nmeta-classifing... ')
-        miner.meta_classify(show_mat=show_mat, tuning=tuning)
+        miner.meta_classify(show_mat=show_mat, tuning=tuning, use_w2v=w2v)
 
     # WORLDCLOUDSTUFF...
     # show_wordcloud(flatten(Miner.tokenize_list(miner.dataset, should_stem=False)))
@@ -321,7 +323,7 @@ class Miner:
         tokens = re.split(r'\W+', corpus, flags=re.UNICODE)
         
         # tokens = Text(corpus).words (actually polyglot is kinda useless...)
-        tokens = [unidecode(t.lower()) for t in tokens if len(t) >= 2]
+        tokens = [unidecode(t.lower()) for t in tokens if len(t) >= 2 and t.isalpha()]
 
         # finally remove stopwords
         tokens = cls.remove_stopwords(tokens) if ignore_stopwords else tokens
@@ -444,35 +446,45 @@ class Miner:
         return scores
 
 
-    def meta_classify(self, show_mat=True, tuning=False):
+    def meta_classify(self, show_mat=True, tuning=False, use_w2v=False):
         # preparing the trainingset
-        ds =  Miner.tokenize_list(self.dataset) # apparently my tokenizer and spacy's one preduce the same results
-                                                # but mine is way faster, so i think i'm not going to use spacy
+        ds =  Miner.tokenize_list(self.dataset) # steming should not be done with w2v (should it?)
+        # apparently my tokenizer and spacy's one preduce the same results
+        # but mine is way faster, so i think i'm not going to use spacy
 
         # preparing the target
         labels = self.dataset['tag'].to_numpy()
         n_class = len(get_categories())
 
-        # preparing the vectorizer
-        vect = Miner.vect['tfidf'](
-            #best parameters:
-            max_features=None,
+        # preparing the vectorizer
+        if use_w2v:
+            # i'm going to use D2Vector
+            vect = D2VTransformer( # some tuning is needed here (iguess)
+                dm=1, 
+                size=500, #maybeitstoomuch
+                min_count=3, 
+                iter=10, 
+                seed=42
+            ) 
+        else: 
+            # traditional TF-IDF
+            vect = Miner.vect['tfidf'](
+                #best parameters:
+                max_features=12500,
 
-            # init
-            tokenizer=Miner.ignore, 
-            preprocessor=Miner.ignore, 
-            token_pattern=None,
-
-            # sublinear_tf=True
-        )
+                # init
+                tokenizer=Miner.ignore, 
+                preprocessor=Miner.ignore, 
+                token_pattern=None,
+            )
         
         # classifiers initialization
         classifiers = [
-            # ('dt', Miner.clf['tree']()),
-            # ('mnb', Miner.clf['mnb']()),
+            ('dt', Miner.clf['tree']()),
+            ('mnb', Miner.clf['mnb']()),
             ('svc', Miner.clf['svc'](C=0.46, random_state=42)),
             ('rf', Miner.clf['random_forest'](random_state=42, n_estimators=10)),
-            # ('Logistic Regression', Miner.clf['log_reg'](solver='lbfgs', multi_class='auto', random_state=42)),
+            ('Logistic Regression', Miner.clf['log_reg'](solver='lbfgs', multi_class='auto', random_state=42)),
             ('ada', Miner.clf['ada'](n_estimators=10))
         ]
 
@@ -480,21 +492,21 @@ class Miner:
         # params tuning (is this really helpful?)
         params = { 
             'rf' : {
-                'clf__n_estimators': [800, 1550, 2000],
-                'clf__bootstrap': [True, False],
-                'clf__max_depth': [10, 50, 100, None],
+                'clf__n_estimators': [2000],
+                'clf__bootstrap': [True],
+                'clf__max_depth': [None],
                 'clf__max_features': ['sqrt'],
-                # 'clf__min_samples_leaf': [2, 4],
-                # 'clf__min_samples_split': [5, 10]
+                'clf__min_samples_leaf': [2, 4],
+                'clf__min_samples_split': [5, 10]
             },
             'mnb' : {},
             'svc' : {
-                # 'vect__max_features' : [8000, 12500, 14500], # best MF: 14500
+                # 'vect__max_features' : [8000, 12500, 14500], # best MF: 14500
                 # 'clf__C': np.arange(0.01, 3, 0.05) # best C: 0.46
             },
             'ada' : {
-                'clf__n_estimators': [200, 800, 1000, 1200, 1400, 1800, 2000],
-                'clf__algorithm': ['SAMME', 'SAMME.R']
+                'clf__n_estimators': [2000],
+                'clf__algorithm': ['SAMME']
             },
             'lr' : {},
             'dt' : {}
@@ -504,16 +516,16 @@ class Miner:
             print('\n---------------------------\n')
             
             # building the model
-            pl = Pipeline([
-                ('vect', vect),
-                ('sel', SelectPercentile(chi2, percentile=33)),
-                ('clf', c[1])
-            ])
+            pl = Pipeline(
+                [('vect', vect)] +
+                ([] if use_w2v else [('sel', SelectPercentile(chi2, percentile=45))]) +
+                [('clf', c[1])]
+            )
 
 
             if tuning:
-                print("\nTuning Hyper-Parameters with GridSearchCV: \n")
-                model = GridSearchCV(pl, params[c[0]], iid=True,
+                print("\nTuning {} Hyper-Parameters with RandomizedSearchCV: \n".format(c[0]))
+                model = RandomizedSearchCV(pl, params[c[0]], iid=True,
                     scoring='accuracy', cv=StratifiedKFold(random_state=42, n_splits=10, shuffle=True),
                     verbose=1,
                     n_jobs=2
@@ -531,22 +543,23 @@ class Miner:
             print('\n---------------------------\n')
 
 
-        print("\n\nDoing some actual metaclassification:\n")
-        sclf = StackingCVClassifier(classifiers=[c[1] for c in classifiers], 
-                                    meta_classifier=LogisticRegression())
-        classifiers.append(('stacking', sclf))
-        for c in classifiers:
-            pl = Pipeline([
-                ('vect', vect),
-                ('clf', c[1])
-            ])
+        # NOTE: NOT REALLY WORKING...
+        # print("\n\nDoing some actual metaclassification:\n")
+        # sclf = StackingCVClassifier(classifiers=[c[1] for c in classifiers], 
+        #                             meta_classifier=LogisticRegression())
+        # classifiers.append(('stacking', sclf))
+        # for c in classifiers:
+        #    pl = Pipeline([
+        #        ('vect', vect),
+        #        ('clf', c[1])
+        #    ])
 
-            scores = cross_val_score(
-                pl, 
-                ds, labels, 
-                cv=10, scoring='accuracy'
-            )
-            print("Accuracy: %0.2f (+/- %0.2f) [%s]"  % (scores.mean(), scores.std(), c[0]))
+        #    scores = cross_val_score(
+        #        pl, 
+        #        ds, labels, 
+        #        cv=10, scoring='accuracy'
+        #    )
+        #    print("Accuracy: %0.2f (+/- %0.2f) [%s]"  % (scores.mean(), scores.std(), c[0]))
 
 ########## CROSS-VALIDATION + META-CLASSIFICATION #############
 
