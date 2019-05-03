@@ -212,6 +212,7 @@ class Parser:
 
 
     def parse(self):
+        self.parsed_feed = []
         curr_count = 0
 
         if hasattr(ssl, '_create_unverified_context'):
@@ -309,36 +310,17 @@ class Miner:
 
 
 ########## TOKENIZATION #############
-    @classmethod
-    def remove_stopwords(cls, tokens):
-        # print("Removing stopwords...")
-        rmvd =  [w for w in tokens if w not in cls.stopwords]
-        return rmvd
-
 
     @classmethod
-    def word_tokenize(cls, corpus, ignore_stopwords=False):
+    def word_tokenize(cls, corpus):
             
-        # tokenize
-        tokens = re.split(r'\W+', corpus, flags=re.UNICODE)
-        
-        # tokens = Text(corpus).words (actually polyglot is kinda useless...)
-        tokens = [unidecode(t.lower()) for t in tokens if len(t) >= 2 and t.isalpha()]
+        # my_tokenization = re.split(r'\W+', corpus, flags=re.UNICODE)
 
-        # finally remove stopwords
-        tokens = cls.remove_stopwords(tokens) if ignore_stopwords else tokens
+        # spacy tokenization + lemmatization + remove sw
+        tokens = nlp(corpus)
+        tokens = [unidecode(t.lemma_) for t in tokens if not (t.is_punct or t.is_space)
+                                                         and t.norm_ not in cls.stopwords]
         return tokens
-
-
-    @classmethod
-    def build_article_tokens(cls, article, remove_duplicates=False, ignore_stopwords=False):
-        t = dict()
-        t['title'] = cls.word_tokenize(article['title'], ignore_stopwords)
-        t['description'] = cls.word_tokenize(article['description'], ignore_stopwords)
-
-        t_td = t['title'] + t['description']
-
-        return list(set(t_td)) if remove_duplicates else t_td
 
 
     @classmethod
@@ -348,39 +330,21 @@ class Miner:
 
     @classmethod
     def tokenize_article(cls, article, stemmer='snowball',
-                         should_remove_duplicates=False, should_ignore_sw=True, should_stem=True):
+                         should_remove_duplicates=False):
        
-        # tokenize article
-        tokens = cls.build_article_tokens(article, 
-                                            remove_duplicates=should_remove_duplicates, 
-                                            ignore_stopwords=should_ignore_sw)
-
-        if should_stem:
-            tokens = cls.stem_article_tokens(tokens, cls.stem[stemmer]())
-
-        return tokens
+        corpus = article['title'] + '\n' + article['description']
+        tokens = cls.word_tokenize(corpus)
+        return list(set(tokens)) if should_remove_duplicates else tokens
 
 
     @classmethod
     def tokenize_list(cls, articles,
-                      should_remove_duplicates=False, should_ignore_sw=True, should_stem=True):
+                      should_remove_duplicates=False):
         if type(articles) is list:
             articles = pd.DataFrame(articles)
-        return [Miner.tokenize_article(a, should_remove_duplicates=should_remove_duplicates, should_ignore_sw=should_ignore_sw, should_stem=should_stem) for _,a in articles.iterrows()]
+        return [Miner.tokenize_article(a, should_remove_duplicates=should_remove_duplicates) for _,a in articles.iterrows()]
 
 
-    @classmethod
-    def spacy_tokenize(cls, article, lemmatize=True):
-        corpus = article['title'] + '\n' + article['description']
-        doc = nlp(corpus)
-        return [unidecode(t.lemma_) for t in doc if not t.is_punct and not t.is_space and t.text not in cls.stopwords] if lemmatize else [t.text for t in doc]
-
-
-    @classmethod
-    def spacy_tokenize_list(cls, articles, should_lemmatize=True):
-        if type(articles) is list:
-            articles = pd.DataFrame(articles)
-        return [Miner.spacy_tokenize(a, lemmatize=should_lemmatize) for _,a in articles.iterrows()]
 ########## TOKENIZATION #############
 
 
@@ -448,9 +412,7 @@ class Miner:
 
     def meta_classify(self, show_mat=True, tuning=False, use_w2v=False):
         # preparing the trainingset
-        ds =  Miner.tokenize_list(self.dataset) # steming should not be done with w2v (should it?)
-        # apparently my tokenizer and spacy's one preduce the same results
-        # but mine is way faster, so i think i'm not going to use spacy
+        ds =  Miner.tokenize_list(self.dataset)
 
         # preparing the target
         labels = self.dataset['tag'].to_numpy()
@@ -518,7 +480,7 @@ class Miner:
             # building the model
             pl = Pipeline(
                 [('vect', vect)] +
-                ([] if use_w2v else [('sel', SelectPercentile(chi2, percentile=45))]) +
+                # ([] if use_w2v else [('sel', SelectPercentile(chi2, percentile=45))]) +
                 [('clf', c[1])]
             )
 
@@ -574,6 +536,7 @@ class Miner:
             ('clf', Miner.clf['svc']())
         ])
 
+        # this is wrong (i think), maybe it's better to do a shuffled 80-20 thing just to avoid overfitting
         ds = Miner.tokenize_list(self.dataset)
         labels = self.dataset['tag'].to_numpy()
 
