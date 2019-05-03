@@ -23,8 +23,6 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem.snowball import ItalianStemmer
 
-# from polyglot.text import Text (do i really need this? probably not...)
-
 from unidecode import unidecode
 
 # machine learning
@@ -87,7 +85,7 @@ def test_classifier():
         print(results[i])
 
 
-def test(skip_parse=False, meta_classify=False, show_mat=True, tuning=False, w2v=False):
+def test(skip_parse=False, meta_classify=False, show_mat=True, tuning=False, w2v=False, wordcloud=False):
 
     # importing configuration 
     print("\nimporting config file...") 
@@ -115,7 +113,8 @@ def test(skip_parse=False, meta_classify=False, show_mat=True, tuning=False, w2v
         miner.meta_classify(show_mat=show_mat, tuning=tuning, use_w2v=w2v)
 
     # WORLDCLOUDSTUFF...
-    # show_wordcloud(flatten(Miner.tokenize_list(miner.dataset, should_stem=False)))
+    if wordcloud:
+        show_wordcloud(flatten(Miner.tokenize_list(miner.dataset)))
 
     print('done!\nhome is ready! \n\tdict: {"config", "db", "feed_parser", "newsfeed", "miner"}\n')
     return {'config': config, 'db': db, 'feed_parser': feed_parser, 'newsfeed': newsfeed, 'miner': miner}
@@ -281,7 +280,6 @@ class Miner:
     custom_sw = set(line.strip() for line in open('config/stopwords-it.txt'))
     stopwords = set(stopwords.words('italian')).union(custom_sw)
 
-    max_features = 8000 
     ignore = lambda x: x # dumb function to ignore function handler that are not needed
 
     stem = {
@@ -312,34 +310,29 @@ class Miner:
 ########## TOKENIZATION #############
 
     @classmethod
-    def word_tokenize(cls, corpus):
-            
-        # my_tokenization = re.split(r'\W+', corpus, flags=re.UNICODE)
-
-        # spacy tokenization + lemmatization + remove sw
+    def word_tokenize(cls, corpus, stemmer='snowball'):
+        # preparing stuff
+        st = cls.stem[stemmer]()
         tokens = nlp(corpus)
-        tokens = [unidecode(t.lemma_) for t in tokens if not (t.is_punct or t.is_space)
-                                                         and t.norm_ not in cls.stopwords]
+
+        # tokenization + stemming
+        tokens = [st.stem(unidecode(t.norm_)) for t in tokens if not (t.is_punct or t.is_space or t.like_num)
+                                                                 and unidecode(t.norm_) not in cls.stopwords
+                                                                 and len(t.text) >= 2]
         return tokens
 
 
     @classmethod
-    def stem_article_tokens(cls, token, stemmer):
-        return [stemmer.stem(w) for w in token]
-
-
-    @classmethod
-    def tokenize_article(cls, article, stemmer='snowball',
+    def tokenize_article(cls, article,
                          should_remove_duplicates=False):
-       
+
         corpus = article['title'] + '\n' + article['description']
         tokens = cls.word_tokenize(corpus)
         return list(set(tokens)) if should_remove_duplicates else tokens
 
 
     @classmethod
-    def tokenize_list(cls, articles,
-                      should_remove_duplicates=False):
+    def tokenize_list(cls, articles, should_remove_duplicates=False):
         if type(articles) is list:
             articles = pd.DataFrame(articles)
         return [Miner.tokenize_article(a, should_remove_duplicates=should_remove_duplicates) for _,a in articles.iterrows()]
@@ -354,8 +347,8 @@ class Miner:
         n_class = len(labels)
         df_cm = pd.DataFrame(
             mat, 
-            index = [i for i in labels],
-            columns = [i for i in labels]
+            index=labels,
+            columns=labels
         )
 
         plt.figure(figsize = (n_class,n_class))
@@ -409,6 +402,16 @@ class Miner:
         scores = cross_val_score(model, dataset, labels, cv=StratifiedKFold(random_state=42, n_splits=folds, shuffle=True))
         return scores
 
+    
+    @classmethod
+    def cross_validate(cls, pl, ds, labels, n_class, show_mat=False):
+        if show_mat:
+            score = Miner.cross_validate_confmat(pl, ds, labels, n_class=n_class)
+            Miner.show_confusion_matrix(score[0], get_categories())
+        else:
+            score = Miner.cross_validate_score(pl, ds, labels, n_class=n_class)
+            print(score, mean(score))
+
 
     def meta_classify(self, show_mat=True, tuning=False, use_w2v=False):
         # preparing the trainingset
@@ -418,7 +421,7 @@ class Miner:
         labels = self.dataset['tag'].to_numpy()
         n_class = len(get_categories())
 
-        # preparing the vectorizer
+        # preparing the vectorizer NOTE: NON FUNZIONA
         if use_w2v:
             # i'm going to use D2Vector
             vect = D2VTransformer( # some tuning is needed here (iguess)
@@ -432,7 +435,10 @@ class Miner:
             # traditional TF-IDF
             vect = Miner.vect['tfidf'](
                 #best parameters:
-                max_features=12500,
+                max_features=14500,
+                sublinear_tf=True,
+                max_df=0.5,
+                norm='l2',
 
                 # init
                 tokenizer=Miner.ignore, 
@@ -442,16 +448,16 @@ class Miner:
         
         # classifiers initialization
         classifiers = [
-            ('dt', Miner.clf['tree']()),
-            ('mnb', Miner.clf['mnb']()),
-            ('svc', Miner.clf['svc'](C=0.46, random_state=42)),
-            ('rf', Miner.clf['random_forest'](random_state=42, n_estimators=10)),
-            ('Logistic Regression', Miner.clf['log_reg'](solver='lbfgs', multi_class='auto', random_state=42)),
-            ('ada', Miner.clf['ada'](n_estimators=10))
+            # ('dt', Miner.clf['tree']()),
+            # ('mnb', Miner.clf['mnb']()),
+            ('svc', Miner.clf['svc'](C=0.41, random_state=42)),
+            # ('rf', Miner.clf['random_forest'](random_state=42, n_estimators=10)),
+            # ('Logistic Regression', Miner.clf['log_reg'](solver='lbfgs', multi_class='auto', random_state=42)),
+            # ('ada', Miner.clf['ada'](n_estimators=10))
         ]
 
 
-        # params tuning (is this really helpful?)
+        # params tuning
         params = { 
             'rf' : {
                 'clf__n_estimators': [2000],
@@ -463,8 +469,10 @@ class Miner:
             },
             'mnb' : {},
             'svc' : {
-                # 'vect__max_features' : [8000, 12500, 14500], # best MF: 14500
-                # 'clf__C': np.arange(0.01, 3, 0.05) # best C: 0.46
+                # 'vect__norm': [None, 'l1', 'l2']
+                # 'vect__max_df': (0.5, 0.55, 0.65, 0.70, 0.75, 1.0),
+                # 'vect__max_features' : [12000, 14500, 15000], # best MF: 14500
+                # 'clf__C': np.arange(0.01, 4, 0.05) # best C: 0.46
             },
             'ada' : {
                 'clf__n_estimators': [2000],
@@ -496,12 +504,8 @@ class Miner:
                 print(model.best_score_, model.best_params_)
             else:
                 print('\n Regular CV 10 folds for ' + c[0] + '\n')
-                if show_mat:
-                    score = Miner.cross_validate_confmat(pl, ds, labels, n_class=n_class)
-                    Miner.show_confusion_matrix(score[0], get_categories())
-                else:
-                    score = Miner.cross_validate_score(pl, ds, labels, n_class=n_class)
-                    print(score, mean(score))
+                Miner.cross_validate(pl, ds, labels, n_class, show_mat=show_mat)
+            
             print('\n---------------------------\n')
 
 
@@ -532,7 +536,7 @@ class Miner:
         # this function should provide a pipeline trained object 
         # that i use to fit with the features extracted from the miner
         model = Pipeline([
-            ('vect', Miner.vect['tfidf'](max_features=Miner.max_features, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None)),
+            ('vect', Miner.vect['tfidf'](max_features=14500, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None)),
             ('clf', Miner.clf['svc']())
         ])
 

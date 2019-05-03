@@ -19,6 +19,7 @@ alcuna
 alcuni
 alcuno
 all
+all'
 alla
 alle
 allo
@@ -156,6 +157,7 @@ degli
 dei
 del
 dell
+dell'
 della
 delle
 dello
@@ -633,6 +635,7 @@ uguali
 ulteriore
 ultimo
 un
+un'
 una
 uno
 uomo
@@ -663,3 +666,5 @@ l'
 l
 i
 the
+d'
+c'
