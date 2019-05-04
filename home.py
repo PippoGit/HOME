@@ -27,7 +27,7 @@ from unidecode import unidecode
 
 # machine learning
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, MaxAbsScaler
 
 from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, learning_curve
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report, roc_auc_score, f1_score, recall_score, precision_score
@@ -437,8 +437,10 @@ class Miner:
                 #best parameters:
                 max_features=14500,
                 sublinear_tf=True,
+                min_df=1,
                 max_df=0.5,
                 norm='l2',
+                ngram_range=(1, 1),
 
                 # init
                 tokenizer=Miner.ignore, 
@@ -449,10 +451,10 @@ class Miner:
         # classifiers initialization
         classifiers = [
             # ('dt', Miner.clf['tree']()),
-            # ('mnb', Miner.clf['mnb']()),
+            # ('mnb', Miner.clf['mnb']()),
             ('svc', Miner.clf['svc'](C=0.51, random_state=42)),
-            # ('rf', Miner.clf['random_forest'](random_state=42, n_estimators=10)),
-            # ('Logistic Regression', Miner.clf['log_reg'](solver='lbfgs', multi_class='auto', random_state=42)),
+            # ('rf', Miner.clf['random_forest'](random_state=42, n_estimators=10)),
+            # ('Logistic Regression', Miner.clf['log_reg'](solver='lbfgs', multi_class='auto', random_state=42)),
             # ('ada', Miner.clf['ada'](n_estimators=10))
         ]
 
@@ -469,10 +471,12 @@ class Miner:
             },
             'mnb' : {},
             'svc' : {
+                # 'vect__ngram_range': [(1, 1), (1, 2), (1, 3), (2, 2)],
+                # 'vect__min_df': (1, 0.01, 0.025),
                 # 'vect__norm': [None, 'l1', 'l2']
                 # 'vect__max_df': (0.5, 0.55, 0.65, 0.70, 0.75, 1.0),
                 # 'vect__max_features' : [12000, 14500, 15000], # best MF: 14500
-                'clf__C': np.arange(0.01, 4, 0.05) # best C: 0.46
+                # 'clf__C': [1, 10, 20, 25, 50, 75, 100] # best C: 0.51
             },
             'ada' : {
                 'clf__n_estimators': [2000],
@@ -486,12 +490,12 @@ class Miner:
             print('\n---------------------------\n')
             
             # building the model
-            pl = Pipeline(
-                [('vect', vect)] +
-                # ([] if use_w2v else [('sel', SelectPercentile(chi2, percentile=45))]) +
-                [('clf', c[1])]
-            )
-
+            pl = Pipeline([
+                ('vect', vect),
+                # ('sel', SelectPercentile(chi2, percentile=45)),
+                # ('scale', MaxAbsScaler()), # this is really bad for performance!
+                ('clf', c[1])
+            ])
 
             if tuning:
                 print("\nTuning {} Hyper-Parameters with RandomizedSearchCV: \n".format(c[0]))
