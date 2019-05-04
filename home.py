@@ -450,7 +450,7 @@ class Miner:
         classifiers = [
             # ('dt', Miner.clf['tree']()),
             # ('mnb', Miner.clf['mnb']()),
-            ('svc', Miner.clf['svc'](C=0.41, random_state=42)),
+            ('svc', Miner.clf['svc'](C=0.51, random_state=42)),
             # ('rf', Miner.clf['random_forest'](random_state=42, n_estimators=10)),
             # ('Logistic Regression', Miner.clf['log_reg'](solver='lbfgs', multi_class='auto', random_state=42)),
             # ('ada', Miner.clf['ada'](n_estimators=10))
@@ -472,7 +472,7 @@ class Miner:
                 # 'vect__norm': [None, 'l1', 'l2']
                 # 'vect__max_df': (0.5, 0.55, 0.65, 0.70, 0.75, 1.0),
                 # 'vect__max_features' : [12000, 14500, 15000], # best MF: 14500
-                # 'clf__C': np.arange(0.01, 4, 0.05) # best C: 0.46
+                'clf__C': np.arange(0.01, 4, 0.05) # best C: 0.46
             },
             'ada' : {
                 'clf__n_estimators': [2000],
@@ -495,7 +495,7 @@ class Miner:
 
             if tuning:
                 print("\nTuning {} Hyper-Parameters with RandomizedSearchCV: \n".format(c[0]))
-                model = RandomizedSearchCV(pl, params[c[0]], iid=True,
+                model = GridSearchCV(pl, params[c[0]], iid=True,
                     scoring='accuracy', cv=StratifiedKFold(random_state=42, n_splits=10, shuffle=True),
                     verbose=1,
                     n_jobs=2
