@@ -10,6 +10,7 @@ import numpy as np
 import hashlib, datetime, ssl, random, json, re, string
 from collections import defaultdict, Counter
 from statistics import mean
+from sklearn.externals import joblib
 
 # plot
 import matplotlib
@@ -26,6 +27,8 @@ from nltk.stem.snowball import ItalianStemmer
 from unidecode import unidecode
 
 # machine learning
+from sklearn.base import BaseEstimator, TransformerMixin
+
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.preprocessing import LabelEncoder, MaxAbsScaler
 
@@ -33,7 +36,7 @@ from sklearn.model_selection import train_test_split, cross_val_score, Stratifie
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report, roc_auc_score, f1_score, recall_score, precision_score
 
 
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline, FeatureUnion
 
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import SGDClassifier, LogisticRegression
@@ -57,36 +60,7 @@ import spacy
 nlp = spacy.load('it_core_news_sm')
 
 
-def test_classifier():
-    print("\nimporting config file...") 
-    config = load_config()
-
-    # preparing the components
-    print("\npreparing the components...\n")
-    db = DBConnector(**config['db'])
-    feed_parser = Parser(random.sample(config['feeds'], 5)) # taking just 5 random sources
-
-    # loading initial feed
-    print("\nloading feeds...") 
-    feed_parser.parse()
-
-    print('\nbuilding the model...')
-    miner = Miner(db.find_trainingset())
-
-    model = miner.build_news_classifier()
-    X = Miner.tokenize_list(feed_parser.parsed_feed)
-
-    results = model.predict(X)
-
-    for i in range(1, 20):
-        print('article ' + str(i) + ': ')
-        print(feed_parser.parsed_feed[i])
-        print('predicted category: ')
-        print(results[i])
-
-
-def test(skip_parse=False, meta_classify=False, show_mat=True, tuning=False, w2v=False, wordcloud=False):
-
+def test(skip_parse=False, meta_classify=False, show_mat=True, tuning=False, wordcloud=False):
     # importing configuration 
     print("\nimporting config file...") 
     config = load_config()
@@ -95,7 +69,6 @@ def test(skip_parse=False, meta_classify=False, show_mat=True, tuning=False, w2v
     print("\npreparing the components...\n")
     db = DBConnector(**config['db'])
     feed_parser = Parser(config['feeds']) 
-    newsfeed = NewsFeed() 
 
     # loading initial feed
     print("\nloading feeds...") 
@@ -106,18 +79,54 @@ def test(skip_parse=False, meta_classify=False, show_mat=True, tuning=False, w2v
 
     # filtering the dataset using some machinelearning magic...
     print("preparing dataset for the miner...\n")
-    miner = Miner(db.find_trainingset())
+    miner = Miner()
     
     if meta_classify:
-        print('\nmeta-classifing... ')
-        miner.meta_classify(show_mat=show_mat, tuning=tuning, use_w2v=w2v)
+        print('\nmeta-classifing NC ... ')
+        miner.meta_classify_nc(dataset=pd.DataFrame(db.find_trainingset()), show_mat=show_mat, tuning=tuning)
+        print('\nmeta-classifing LC ... ')
+        miner.meta_classify_lc(pd.DataFrame(db.find_likabilityset()), tuning=tuning, show_mat=show_mat)
 
-    # WORLDCLOUDSTUFF...
     if wordcloud:
-        show_wordcloud(flatten(Miner.tokenize_list(miner.dataset)))
+        show_wordcloud(flatten(Miner.tokenize_list(db.find_trainingset())))
 
     print('done!\nhome is ready! \n\tdict: {"config", "db", "feed_parser", "newsfeed", "miner"}\n')
-    return {'config': config, 'db': db, 'feed_parser': feed_parser, 'newsfeed': newsfeed, 'miner': miner}
+    return {'config': config, 'db': db, 'feed_parser': feed_parser, 'miner': miner}
+
+
+def test_classifiers(nc=True, lc=True, show_mat=False, tuning=False):
+     # importing configuration 
+    print("\nimporting config file...") 
+    config = load_config()
+
+    # preparing the components
+    print("\npreparing the components...\n")
+    db = DBConnector(**config['db'])
+    miner = Miner()
+
+    if nc:
+        print('\nmeta-classifing NC ... ')
+        miner.meta_classify_nc(dataset=pd.DataFrame(db.find_trainingset()), show_mat=show_mat, tuning=tuning)
+    
+    if lc:
+        print('\nmeta-classifing LC ... ')
+        miner.meta_classify_lc(dataset=pd.DataFrame(db.find_likabilityset()), tuning=tuning, show_mat=show_mat)
+
+
+def build_models():
+    # importing configuration 
+    print("\nimporting config file...") 
+    config = load_config()
+
+    # preparing the components
+    print("\npreparing the components...\n")
+    db = DBConnector(**config['db'])
+
+    print("building the news classifier...")
+    Miner.build_news_classifier(pd.DataFrame(db.find_trainingset()))
+    print("building the likability predictor...")
+    Miner.build_likability_predictor(pd.DataFrame(db.find_likabilityset()))
+    print("models built!")
 
 
 # some util function 
@@ -128,13 +137,16 @@ def load_config():
 
 
 def likability(article):
-    likability = max(0.5 + (article['like'])*0.5 - (article['dislike'])*0.5 - (not article['read'])*0.2, 0)
-    
+    # likability = max(0.5 + (article['like'])*0.5 - (article['dislike'])*0.5 - (not article['read'])*0.2, 0)
+    likability = 1 # deprecated 
+
     if article['dislike']:
         return ("DISLIKE", likability)
-    elif article['read'] or article['like']:
-        return ("NOT_DISLIKE", likability)
-    return ('IGNORED', likability) # (actually this should never happen during training...)
+        
+    if article['like']:
+        return ("LIKE", likability)
+
+    return ("READ", likability) # should not happen
 
 
 def list_union(lst1, lst2): 
@@ -201,6 +213,28 @@ def show_wordcloud(dataset):
     plt.imshow(wordcloud)
     plt.axis("off")
     plt.show()
+
+
+class ItemSelector(BaseEstimator, TransformerMixin):
+    def __init__(self, key):
+        self.key = key
+
+    def fit(self, x, y=None):
+        return self
+
+    def transform(self, data):
+        return data[self.key].to_numpy()
+
+    def fit_transform(self, X, y=None):
+        return self.fit(X, y).transform(X)
+
+
+class ModifiedLabelEncoder(LabelEncoder):
+    def fit_transform(self, y, *args, **kwargs):
+        return super().fit_transform(y).reshape(-1, 1)
+
+    def transform(self, y, *args, **kwargs):
+        return super().transform(y).reshape(-1, 1)
 
 
 # RSS Parser class
@@ -273,14 +307,36 @@ class Parser:
 
 # NewsFeed class: (useless)
 class NewsFeed:
-    pass
+    def __init__(self, nws_clf, lik_prd):
+        self.nws_clf = nws_clf
+        self.lik_prd = lik_prd
+        self.feed = None
 
+
+    def to_list(self):
+        return self.feed.to_dict('records')
+
+
+    def build_feed(self, parsed_feed):
+        self.feed = pd.DataFrame(parsed_feed)
+
+        features = pd.DataFrame()        
+        features['content']     = Miner.tokenize_list(parsed_feed)
+        features['tag']         = self.nws_clf.predict(features['content'])
+
+        self.feed['likability'] = self.lik_prd.predict(features)
+        self.feed['predicted_tag'] = features['tag']
+
+        self.feed = self.feed[self.feed['likability'] == 'LIKE'].drop('likability', axis=1)
+
+
+
+def dumb_function(x):
+    return x
 
 class Miner:
     custom_sw = set(line.strip() for line in open('config/stopwords-it.txt'))
     stopwords = set(stopwords.words('italian')).union(custom_sw)
-
-    ignore = lambda x: x # dumb function to ignore function handler that are not needed
 
     stem = {
         'porter': nltk.stem.PorterStemmer,
@@ -303,10 +359,6 @@ class Miner:
     }
 
 
-    def __init__(self, dataset=None):
-        self.dataset = pd.DataFrame(dataset)
-
-
 ########## TOKENIZATION #############
 
     @classmethod
@@ -327,16 +379,22 @@ class Miner:
                          should_remove_duplicates=False):
 
         corpus = article['title'] + '\n' + article['description']
+       
         tokens = cls.word_tokenize(corpus)
         return list(set(tokens)) if should_remove_duplicates else tokens
 
+
+    @classmethod
+    def tokenize_likability(cls, article):
+        corpus = article['title']
+        return cls.word_tokenize(corpus)
+        
 
     @classmethod
     def tokenize_list(cls, articles, should_remove_duplicates=False):
         if type(articles) is list:
             articles = pd.DataFrame(articles)
         return [Miner.tokenize_article(a, should_remove_duplicates=should_remove_duplicates) for _,a in articles.iterrows()]
-
 
 ########## TOKENIZATION #############
 
@@ -357,7 +415,7 @@ class Miner:
 
 
     @classmethod
-    def cross_validate_confmat(cls, model, dataset, labels, n_class=None, folds=10):
+    def cross_validate_fullscores(cls, model, dataset, labels, n_class=None, folds=10):
         kf = StratifiedKFold(random_state=42, n_splits=folds, shuffle=True)
         total = 0
         totalMat = np.zeros((n_class,n_class))
@@ -370,8 +428,13 @@ class Miner:
         rcl = []
 
         for train_index, test_index in kf.split(dataset,labels):
-            X_train = [dataset[i] for i in train_index]
-            X_test = [dataset[i] for i in test_index]
+            if isinstance(dataset, pd.DataFrame):
+                X_train = dataset.iloc[train_index]
+                X_test = dataset.iloc[test_index]
+            else:
+                X_train = [dataset[i] for i in train_index]
+                X_test = [dataset[i] for i in test_index]
+
             y_train, y_test = labels[train_index], labels[test_index]
 
             model.fit(X_train, y_train)
@@ -397,56 +460,44 @@ class Miner:
 
 
     @classmethod
-    def cross_validate_score(cls, model, dataset, labels, n_class=None, folds=10):
+    def cross_validate_onescore(cls, model, dataset, labels, n_class=None, folds=10):
         n_class = len(np.unique(labels)) if n_class is None else n_class
         scores = cross_val_score(model, dataset, labels, cv=StratifiedKFold(random_state=42, n_splits=folds, shuffle=True))
         return scores
 
     
     @classmethod
-    def cross_validate(cls, pl, ds, labels, n_class, show_mat=False):
+    def cross_validate(cls, pl, ds, labels, n_class, show_mat=False, txt_labels=None, one_score=False):
+        score = Miner.cross_validate_fullscores(pl, ds, labels, n_class=n_class)
+        print(score[0])
+
         if show_mat:
-            score = Miner.cross_validate_confmat(pl, ds, labels, n_class=n_class)
-            Miner.show_confusion_matrix(score[0], get_categories())
-        else:
-            score = Miner.cross_validate_score(pl, ds, labels, n_class=n_class)
-            print(score, mean(score))
+            Miner.show_confusion_matrix(score[0], txt_labels)
 
 
-    def meta_classify(self, show_mat=True, tuning=False, use_w2v=False):
+    def meta_classify_nc(self, dataset, show_mat=False, tuning=False):
         # preparing the trainingset
-        ds =  Miner.tokenize_list(self.dataset)
+        ds =  Miner.tokenize_list(dataset)
 
-        # preparing the target
-        labels = self.dataset['tag'].to_numpy()
+        # preparing the targets
+        labels = dataset['tag'].to_numpy()
         n_class = len(get_categories())
 
-        # preparing the vectorizer NOTE: NON FUNZIONA
-        if use_w2v:
-            # i'm going to use D2Vector
-            vect = D2VTransformer( # some tuning is needed here (iguess)
-                dm=1, 
-                size=500, #maybeitstoomuch
-                min_count=3, 
-                iter=10, 
-                seed=42
-            ) 
-        else: 
-            # traditional TF-IDF
-            vect = Miner.vect['tfidf'](
-                #best parameters:
-                max_features=14500,
-                sublinear_tf=True,
-                min_df=1,
-                max_df=0.5,
-                norm='l2',
-                ngram_range=(1, 1),
+        # preparing the vectorizer
+        vect = Miner.vect['tfidf'](
+            #best parameters:
+            max_features=14500,
+            sublinear_tf=True,
+            min_df=1,
+            max_df=0.5,
+            norm='l2',
+            ngram_range=(1, 1),
 
-                # init
-                tokenizer=Miner.ignore, 
-                preprocessor=Miner.ignore, 
-                token_pattern=None,
-            )
+            # init
+            tokenizer=dumb_function, 
+            preprocessor=dumb_function, 
+            token_pattern=None,
+        )
         
         # classifiers initialization
         classifiers = [
@@ -508,7 +559,7 @@ class Miner:
                 print(model.best_score_, model.best_params_)
             else:
                 print('\n Regular CV 10 folds for ' + c[0] + '\n')
-                Miner.cross_validate(pl, ds, labels, n_class, show_mat=show_mat)
+                Miner.cross_validate(pl, ds, labels, n_class, show_mat=show_mat, txt_labels=get_categories())
             
             print('\n---------------------------\n')
 
@@ -531,29 +582,175 @@ class Miner:
         #    )
         #    print("Accuracy: %0.2f (+/- %0.2f) [%s]"  % (scores.mean(), scores.std(), c[0]))
 
+
+    def meta_classify_lc(self, dataset, show_mat=False, tuning=False):
+        # preparing the inputs
+        ds = pd.DataFrame()
+        ds['content'] = Miner.tokenize_list(dataset)
+        ds['tag'] = dataset['tag']
+
+        # preparing the targets
+        labels = np.asarray([likability(a)[0] for _,a in dataset.iterrows()])
+
+        # preparing the vectorizer
+        vect = Miner.vect['tfidf'](
+            #best parameters:
+            max_features=14500,
+            sublinear_tf=True,
+            min_df=1,
+            max_df=0.5,
+            norm='l2',
+            ngram_range=(1, 1),
+
+            # init
+            tokenizer=dumb_function, 
+            preprocessor=dumb_function, 
+            token_pattern=None,
+        )
+        
+        # classifiers initialization
+        classifiers = [
+            ('dt', Miner.clf['tree']()),
+            ('mnb', Miner.clf['mnb']()),
+            ('svc', Miner.clf['svc'](C=0.51, random_state=42)),
+            ('rf', Miner.clf['random_forest'](random_state=42, n_estimators=10)),
+            ('Logistic Regression', Miner.clf['log_reg'](solver='lbfgs', multi_class='auto', random_state=42)),
+            ('ada', Miner.clf['ada'](n_estimators=10))
+        ]
+
+        for c in classifiers:
+            print('\n---------------------------\n')
+            
+            # building the model
+            pl = Pipeline([
+
+                ('union', FeatureUnion(
+                    transformer_list=[
+                        # Pipeline for title
+                        ('content', Pipeline([
+                            ('selector', ItemSelector(key='content')),
+                            ('vect', vect),
+                        ])),
+
+                        # Pipeline for tag
+                        ('tag', Pipeline([
+                            ('selector', ItemSelector(key='tag')),
+                            ('enc', ModifiedLabelEncoder())
+                        ]))
+                    ],
+                    # weight components in FeatureUnion
+                    transformer_weights={
+                        'content': 0.5,
+                        'tag': 0.5,
+                    })),
+                ('clf', c[1])
+            ])
+
+            print('\n Regular CV 10 folds for ' + c[0] + '\n')
+            Miner.cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['NOT_DISLIKED', 'DISLIKED'])
+            
+            print('\n---------------------------\n')
+
 ########## CROSS-VALIDATION + META-CLASSIFICATION #############
 
         
 #####################   MODEL BUILDING   ##########################
-    # this is the actual classifier (for app)
-    def build_news_classifier(self):
+    @classmethod
+    def build_news_classifier(cls, dataset):
         # this function should provide a pipeline trained object 
         # that i use to fit with the features extracted from the miner
+
+        vect = Miner.vect['tfidf'](
+            #best parameters:
+            max_features=14500,
+            sublinear_tf=True,
+            min_df=1,
+            max_df=0.5,
+            norm='l2',
+            ngram_range=(1, 1),
+
+            # init
+            tokenizer=dumb_function, 
+            preprocessor=dumb_function, 
+            token_pattern=None,
+        )
+
+        clf = Miner.clf['svc'](
+            C=0.51
+        )
+
         model = Pipeline([
-            ('vect', Miner.vect['tfidf'](max_features=14500, tokenizer=Miner.ignore, preprocessor=Miner.ignore, token_pattern=None)),
-            ('clf', Miner.clf['svc']())
+            ('vect', vect),
+            ('clf', clf)
         ])
 
         # this is wrong (i think), maybe it's better to do a shuffled 80-20 thing just to avoid overfitting
-        ds = Miner.tokenize_list(self.dataset)
-        labels = self.dataset['tag'].to_numpy()
+        ds = Miner.tokenize_list(dataset)
+        labels = dataset['tag'].to_numpy()
 
         model.fit(ds, labels)
+
+        joblib.dump(model, 'model/nws_clf.pkl')
         return model
 
-    def build_likability_predictor(self):
-        labels = [likability(a) for _,a in self.dataset.iterrows()]
-        return labels
+    @classmethod
+    def build_likability_predictor(cls, dataset):
+        # preparing the inputs
+        ds = pd.DataFrame()
+        ds['content'] = Miner.tokenize_list(dataset)
+        ds['tag'] = dataset['tag']
+
+        # preparing the targets
+        labels = np.asarray([likability(a)[0] for _,a in dataset.iterrows()])
+
+        # building the model...
+        vect = Miner.vect['tfidf'](
+            #best parameters:
+            max_features=14500,
+            sublinear_tf=True,
+            min_df=1,
+            max_df=0.5,
+            norm='l2',
+            ngram_range=(1, 1),
+
+            # init
+            tokenizer=dumb_function, 
+            preprocessor=dumb_function, 
+            token_pattern=None,
+        )
+
+        clf = Miner.clf['ada'](n_estimators=10)
+
+        model = Pipeline([
+            ('union', FeatureUnion([
+                # Pipeline for title
+                ('content', Pipeline([
+                    ('selector', ItemSelector(key='content')),
+                    ('vect', vect),
+                ])),
+                # Pipeline for tag
+                ('tag', Pipeline([
+                    ('selector', ItemSelector(key='tag')),
+                    ('enc', ModifiedLabelEncoder())
+                ]))
+            ])),
+            ('clf', clf)
+        ])
+
+        model.fit(ds, labels)
+        joblib.dump(model, 'model/lik_prd.pkl')
+        return model
+
+    @classmethod
+    def load_likability_predictor(cls):
+        model = joblib.load('model/lik_prd.pkl')
+        return model
+    
+    @classmethod
+    def load_news_classifier(cls):
+        model = joblib.load('model/nws_clf.pkl')
+        return model
+
 #####################   MODEL BUILDING   ##########################
 
 
@@ -645,17 +842,18 @@ class DBConnector:
         articles = self.db['articles']
         results = list(articles.find({
                 'tag': {'$exists':True},
-                '$or': [{ 'like': True }, { 'dislike': True }, { 'read': True }]
+                '$or': [{ 'like': True }, { 'dislike': True }]
             }, {
                 'title':1, 
                 'description':1, 
                 'tag':1, 
-                'tag__':1, 
+                'source': 1,
+                'tag__':1,
                 'like':1, 
                 'dislike':1, 
                 'read':1
             }
-        ).sort([('tag',1)]))
+        ).sort([('dislike',1)]))
         return results    
 
 
@@ -675,14 +873,10 @@ class DBConnector:
 
     def like_distribution(self):
         stats = {
-            'num_likes': self.db.articles.count({'like':True, 'read':False}),
-            'num_dislikes': self.db.articles.count({'dislike':True, 'read': False}),
-            'num_read': self.db.articles.count({'read':True, 'like':False, 'dislike':False}),
-
-            'num_non_dislikes': self.db.articles.count({'like':True, 'read':False}) + self.db.articles.count({'read':True, 'like': False, 'dislike':False}),
+            'num_likes': self.db.articles.count({'like':True}),
+            'num_dislikes': self.db.articles.count({'dislike':True}),
+            'num_read': self.db.articles.count({'read':True}),
             'num_ignored': self.db.articles.count({'like':False, 'dislike':False, 'read':False}),
-            'num_read_likes':self.db.articles.count({'read':True, 'like':True}),
-            'num_read_dislikes':self.db.articles.count({'read':True, 'dislike':True})
         }
         return stats
 

@@ -36,10 +36,10 @@ function like_stats() {
       'like-doughnut',
       'doughnut',
       {
-        labels: ['Like', 'Dislike', 'Read'],
+        labels: ['Like', 'Dislike'],
         datasets: [{
-          data: [data.num_likes, data.num_dislikes, data.num_read],
-          backgroundColor: ['#87FC70', '#FF2A68', '#1AD6FD']
+          data: [data.num_likes, data.num_dislikes],
+          backgroundColor: ['#87FC70', '#FF2A68']
         }]
       }
     );
@@ -48,10 +48,10 @@ function like_stats() {
       'like-bar',
       'bar',
       {
-        labels: ['Non-Dislike', 'Dislike', 'Like', 'Read', 'Read & Like', 'Read & Dislike', 'Ignored'],
+        labels: ['Like', 'Dislike', 'Read', 'Ignored'],
         datasets: [{
           label: '# of Articles',
-          data: [data.num_non_dislikes, data.num_dislikes, data.num_likes, data.num_read, data.num_read_likes, data.num_read_dislikes, data.num_ignored],
+          data: [data.num_likes, data.num_dislikes, data.num_read, data.num_ignored],
           backgroundColor: ['#1AD6FD', '#fd0b58']
         }]
       },
@@ -150,6 +150,7 @@ function refresh() {
   .done(function(data) {
     $("#page").removeClass('refreshing');
     $("#refresh").hide();
+    loadNews();
   })
 }
 
@@ -175,6 +176,7 @@ function tagging() {
     tagging_article = data;
     $("#tag_section").slideDown();
     $("#tag_article").html(getArticleHTMLElement(tagging_article, true));
+    $("#predicted_tag").text(" " + tagging_article['predicted_tag'] + "?");
   });
 
 }
@@ -186,12 +188,15 @@ function getArticleHTMLElement(article, tagging=false) {
   var liked = (article.like)?" liked ": "";
   var disliked = (article.dislike)?" disliked ": "";
 
+  var predicted_tag = (article.predicted_tag)?(article.predicted_tag + " - "): "";
+  
+
   return  "<li data-index='" + article._id + "' class='" + liked + disliked + "'  >" +
             "<div class='card card-news'>" + 
               "<div class='list-header'>" +  
                 "<img class='list-img'" + imgFilter + " src='"+ imgUrl + "'></img>" +
                 "<div class='list-category'>"+article.source +"</div>" + 
-                "<a class='list-title' href='javascript:void(0)'" + ( (!tagging)? "onclick='readArticle(\""+ article._id + "\")' ": "") + " >" + article.title + "</a>" +
+                "<a class='list-title' href='javascript:void(0)'" + ( (!tagging)? "onclick='readArticle(\""+ article._id + "\")' ": "") + " >" + predicted_tag + article.title + "</a>" +
                 "<div class='list-author'>"+ article.author +"</div>" + 
                 "<div class='list-datetime'> <i class='fas fa-clock'></i> " + article.datetime + "</div>" + 
               "</div>" +
@@ -321,15 +326,16 @@ function loadArticlesFromUrl(url) {
   });
 }
 
-function loadNews(pageSize = 30) {
-  // var url = url_request(CONFIG.API_FEED_URL, pageSize);
-  // loadArticlesFromUrl(url);
+function loadNews() {
+  $("#feed_section h1").text("your newsfeed");
+  $("#feed").empty();
+  loadArticlesFromUrl(CONFIG.API_FEED_URL);
 }
 
 function loadConfig() {
   $.getJSON('/config/config.json', function(data) {
     CONFIG = data;
-    loadNews(30);
+    loadNews();
   });
 }
 
@@ -351,9 +357,6 @@ function man()
 $(document).ready(function() {
   loadConfig();
   $("#searchbar").focus();
-  
-  $("#feed_section h1").text("your newsfeed");
-  $("#feed").empty();
 
   $("#search").on('submit', function (e) {
     e.preventDefault();
@@ -396,7 +399,7 @@ var cmd_dict = {
   'read': read_articles,
   'tag': tagging,
   'refresh': refresh,
-  'feed': undefined,
+  'feed': loadNews,
   'ignored': ignored,
   'tag-stats': tag_stats,
   'like-stats':like_stats

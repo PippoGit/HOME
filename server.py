@@ -10,19 +10,22 @@ config = home.load_config()
 
 # preparing the components
 db = home.DBConnector(**config['db'])
-feed_parser = home.Parser(config['feeds']) # should the feed be a Pandas Dataframe too? dunno
-newsfeed = home.NewsFeed() # i don't know if i actually need this class (maybe a list will be fine)
-                           # even better: i could use Pandas Dataframe => a lot easier to use!
+feed_parser = home.Parser(config['feeds'])
+                          
+# loading models
+print("\nloading the models...") 
+news_classifier = home.Miner.load_news_classifier()
+likability_predictor = home.Miner.load_likability_predictor()
 
-# loading initial feed
-print("\nloading feeds...") 
+# building the newsfeed...
+print("\nparsing the news...") 
+newsfeed = home.NewsFeed(news_classifier, likability_predictor)
 feed_parser.parse()
 
-# filtering the dataset using some machinelearning magic...
-miner = home.Miner(feed_parser.parsed_feed)
+print("\nbuilding the feed...") 
+newsfeed.build_feed(feed_parser.parsed_feed)
 
-# inserting the results into the db
-# print(db.find_liked())
+print("Custom newsfeed built!")
 
 # building Flask
 app = Flask(__name__,
@@ -37,20 +40,18 @@ class Feed(Resource):
     def get(self, descriptor=None):
         if descriptor=='learn':
             return  feed_parser.sorted_feed(), 200 # feed_parser.training_samples(168), 200
-        return 404 if descriptor is None else (db.find_feed(descriptor), 200)
+        return (newsfeed.to_list(), 200) if descriptor is None else (db.find_feed(descriptor), 200)
 
 
     def patch(self):
         # update the sources => Parse again RSS
-        feed_parser.parse()
+        feed_parser.parse() 
 
-        # fit the model
+        # update the newsfeed
+        newsfeed.build_feed(feed_parser.parsed_feed)
 
-        # update database with the likability-highest articles
-
-        # return all the entries in the db sorted by datetime reverse
-
-        return 200
+        # send back the data
+        return (newsfeed.to_list(), 200)
 
 
 class Like(Resource):
