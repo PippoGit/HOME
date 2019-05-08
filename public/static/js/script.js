@@ -316,7 +316,7 @@ function createFeed() {
   var list = $("#feed");
   list.empty();
   for(var i=0; i<news.length;i++) {
-    // if(news[i].tag == 'Entertainment')
+    // if(news[i].tag == 'Entertainment') --- ! ONLY FOR TESTING PURPOSES
       list.append(getArticleHTMLElement(news[i]));
   }
 }

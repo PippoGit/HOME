@@ -503,7 +503,7 @@ class Miner:
         # classifiers initialization
         classifiers = [
             # ('xgb', XGBClassifier(max_depth=3, n_estimators=300, learning_rate=0.1)), # really slow!!
-            # ('dt', Miner.clf['tree']()),
+            # ('dt', Miner.clf['tree']()), # dt is so bad, probably should not even be considered
             ('mnb', Miner.clf['mnb']()),
             ('svc', Miner.clf['svc'](C=0.51, random_state=42)),
             # ('rf', Miner.clf['random_forest'](random_state=42, n_estimators=120)),
@@ -559,7 +559,7 @@ class Miner:
                 print(model.best_score_, model.best_params_)
             else:
                 print('\n Regular CV 10 folds for ' + c[0] + '\n')
-                # Miner.cross_validate(pl, ds, labels, n_class, show_mat=show_mat, txt_labels=get_categories())
+                Miner.cross_validate(pl, ds, labels, n_class, show_mat=show_mat, txt_labels=get_categories())
             
             print('\n---------------------------\n')
 
@@ -570,25 +570,25 @@ class Miner:
         print("\n\nDoing some actual metaclassification:\n")
         np.random.seed(42)
 
-        # print("StackingClassifier: \n")
-        # # trying StackingClassifier (this is so bad it doesn't even worth it)
-        # sclf = StackingCVClassifier(classifiers=[c[1] for c in classifiers], 
-        #                             meta_classifier=LogisticRegression(),
-        #                             use_features_in_secondary=True)
+        print("StackingClassifier: \n")
+        # trying StackingClassifier (this is so bad it doesn't even worth it)
+        sclf = StackingCVClassifier(classifiers=[c[1] for c in classifiers], 
+                                    meta_classifier=LogisticRegression(),
+                                    use_features_in_secondary=True)
 
-        # # building a list of Pipeline vect-classifier
-        # pipeline = Pipeline([
-        #     ('vect', vect),
-        #     ('denser', DenseTransformer()), # StackingCV is not working with Sparse matrix (maybe this is why it sucks so much)
-        #     ('sclf', sclf)
-        # ])
+        # building a list of Pipeline vect-classifier
+        pipeline = Pipeline([
+            ('vect', vect),
+            ('denser', DenseTransformer()), # StackingCV is not working with Sparse matrix (maybe this is why it sucks so much)
+            ('sclf', sclf)
+        ])
 
-        # encoded_label = LabelEncoder().fit_transform(labels) # don't know why it doesn't work with string values
+        encoded_label = LabelEncoder().fit_transform(labels) # don't know why it doesn't work with string values
 
-        # # trying to cross_validate the stack...
-        # scores = cross_val_score(pipeline, ds, encoded_label, 
-        #                          cv=10, scoring='accuracy')
-        # print("Accuracy: %0.4f (+/- %0.4f)" % (scores.mean(), scores.std())) # actually it is really bad, like 30%
+        # trying to cross_validate the stack...
+        scores = cross_val_score(pipeline, ds, encoded_label, 
+                                 cv=10, scoring='accuracy')
+        print("Accuracy: %0.4f (+/- %0.4f)" % (scores.mean(), scores.std())) # actually it is really bad, like 30%
 
 
 
@@ -603,8 +603,7 @@ class Miner:
         ])
 
         # trying to cross_validate the stack...
-        scores = cross_val_score(v_pipeline, ds, labels, # encoded_label, 
-                                 cv=10, scoring='accuracy')
+        scores = cross_val_score(v_pipeline, ds, labels, cv=10, scoring='accuracy')
         print("Accuracy: %0.4f (+/- %0.4f)" % (scores.mean(), scores.std())) # actually it is really bad, like 30%
 
         print("BaggingClassifier: \n")
@@ -613,11 +612,9 @@ class Miner:
         bclf = BaggingClassifier(base_estimator=Miner.clf['svc'](C=0.51, random_state=42), n_estimators=100, random_state=42)
         b_pipeline = Pipeline([
             ('vect', vect),
-            # ('denser', DenseTransformer()), # StackingCV is not working with Sparse matrix (maybe this is why it sucks so much)
             ('sclf', bclf)
         ])
-        scores = cross_val_score(b_pipeline, ds, labels, # encoded_label, 
-                                 cv=10, scoring='accuracy')
+        scores = cross_val_score(b_pipeline, ds, labels, cv=10, scoring='accuracy')
         print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std())) # actually it is really bad, like 30%
 
 
