@@ -41,13 +41,15 @@ from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import SGDClassifier, LogisticRegression
 from sklearn.svm import LinearSVC, SVC
-from sklearn.ensemble import RandomForestClassifier, VotingClassifier, AdaBoostClassifier, GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier, VotingClassifier, AdaBoostClassifier, BaggingClassifier, GradientBoostingClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
-from mlxtend.classifier import StackingCVClassifier
 
-from sklearn.cluster import KMeans
+from mlxtend.classifier import StackingCVClassifier
+from mlxtend.preprocessing import DenseTransformer
+
+from xgboost import XGBClassifier
 
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import SelectPercentile, chi2
@@ -305,7 +307,7 @@ class Parser:
         return sorted(self.parsed_feed, key=lambda x: try_parse_date(x['datetime']), reverse=True)
 
 
-# NewsFeed class: (useless)
+# NewsFeed class
 class NewsFeed:
     def __init__(self, nws_clf, lik_prd):
         self.nws_clf = nws_clf
@@ -365,7 +367,7 @@ class Miner:
     def word_tokenize(cls, corpus, stemmer='snowball'):
         # preparing stuff
         st = cls.stem[stemmer]()
-        tokens = nlp(corpus)
+        tokens = nlp(corpus) # this is really slow, but can't avoid using it!
 
         # tokenization + stemming
         tokens = [st.stem(unidecode(t.norm_)) for t in tokens if not (t.is_punct or t.is_space or t.like_num)
@@ -450,10 +452,10 @@ class Miner:
             total = total + sum(y_test==result)
         
         print("---\n")
-        print("F1 Scores: {}".format(mean(f1)))
-        print("Accuracy Scores: {}".format(mean(acc)))
-        print("Precision Scores: {}".format(mean(prc)))
-        print("Recall Scores: {}".format(mean(rcl)))
+        print("F1 Scores: %0.4f" % (mean(f1)))
+        print("Accuracy Scores: %0.4f" % (mean(acc)))
+        print("Precision Scores: %0.4f" % (mean(prc)))
+        print("Recall Scores: %0.4f" % (mean(rcl)))
         print("---\n")
 
         return (totalMat, total/len(labels))
@@ -470,7 +472,6 @@ class Miner:
     def cross_validate(cls, pl, ds, labels, n_class, show_mat=False, txt_labels=None, one_score=False):
         score = Miner.cross_validate_fullscores(pl, ds, labels, n_class=n_class)
         print(score[0])
-
         if show_mat:
             Miner.show_confusion_matrix(score[0], txt_labels)
 
@@ -501,12 +502,13 @@ class Miner:
         
         # classifiers initialization
         classifiers = [
-            # ('dt', Miner.clf['tree']()),
-            # ('mnb', Miner.clf['mnb']()),
+            # ('xgb', XGBClassifier(max_depth=3, n_estimators=300, learning_rate=0.1)), # really slow!!
+            # ('dt', Miner.clf['tree']()),
+            ('mnb', Miner.clf['mnb']()),
             ('svc', Miner.clf['svc'](C=0.51, random_state=42)),
-            # ('rf', Miner.clf['random_forest'](random_state=42, n_estimators=10)),
-            # ('Logistic Regression', Miner.clf['log_reg'](solver='lbfgs', multi_class='auto', random_state=42)),
-            # ('ada', Miner.clf['ada'](n_estimators=10))
+            # ('rf', Miner.clf['random_forest'](random_state=42, n_estimators=120)),
+            ('Logistic Regression', Miner.clf['log_reg'](solver='lbfgs', multi_class='auto', random_state=42)),
+            # ('ada', Miner.clf['ada'](n_estimators=120))
         ]
 
 
@@ -539,12 +541,10 @@ class Miner:
 
         for c in classifiers:
             print('\n---------------------------\n')
-            
             # building the model
             pl = Pipeline([
                 ('vect', vect),
-                # ('sel', SelectPercentile(chi2, percentile=45)),
-                # ('scale', MaxAbsScaler()), # this is really bad for performance!
+                # ('sel', SelectPercentile(chi2, percentile=45)), # not so useful...
                 ('clf', c[1])
             ])
 
@@ -559,28 +559,67 @@ class Miner:
                 print(model.best_score_, model.best_params_)
             else:
                 print('\n Regular CV 10 folds for ' + c[0] + '\n')
-                Miner.cross_validate(pl, ds, labels, n_class, show_mat=show_mat, txt_labels=get_categories())
+                # Miner.cross_validate(pl, ds, labels, n_class, show_mat=show_mat, txt_labels=get_categories())
             
             print('\n---------------------------\n')
 
 
-        # NOTE: NOT REALLY WORKING...
-        # print("\n\nDoing some actual metaclassification:\n")
-        # sclf = StackingCVClassifier(classifiers=[c[1] for c in classifiers], 
-        #                             meta_classifier=LogisticRegression())
-        # classifiers.append(('stacking', sclf))
-        # for c in classifiers:
-        #    pl = Pipeline([
-        #        ('vect', vect),
-        #        ('clf', c[1])
-        #    ])
 
-        #    scores = cross_val_score(
-        #        pl, 
-        #        ds, labels, 
-        #        cv=10, scoring='accuracy'
-        #    )
-        #    print("Accuracy: %0.2f (+/- %0.2f) [%s]"  % (scores.mean(), scores.std(), c[0]))
+
+
+        print("\n\nDoing some actual metaclassification:\n")
+        np.random.seed(42)
+
+        # print("StackingClassifier: \n")
+        # # trying StackingClassifier (this is so bad it doesn't even worth it)
+        # sclf = StackingCVClassifier(classifiers=[c[1] for c in classifiers], 
+        #                             meta_classifier=LogisticRegression(),
+        #                             use_features_in_secondary=True)
+
+        # # building a list of Pipeline vect-classifier
+        # pipeline = Pipeline([
+        #     ('vect', vect),
+        #     ('denser', DenseTransformer()), # StackingCV is not working with Sparse matrix (maybe this is why it sucks so much)
+        #     ('sclf', sclf)
+        # ])
+
+        # encoded_label = LabelEncoder().fit_transform(labels) # don't know why it doesn't work with string values
+
+        # # trying to cross_validate the stack...
+        # scores = cross_val_score(pipeline, ds, encoded_label, 
+        #                          cv=10, scoring='accuracy')
+        # print("Accuracy: %0.4f (+/- %0.4f)" % (scores.mean(), scores.std())) # actually it is really bad, like 30%
+
+
+
+        print("VotingClassifier: \n")
+        # voting classifier
+        vclf = VotingClassifier(estimators=classifiers, voting='hard')
+
+        # building a list of Pipeline vect-classifier
+        v_pipeline = Pipeline([
+            ('vect', vect),
+            ('vclf', vclf)
+        ])
+
+        # trying to cross_validate the stack...
+        scores = cross_val_score(v_pipeline, ds, labels, # encoded_label, 
+                                 cv=10, scoring='accuracy')
+        print("Accuracy: %0.4f (+/- %0.4f)" % (scores.mean(), scores.std())) # actually it is really bad, like 30%
+
+        print("BaggingClassifier: \n")
+        # trying bagging
+        # Define model
+        bclf = BaggingClassifier(base_estimator=Miner.clf['svc'](C=0.51, random_state=42), n_estimators=100, random_state=42)
+        b_pipeline = Pipeline([
+            ('vect', vect),
+            # ('denser', DenseTransformer()), # StackingCV is not working with Sparse matrix (maybe this is why it sucks so much)
+            ('sclf', bclf)
+        ])
+        scores = cross_val_score(b_pipeline, ds, labels, # encoded_label, 
+                                 cv=10, scoring='accuracy')
+        print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std())) # actually it is really bad, like 30%
+
 
 
     def meta_classify_lc(self, dataset, show_mat=False, tuning=False):
@@ -613,9 +652,9 @@ class Miner:
             ('dt', Miner.clf['tree']()),
             ('mnb', Miner.clf['mnb']()),
             ('svc', Miner.clf['svc'](C=0.51, random_state=42)),
-            ('rf', Miner.clf['random_forest'](random_state=42, n_estimators=10)),
+            ('rf', Miner.clf['random_forest'](random_state=42, n_estimators=120)),
             ('Logistic Regression', Miner.clf['log_reg'](solver='lbfgs', multi_class='auto', random_state=42)),
-            ('ada', Miner.clf['ada'](n_estimators=10))
+            ('ada', Miner.clf['ada'](n_estimators=120))
         ]
 
         for c in classifiers:
@@ -623,32 +662,23 @@ class Miner:
             
             # building the model
             pl = Pipeline([
-
-                ('union', FeatureUnion(
-                    transformer_list=[
-                        # Pipeline for title
+                ('union', FeatureUnion([
+                        # Pipeline for article's content
                         ('content', Pipeline([
                             ('selector', ItemSelector(key='content')),
                             ('vect', vect),
                         ])),
-
-                        # Pipeline for tag
+                        # Pipeline for article's tag
                         ('tag', Pipeline([
                             ('selector', ItemSelector(key='tag')),
                             ('enc', ModifiedLabelEncoder())
                         ]))
-                    ],
-                    # weight components in FeatureUnion
-                    transformer_weights={
-                        'content': 0.5,
-                        'tag': 0.5,
-                    })),
+                    ])),
                 ('clf', c[1])
             ])
 
             print('\n Regular CV 10 folds for ' + c[0] + '\n')
             Miner.cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['NOT_DISLIKED', 'DISLIKED'])
-            
             print('\n---------------------------\n')
 
 ########## CROSS-VALIDATION + META-CLASSIFICATION #############
@@ -684,12 +714,10 @@ class Miner:
             ('clf', clf)
         ])
 
-        # this is wrong (i think), maybe it's better to do a shuffled 80-20 thing just to avoid overfitting
         ds = Miner.tokenize_list(dataset)
         labels = dataset['tag'].to_numpy()
 
-        model.fit(ds, labels)
-
+        Miner.cross_validate_fullscores(model, ds, labels, n_class=9)        
         joblib.dump(model, 'model/nws_clf.pkl')
         return model
 
@@ -719,7 +747,7 @@ class Miner:
             token_pattern=None,
         )
 
-        clf = Miner.clf['ada'](n_estimators=10)
+        clf = Miner.clf['svc']()
 
         model = Pipeline([
             ('union', FeatureUnion([
@@ -737,7 +765,8 @@ class Miner:
             ('clf', clf)
         ])
 
-        model.fit(ds, labels)
+        # final test on 80-20
+        Miner.cross_validate_fullscores(model, ds, labels, n_class=2)        
         joblib.dump(model, 'model/lik_prd.pkl')
         return model
 

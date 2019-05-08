@@ -97,7 +97,7 @@ class Tag(Resource):
 
 class Model(Resource):
     def patch(self):
-        # fit again the model
+        # fit again the model (TBD)  
         pass
         
 

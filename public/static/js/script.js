@@ -315,8 +315,10 @@ function readArticle(index) {
 function createFeed() {
   var list = $("#feed");
   list.empty();
-  for(var i=0; i<news.length;i++)
-    list.append(getArticleHTMLElement(news[i]));
+  for(var i=0; i<news.length;i++) {
+    // if(news[i].tag == 'Entertainment')
+      list.append(getArticleHTMLElement(news[i]));
+  }
 }
 
 function loadArticlesFromUrl(url) {
