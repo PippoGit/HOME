@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import hashlib, datetime, ssl, random, json, re, string
 from collections import defaultdict, Counter
-from statistics import mean
+from statistics import mean, stdev
 from sklearn.externals import joblib
 
 # plot
@@ -452,10 +452,10 @@ class Miner:
             total = total + sum(y_test==result)
         
         print("---\n")
-        print("F1 Scores: %0.4f" % (mean(f1)))
-        print("Accuracy Scores: %0.4f" % (mean(acc)))
-        print("Precision Scores: %0.4f" % (mean(prc)))
-        print("Recall Scores: %0.4f" % (mean(rcl)))
+        print("F1 Scores: %0.4f [ +/- %0.4f]" % (mean(f1), stdev(f1)))
+        print("Accuracy Scores: %0.4f [ +/- %0.4f]" % (mean(acc), stdev(acc)))
+        print("Precision Scores: %0.4f [ +/- %0.4f]" % (mean(prc), stdev(prc)))
+        print("Recall Scores: %0.4f [ +/- %0.4f]" % (mean(rcl), stdev(rcl)))
         print("---\n")
 
         return (totalMat, total/len(labels))
@@ -470,22 +470,112 @@ class Miner:
     
     @classmethod
     def cross_validate(cls, pl, ds, labels, n_class, show_mat=False, txt_labels=None, one_score=False):
-        score = Miner.cross_validate_fullscores(pl, ds, labels, n_class=n_class)
+        score = cls.cross_validate_fullscores(pl, ds, labels, n_class=n_class)
         print(score[0])
         if show_mat:
-            Miner.show_confusion_matrix(score[0], txt_labels)
+            cls.show_confusion_matrix(score[0], txt_labels)
 
 
-    def meta_classify_nc(self, dataset, show_mat=False, tuning=False):
-        # preparing the trainingset
-        ds =  Miner.tokenize_list(dataset)
+    @classmethod
+    def init_simple_classifiers(cls, clf='nc'):
+        params = {
+            'nc': {
+                'C':0.51,
+                'random_state': 42,
+                'lr_solver': 'lbfgs',
+                'lr_multi_class':'auto',
+            },
+            'lc' : {
+                'C':0.51,
+                'random_state': 42,
+                'lr_solver': 'lbfgs',
+                'lr_multi_class':'auto',
+            }
+        }
 
-        # preparing the targets
-        labels = dataset['tag'].to_numpy()
-        n_class = len(get_categories())
+        return [
+            ('dt', cls.clf['tree']()), # dt is so bad, probably should not even be considered
+            ('mnb', cls.clf['mnb']()),
+            ('svc', cls.clf['svc'](C=params[clf]['C'], random_state=params[clf]['random_state'])),
+            ('Logistic Regression', cls.clf['log_reg'](solver=params[clf]['lr_solver'], multi_class=params[clf]['lr_multi_class'], random_state=params[clf]['random_state'])),
+        ]
 
-        # preparing the vectorizer
-        vect = Miner.vect['tfidf'](
+
+    @classmethod
+    def init_ensmeta_classifiers(cls, simple_classifier_list, clf='nc'):
+        params = {
+            'nc': {
+                'C':0.51,
+                'random_state': 42,
+                'lr_solver': 'lbfgs',
+                'lr_multi_class':'auto',
+                'bc_estimators': 100,
+                'voting': 'hard',
+                'ada_estimators': 100,
+                'rf_estimators': 100,
+                'xgb_estimators': 100,
+                'xgb_max_depth': 3,
+                'xgb_learning_rate': 0.1,
+            },
+            'lc' : {
+                'C':0.51,
+                'random_state': 42,
+                'lr_solver': 'lbfgs',
+                'lr_multi_class':'auto',
+                'bc_estimators': 100,
+                'voting': 'hard',
+                'ada_estimators': 100,
+                'rf_estimators': 100,
+                'xgb_estimators': 100,
+                'xgb_max_depth': 3,
+                'xgb_learning_rate': 0.1,
+            }
+        }
+
+        return [
+            ("AdaBoost", cls.clf['ada'](n_estimators=params[clf]['ada_estimators'])),
+            ("RandomForest", cls.clf['random_forest'](random_state=params[clf]['random_state'], n_estimators=params[clf]['rf_estimators'])),
+            ("XGBClassifier", XGBClassifier(max_depth=params[clf]['xgb_max_depth'], n_estimators=params[clf]['xgb_estimators'], learning_rate=params[clf]['xgb_learning_rate'])),
+
+            # Ignore Stacking, requires DenseTransformer+LabelEncoder and it's not that even good.
+            # ("StackingClassifier", StackingCVClassifier(classifiers=[c[1] for c in classifiers], 
+            #                         meta_classifier=LogisticRegression(solver='lbfgs', multi_class='auto', random_state=42),
+            #                         use_features_in_secondary=True)),
+         
+            ("VotingClassifier", VotingClassifier(estimators=simple_classifier_list, voting=cls.clf['svc'](C=params[clf]['C']))),
+            ("BaggingClassifier", BaggingClassifier(base_estimator=cls.clf['svc'](C=params[clf]['C'], random_state=params[clf]['random_state']), 
+                                                    n_estimators=params[clf]['bc_estimator'], 
+                                                    random_state=params[clf]['random_state']))
+        ]
+
+
+    @classmethod
+    def test_stacking_classifier(cls, classifiers, ds, labels):
+        print("StackingClassifier: \n")
+        # trying StackingClassifier (this is so bad it doesn't even worth it)
+        sclf = StackingCVClassifier(classifiers=[c[1] for c in classifiers], 
+                                    meta_classifier=LogisticRegression(solver='lbfgs', multi_class='auto', random_state=42),
+                                    use_features_in_secondary=True)
+
+        # building a list of Pipeline vect-classifier
+        pipeline = Pipeline([
+            ('vect', cls.init_vectorizer()),
+            ('denser', DenseTransformer()), # StackingCV is not working with Sparse matrix (maybe this is why it sucks so much)
+            ('sclf', sclf)
+        ])
+
+        encoded_label = LabelEncoder().fit_transform(labels) # don't know why it doesn't work with string values
+
+        # trying to cross_validate the stack...
+        scores = cross_val_score(pipeline, ds, encoded_label, 
+                                 cv=10, scoring='accuracy')
+        print("Accuracy: %0.4f (+/- %0.4f)" % (scores.mean(), scores.std())) # actually it is really bad, like 30%
+
+
+
+    @classmethod
+    def init_vectorizer(cls):
+        return  cls.vect['tfidf'](
             #best parameters:
             max_features=14500,
             sublinear_tf=True,
@@ -499,17 +589,21 @@ class Miner:
             preprocessor=dumb_function, 
             token_pattern=None,
         )
+
+
+    def meta_classify_nc(self, dataset, show_mat=False, tuning=False):
+        # preparing the trainingset
+        ds =  Miner.tokenize_list(dataset)
+
+        # preparing the targets
+        labels = dataset['tag'].to_numpy()
+        n_class = len(get_categories())
+
+        # preparing the vectorizer
+        vect = Miner.init_vectorizer()
         
         # classifiers initialization
-        classifiers = [
-            # ('xgb', XGBClassifier(max_depth=3, n_estimators=300, learning_rate=0.1)), # really slow!!
-            # ('dt', Miner.clf['tree']()), # dt is so bad, probably should not even be considered
-            ('mnb', Miner.clf['mnb']()),
-            ('svc', Miner.clf['svc'](C=0.51, random_state=42)),
-            # ('rf', Miner.clf['random_forest'](random_state=42, n_estimators=120)),
-            ('Logistic Regression', Miner.clf['log_reg'](solver='lbfgs', multi_class='auto', random_state=42)),
-            # ('ada', Miner.clf['ada'](n_estimators=120))
-        ]
+        classifiers = Miner.init_simple_classifiers('nc')
 
 
         # params tuning
@@ -539,6 +633,7 @@ class Miner:
             'dt' : {}
         }
 
+        print("\n\nSimple Classifiers:\n")
         for c in classifiers:
             print('\n---------------------------\n')
             # building the model
@@ -549,7 +644,7 @@ class Miner:
             ])
 
             if tuning:
-                print("\nTuning {} Hyper-Parameters with RandomizedSearchCV: \n".format(c[0]))
+                print("\nTuning {} Hyper-Parameters with GridSearchCV: \n".format(c[0]))
                 model = GridSearchCV(pl, params[c[0]], iid=True,
                     scoring='accuracy', cv=StratifiedKFold(random_state=42, n_splits=10, shuffle=True),
                     verbose=1,
@@ -566,56 +661,28 @@ class Miner:
 
 
 
-
-        print("\n\nDoing some actual metaclassification:\n")
+        print("\n\nEnsembles and Meta-Classifiers:\n")
+        
+        # set the seed for some classifiers...
         np.random.seed(42)
+        
+        # init the list...
+        ens_meta_classifiers = Miner.init_ensmeta_classifiers(classifiers, 'nc')
 
-        print("StackingClassifier: \n")
+        for c in ens_meta_classifiers:
+            print("CV 10 folds - " + c[0])
+            # building the pipeline vectorizer-classifier
+            pipeline = Pipeline([
+                ('vect', vect),
+                c
+            ])
+            
+            # Cross_validating the model
+            Miner.cross_validate(pipeline, ds, labels, n_class, show_mat=show_mat, txt_labels=get_categories())
+
         # trying StackingClassifier (this is so bad it doesn't even worth it)
-        sclf = StackingCVClassifier(classifiers=[c[1] for c in classifiers], 
-                                    meta_classifier=LogisticRegression(),
-                                    use_features_in_secondary=True)
+        # Miner.test_stacking_classifier(classifiers, ds, labels)
 
-        # building a list of Pipeline vect-classifier
-        pipeline = Pipeline([
-            ('vect', vect),
-            ('denser', DenseTransformer()), # StackingCV is not working with Sparse matrix (maybe this is why it sucks so much)
-            ('sclf', sclf)
-        ])
-
-        encoded_label = LabelEncoder().fit_transform(labels) # don't know why it doesn't work with string values
-
-        # trying to cross_validate the stack...
-        scores = cross_val_score(pipeline, ds, encoded_label, 
-                                 cv=10, scoring='accuracy')
-        print("Accuracy: %0.4f (+/- %0.4f)" % (scores.mean(), scores.std())) # actually it is really bad, like 30%
-
-
-
-        print("VotingClassifier: \n")
-        # voting classifier
-        vclf = VotingClassifier(estimators=classifiers, voting='hard')
-
-        # building a list of Pipeline vect-classifier
-        v_pipeline = Pipeline([
-            ('vect', vect),
-            ('vclf', vclf)
-        ])
-
-        # trying to cross_validate the stack...
-        scores = cross_val_score(v_pipeline, ds, labels, cv=10, scoring='accuracy')
-        print("Accuracy: %0.4f (+/- %0.4f)" % (scores.mean(), scores.std())) # actually it is really bad, like 30%
-
-        print("BaggingClassifier: \n")
-        # trying bagging
-        # Define model
-        bclf = BaggingClassifier(base_estimator=Miner.clf['svc'](C=0.51, random_state=42), n_estimators=100, random_state=42)
-        b_pipeline = Pipeline([
-            ('vect', vect),
-            ('sclf', bclf)
-        ])
-        scores = cross_val_score(b_pipeline, ds, labels, cv=10, scoring='accuracy')
-        print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std())) # actually it is really bad, like 30%
 
 
 
@@ -629,31 +696,12 @@ class Miner:
         labels = np.asarray([likability(a)[0] for _,a in dataset.iterrows()])
 
         # preparing the vectorizer
-        vect = Miner.vect['tfidf'](
-            #best parameters:
-            max_features=14500,
-            sublinear_tf=True,
-            min_df=1,
-            max_df=0.5,
-            norm='l2',
-            ngram_range=(1, 1),
-
-            # init
-            tokenizer=dumb_function, 
-            preprocessor=dumb_function, 
-            token_pattern=None,
-        )
+        vect = Miner.init_vectorizer()
         
         # classifiers initialization
-        classifiers = [
-            ('dt', Miner.clf['tree']()),
-            ('mnb', Miner.clf['mnb']()),
-            ('svc', Miner.clf['svc'](C=0.51, random_state=42)),
-            ('rf', Miner.clf['random_forest'](random_state=42, n_estimators=120)),
-            ('Logistic Regression', Miner.clf['log_reg'](solver='lbfgs', multi_class='auto', random_state=42)),
-            ('ada', Miner.clf['ada'](n_estimators=120))
-        ]
+        classifiers = Miner.init_simple_classifiers('lc')
 
+        print("\n\nSimple Classifiers:\n")
         for c in classifiers:
             print('\n---------------------------\n')
             
@@ -675,12 +723,33 @@ class Miner:
             ])
 
             print('\n Regular CV 10 folds for ' + c[0] + '\n')
-            Miner.cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['NOT_DISLIKED', 'DISLIKED'])
+            Miner.cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['DISLIKED', 'LIKED'])
             print('\n---------------------------\n')
+
+        print("\n\nEnsembles and Meta-Classifiers:\n")
+        np.random.seed(42)
+
+        ens_meta_classifiers = Miner.init_ensmeta_classifiers(classifiers, 'lc')
+
+        for c in ens_meta_classifiers:
+            print("CV 10 folds - " + c[0])
+
+            # building the pipeline vectorizer-classifier
+            pipeline = Pipeline([
+                ('vect', vect),
+                c
+            ])
+            
+            # Cross_validating the model
+            Miner.cross_validate(pipeline, ds, labels, 2, show_mat=show_mat, txt_labels=['DISLIKED', 'LIKED'])
+
+        # trying StackingClassifier (this is so bad it doesn't even worth it)
+        # Miner.test_stacking_classifier(classifiers, ds, labels)
+
 
 ########## CROSS-VALIDATION + META-CLASSIFICATION #############
 
-        
+    
 #####################   MODEL BUILDING   ##########################
     @classmethod
     def build_news_classifier(cls, dataset):
