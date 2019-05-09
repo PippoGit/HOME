@@ -460,6 +460,7 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False):
 
     
 #####################   MODEL DEPLOY   ##########################
+
 def deploy_news_classifier(dataset):
     # this function should provide a pipeline trained object 
     # that i use to fit with the features extracted from the miner
