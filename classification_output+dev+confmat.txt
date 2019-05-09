@@ -204,6 +204,173 @@ Recall Scores: 0.8015 [ +/- 0.0321]
  [  8.   3.   6.   7.   0.   4.  16.   1. 228.]]
 
 
+
+
+
+
+
 ************************************
-*  LIKABILITY CLASSIFIER (TODO)
+*  LIKABILITY CLASSIFIER
 ************************************
+
+
+MacBook:Home filipposcotto$ python3
+Python 3.7.1 (v3.7.1:260ec2c36a, Oct 20 2018, 03:13:28)
+[Clang 6.0 (clang-600.0.57)] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import home
+>>> home.test_classifiers(nc=False)
+
+importing config file...
+
+preparing the components...
+
+
+meta-classifing LC ...
+
+
+Simple Classifiers:
+
+
+---------------------------
+
+
+ Regular CV 10 folds for dt
+
+---
+
+F1 Scores: 0.8716 [ +/- 0.0299]
+Accuracy Scores: 0.8717 [ +/- 0.0298]
+Precision Scores: 0.8730 [ +/- 0.0289]
+Recall Scores: 0.8717 [ +/- 0.0298]
+---
+
+[[478.  72.]
+ [ 67. 466.]]
+
+---------------------------
+
+
+---------------------------
+
+
+ Regular CV 10 folds for mnb
+
+---
+
+F1 Scores: 0.8337 [ +/- 0.0384]
+Accuracy Scores: 0.8357 [ +/- 0.0375]
+Precision Scores: 0.8483 [ +/- 0.0351]
+Recall Scores: 0.8357 [ +/- 0.0375]
+---
+
+[[511.  39.]
+ [139. 394.]]
+
+---------------------------
+
+
+---------------------------
+
+
+ Regular CV 10 folds for svc
+
+---
+
+F1 Scores: 0.8642 [ +/- 0.0423]
+Accuracy Scores: 0.8643 [ +/- 0.0421]
+Precision Scores: 0.8660 [ +/- 0.0414]
+Recall Scores: 0.8643 [ +/- 0.0421]
+---
+
+[[466.  84.]
+ [ 63. 470.]]
+
+---------------------------
+
+
+---------------------------
+
+
+ Regular CV 10 folds for Logistic Regression
+
+---
+
+F1 Scores: 0.8550 [ +/- 0.0563]
+Accuracy Scores: 0.8551 [ +/- 0.0563]
+Precision Scores: 0.8569 [ +/- 0.0570]
+Recall Scores: 0.8551 [ +/- 0.0563]
+---
+
+[[459.  91.]
+ [ 66. 467.]]
+
+---------------------------
+
+
+
+Ensembles and Meta-Classifiers:
+
+CV 10 folds - AdaBoost
+---
+
+F1 Scores: 0.8696 [ +/- 0.0254]
+Accuracy Scores: 0.8698 [ +/- 0.0253]
+Precision Scores: 0.8716 [ +/- 0.0249]
+Recall Scores: 0.8698 [ +/- 0.0253]
+---
+
+[[472.  78.]
+ [ 63. 470.]]
+
+ 
+CV 10 folds - RandomForest
+---
+
+F1 Scores: 0.8440 [ +/- 0.0453]
+Accuracy Scores: 0.8448 [ +/- 0.0449]
+Precision Scores: 0.8502 [ +/- 0.0450]
+Recall Scores: 0.8448 [ +/- 0.0449]
+---
+
+[[492.  58.]
+ [110. 423.]]
+
+
+CV 10 folds - XGBClassifier
+---
+
+F1 Scores: 0.8900 [ +/- 0.0224]
+Accuracy Scores: 0.8901 [ +/- 0.0224]
+Precision Scores: 0.8930 [ +/- 0.0222]
+Recall Scores: 0.8901 [ +/- 0.0224]
+---
+
+[[474.  76.]
+ [ 43. 490.]]
+
+
+CV 10 folds - VotingClassifier
+---
+
+F1 Scores: 0.8742 [ +/- 0.0420]
+Accuracy Scores: 0.8745 [ +/- 0.0419]
+Precision Scores: 0.8775 [ +/- 0.0421]
+Recall Scores: 0.8745 [ +/- 0.0419]
+---
+
+[[500.  50.]
+ [ 86. 447.]]
+
+
+CV 10 folds - BaggingClassifier
+---
+
+F1 Scores: 0.8642 [ +/- 0.0423]
+Accuracy Scores: 0.8643 [ +/- 0.0421]
+Precision Scores: 0.8660 [ +/- 0.0414]
+Recall Scores: 0.8643 [ +/- 0.0421]
+---
+
+[[466.  84.]
+ [ 63. 470.]]

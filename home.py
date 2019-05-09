@@ -115,7 +115,7 @@ def test_classifiers(nc=True, lc=True, show_mat=False, tuning=False):
         miner.meta_classify_lc(dataset=pd.DataFrame(db.find_likabilityset()), tuning=tuning, show_mat=show_mat)
 
 
-def build_models():
+def deploy_models():
     # importing configuration 
     print("\nimporting config file...") 
     config = load_config()
@@ -125,9 +125,9 @@ def build_models():
     db = DBConnector(**config['db'])
 
     print("building the news classifier...")
-    Miner.build_news_classifier(pd.DataFrame(db.find_trainingset()))
+    Miner.deploy_news_classifier(pd.DataFrame(db.find_trainingset()))
     print("building the likability predictor...")
-    Miner.build_likability_predictor(pd.DataFrame(db.find_likabilityset()))
+    Miner.deploy_likability_predictor(pd.DataFrame(db.find_likabilityset()))
     print("models built!")
 
 
@@ -457,21 +457,13 @@ class Miner:
         print("Precision Scores: %0.4f [ +/- %0.4f]" % (mean(prc), stdev(prc)))
         print("Recall Scores: %0.4f [ +/- %0.4f]" % (mean(rcl), stdev(rcl)))
         print("---\n")
-
+        print(totalMat)
         return (totalMat, total/len(labels))
-
-
-    @classmethod
-    def cross_validate_onescore(cls, model, dataset, labels, n_class=None, folds=10):
-        n_class = len(np.unique(labels)) if n_class is None else n_class
-        scores = cross_val_score(model, dataset, labels, cv=StratifiedKFold(random_state=42, n_splits=folds, shuffle=True))
-        return scores
 
     
     @classmethod
-    def cross_validate(cls, pl, ds, labels, n_class, show_mat=False, txt_labels=None, one_score=False):
+    def cross_validate(cls, pl, ds, labels, n_class, show_mat=False, txt_labels=None):
         score = cls.cross_validate_fullscores(pl, ds, labels, n_class=n_class)
-        print(score[0])
         if show_mat:
             cls.show_confusion_matrix(score[0], txt_labels)
 
@@ -486,7 +478,7 @@ class Miner:
                 'lr_multi_class':'auto',
             },
             'lc' : {
-                'C':0.51,
+                'C': 1,
                 'random_state': 42,
                 'lr_solver': 'lbfgs',
                 'lr_multi_class':'auto',
@@ -518,7 +510,7 @@ class Miner:
                 'xgb_learning_rate': 0.1,
             },
             'lc' : {
-                'C':0.51,
+                'C': 1,
                 'random_state': 42,
                 'lr_solver': 'lbfgs',
                 'lr_multi_class':'auto',
@@ -536,15 +528,10 @@ class Miner:
             ("AdaBoost", cls.clf['ada'](n_estimators=params[clf]['ada_estimators'])),
             ("RandomForest", cls.clf['random_forest'](random_state=params[clf]['random_state'], n_estimators=params[clf]['rf_estimators'])),
             ("XGBClassifier", XGBClassifier(max_depth=params[clf]['xgb_max_depth'], n_estimators=params[clf]['xgb_estimators'], learning_rate=params[clf]['xgb_learning_rate'])),
-
-            # Ignore Stacking, requires DenseTransformer+LabelEncoder and it's not that even good.
-            # ("StackingClassifier", StackingCVClassifier(classifiers=[c[1] for c in classifiers], 
-            #                         meta_classifier=LogisticRegression(solver='lbfgs', multi_class='auto', random_state=42),
-            #                         use_features_in_secondary=True)),
          
-            ("VotingClassifier", VotingClassifier(estimators=simple_classifier_list, voting=cls.clf['svc'](C=params[clf]['C']))),
+            ("VotingClassifier", VotingClassifier(estimators=simple_classifier_list, voting=params[clf]['voting'])),
             ("BaggingClassifier", BaggingClassifier(base_estimator=cls.clf['svc'](C=params[clf]['C'], random_state=params[clf]['random_state']), 
-                                                    n_estimators=params[clf]['bc_estimator'], 
+                                                    n_estimators=params[clf]['bc_estimators'], 
                                                     random_state=params[clf]['random_state']))
         ]
 
@@ -572,10 +559,9 @@ class Miner:
         print("Accuracy: %0.4f (+/- %0.4f)" % (scores.mean(), scores.std())) # actually it is really bad, like 30%
 
 
-
     @classmethod
     def init_vectorizer(cls):
-        return  cls.vect['tfidf'](
+        return cls.vect['tfidf'](
             #best parameters:
             max_features=14500,
             sublinear_tf=True,
@@ -591,6 +577,34 @@ class Miner:
         )
 
 
+    @classmethod
+    def build_lc_model(cls, model):
+        return Pipeline([
+                ('union', FeatureUnion([
+                        # Pipeline for article's content
+                        ('content', Pipeline([
+                            ('selector', ItemSelector(key='content')),
+                            ('vect', cls.init_vectorizer()),
+                        ])),
+                        # Pipeline for article's tag
+                        ('tag', Pipeline([
+                            ('selector', ItemSelector(key='tag')),
+                            ('enc', ModifiedLabelEncoder())
+                        ]))
+                    ])),
+                model
+            ])
+
+
+    @classmethod
+    def build_nc_model(cls, model):
+        return Pipeline([
+                ('vect', cls.init_vectorizer()),
+                # ('sel', SelectPercentile(chi2, percentile=45)), # not so useful...
+                ('clf', model[1])
+        ])
+
+
     def meta_classify_nc(self, dataset, show_mat=False, tuning=False):
         # preparing the trainingset
         ds =  Miner.tokenize_list(dataset)
@@ -598,13 +612,9 @@ class Miner:
         # preparing the targets
         labels = dataset['tag'].to_numpy()
         n_class = len(get_categories())
-
-        # preparing the vectorizer
-        vect = Miner.init_vectorizer()
         
         # classifiers initialization
         classifiers = Miner.init_simple_classifiers('nc')
-
 
         # params tuning
         params = { 
@@ -637,11 +647,7 @@ class Miner:
         for c in classifiers:
             print('\n---------------------------\n')
             # building the model
-            pl = Pipeline([
-                ('vect', vect),
-                # ('sel', SelectPercentile(chi2, percentile=45)), # not so useful...
-                ('clf', c[1])
-            ])
+            pl = Miner.build_nc_model(c)
 
             if tuning:
                 print("\nTuning {} Hyper-Parameters with GridSearchCV: \n".format(c[0]))
@@ -660,7 +666,6 @@ class Miner:
 
 
 
-
         print("\n\nEnsembles and Meta-Classifiers:\n")
         
         # set the seed for some classifiers...
@@ -670,20 +675,15 @@ class Miner:
         ens_meta_classifiers = Miner.init_ensmeta_classifiers(classifiers, 'nc')
 
         for c in ens_meta_classifiers:
-            print("CV 10 folds - " + c[0])
+            print("\nCV 10 folds - " + c[0])
             # building the pipeline vectorizer-classifier
-            pipeline = Pipeline([
-                ('vect', vect),
-                c
-            ])
-            
+            pipeline = Miner.build_nc_model(c)
+
             # Cross_validating the model
             Miner.cross_validate(pipeline, ds, labels, n_class, show_mat=show_mat, txt_labels=get_categories())
 
         # trying StackingClassifier (this is so bad it doesn't even worth it)
         # Miner.test_stacking_classifier(classifiers, ds, labels)
-
-
 
 
     def meta_classify_lc(self, dataset, show_mat=False, tuning=False):
@@ -694,9 +694,6 @@ class Miner:
 
         # preparing the targets
         labels = np.asarray([likability(a)[0] for _,a in dataset.iterrows()])
-
-        # preparing the vectorizer
-        vect = Miner.init_vectorizer()
         
         # classifiers initialization
         classifiers = Miner.init_simple_classifiers('lc')
@@ -706,21 +703,7 @@ class Miner:
             print('\n---------------------------\n')
             
             # building the model
-            pl = Pipeline([
-                ('union', FeatureUnion([
-                        # Pipeline for article's content
-                        ('content', Pipeline([
-                            ('selector', ItemSelector(key='content')),
-                            ('vect', vect),
-                        ])),
-                        # Pipeline for article's tag
-                        ('tag', Pipeline([
-                            ('selector', ItemSelector(key='tag')),
-                            ('enc', ModifiedLabelEncoder())
-                        ]))
-                    ])),
-                ('clf', c[1])
-            ])
+            pl = Miner.build_lc_model(c)
 
             print('\n Regular CV 10 folds for ' + c[0] + '\n')
             Miner.cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['DISLIKED', 'LIKED'])
@@ -735,13 +718,10 @@ class Miner:
             print("CV 10 folds - " + c[0])
 
             # building the pipeline vectorizer-classifier
-            pipeline = Pipeline([
-                ('vect', vect),
-                c
-            ])
+            pl = Miner.build_lc_model(c)
             
-            # Cross_validating the model
-            Miner.cross_validate(pipeline, ds, labels, 2, show_mat=show_mat, txt_labels=['DISLIKED', 'LIKED'])
+            # Cross_validating the model (dunno y its not working with the )
+            Miner.cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['DISLIKED', 'LIKED'])
 
         # trying StackingClassifier (this is so bad it doesn't even worth it)
         # Miner.test_stacking_classifier(classifiers, ds, labels)
@@ -750,35 +730,17 @@ class Miner:
 ########## CROSS-VALIDATION + META-CLASSIFICATION #############
 
     
-#####################   MODEL BUILDING   ##########################
+#####################   MODEL DEPLOY   ##########################
     @classmethod
-    def build_news_classifier(cls, dataset):
+    def deploy_news_classifier(cls, dataset):
         # this function should provide a pipeline trained object 
         # that i use to fit with the features extracted from the miner
-
-        vect = Miner.vect['tfidf'](
-            #best parameters:
-            max_features=14500,
-            sublinear_tf=True,
-            min_df=1,
-            max_df=0.5,
-            norm='l2',
-            ngram_range=(1, 1),
-
-            # init
-            tokenizer=dumb_function, 
-            preprocessor=dumb_function, 
-            token_pattern=None,
-        )
 
         clf = Miner.clf['svc'](
             C=0.51
         )
 
-        model = Pipeline([
-            ('vect', vect),
-            ('clf', clf)
-        ])
+        model = Miner.build_nc_model(('clf', clf))
 
         ds = Miner.tokenize_list(dataset)
         labels = dataset['tag'].to_numpy()
@@ -787,8 +749,9 @@ class Miner:
         joblib.dump(model, 'model/nws_clf.pkl')
         return model
 
+
     @classmethod
-    def build_likability_predictor(cls, dataset):
+    def deploy_likability_predictor(cls, dataset):
         # preparing the inputs
         ds = pd.DataFrame()
         ds['content'] = Miner.tokenize_list(dataset)
@@ -798,48 +761,19 @@ class Miner:
         labels = np.asarray([likability(a)[0] for _,a in dataset.iterrows()])
 
         # building the model...
-        vect = Miner.vect['tfidf'](
-            #best parameters:
-            max_features=14500,
-            sublinear_tf=True,
-            min_df=1,
-            max_df=0.5,
-            norm='l2',
-            ngram_range=(1, 1),
-
-            # init
-            tokenizer=dumb_function, 
-            preprocessor=dumb_function, 
-            token_pattern=None,
-        )
-
         clf = Miner.clf['svc']()
+        model = Miner.build_lc_model(('clf', clf))
 
-        model = Pipeline([
-            ('union', FeatureUnion([
-                # Pipeline for title
-                ('content', Pipeline([
-                    ('selector', ItemSelector(key='content')),
-                    ('vect', vect),
-                ])),
-                # Pipeline for tag
-                ('tag', Pipeline([
-                    ('selector', ItemSelector(key='tag')),
-                    ('enc', ModifiedLabelEncoder())
-                ]))
-            ])),
-            ('clf', clf)
-        ])
-
-        # final test on 80-20
         Miner.cross_validate_fullscores(model, ds, labels, n_class=2)        
         joblib.dump(model, 'model/lik_prd.pkl')
         return model
+
 
     @classmethod
     def load_likability_predictor(cls):
         model = joblib.load('model/lik_prd.pkl')
         return model
+
     
     @classmethod
     def load_news_classifier(cls):
