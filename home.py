@@ -156,30 +156,6 @@ def list_union(lst1, lst2):
     return final_list 
 
 
-def get_aggr_categories():
-# db.articles.find().forEach(function (article){
-#    var new_tag = article.tag;
-#    if((['Scienza', 'Tecnologia']).includes(article.tag))
-#        new_tag = "Scienza&Tecnologia";
-#    else if(['Politica', 'Economia'].includes(article.tag))
-#        new_tag = "Politica&Economia";
-#    else if(['Gossip', 'Entertainment'].includes(article.tag))
-#        new_tag = "Gossip&Entertainment";
-    
-#    db.articles.update({_id: article._id},{$set:{"tag__": new_tag}});
-# })
-
-    return [
-        "Cronaca",
-        "Cultura",
-        "Entertainment",
-        "Gossip",
-        "Politica&Economia",
-        "Scienza&Tecnologia",
-        "Sport",
-    ]
-
-
 def get_categories():
     return [
             "Cronaca",
