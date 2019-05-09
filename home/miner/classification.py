@@ -1,9 +1,6 @@
 # util
-import math
 import pandas as pd
 import numpy as np
-import hashlib, datetime, ssl, random, json, re, string
-from collections import defaultdict, Counter
 from statistics import mean, stdev
 from sklearn.externals import joblib
 
@@ -17,30 +14,25 @@ import seaborn as sn
 from sklearn.base import BaseEstimator, TransformerMixin
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from sklearn.preprocessing import LabelEncoder, MaxAbsScaler
+from sklearn.preprocessing import LabelEncoder
 
-from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, learning_curve
-from sklearn.metrics import confusion_matrix, accuracy_score, classification_report, roc_auc_score, f1_score, recall_score, precision_score
+from sklearn.model_selection import cross_val_score, StratifiedKFold, learning_curve
+from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, recall_score, precision_score
 
 
 from sklearn.pipeline import Pipeline, FeatureUnion
-
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import SGDClassifier, LogisticRegression
-from sklearn.svm import LinearSVC, SVC
-from sklearn.ensemble import RandomForestClassifier, VotingClassifier, AdaBoostClassifier, BaggingClassifier, GradientBoostingClassifier
+from sklearn.svm import LinearSVC
+from sklearn.ensemble import RandomForestClassifier, VotingClassifier, AdaBoostClassifier, BaggingClassifier
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
+
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 
 from mlxtend.classifier import StackingCVClassifier
 from mlxtend.preprocessing import DenseTransformer
 
 from xgboost import XGBClassifier
- 
-from sklearn.feature_selection import SelectKBest
-from sklearn.feature_selection import SelectPercentile, chi2
-from sklearn.decomposition import TruncatedSVD
 
 from home.miner import preprocessing as pp
 
