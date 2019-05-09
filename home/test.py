@@ -4,7 +4,7 @@ from home.miner import classification
 from home.db.connector import DBConnector
 
 
-def test_classifiers(nc=True, lc=True, show_mat=False, tuning=False):
+def classify(nc=True, lc=True, show_mat=False, tuning=False):
      # importing configuration 
     print("\nimporting config file...") 
     config = utility.load_config()
