@@ -1,25 +1,29 @@
-import home
-
 from flask import Flask, render_template, request
 from flask_restful import Api, Resource, reqparse
 from flask_cors import CORS
 
+from home import utility
+from home.miner import classification
+from home.db.connector import DBConnector
+from home.feed import NewsFeed
+from home.rss import Parser
+
 # importing configuration 
 print("\nimporting config file...") 
-config = home.load_config()
+config = utility.load_config()
 
 # preparing the components
-db = home.DBConnector(**config['db'])
-feed_parser = home.Parser(config['feeds'])
+db = DBConnector(**config['db'])
+feed_parser = Parser(config['feeds'])
                           
 # loading models
 print("\nloading the models...") 
-news_classifier = home.Miner.load_news_classifier()
-likability_predictor = home.Miner.load_likability_predictor()
+news_classifier = classification.load_news_classifier()
+likability_predictor = classification.load_likability_predictor()
 
-# building the newsfeed...
+# building the newsfeed... 
 print("\nparsing the news...") 
-newsfeed = home.NewsFeed(news_classifier, likability_predictor)
+newsfeed = NewsFeed(news_classifier, likability_predictor)
 feed_parser.parse()
 
 print("\nbuilding the feed...") 
@@ -60,6 +64,7 @@ class Like(Resource):
         db.update_article(article, {'dislike':False, 'like':True})
         return 200
     
+
     def delete(self):
         article = request.get_json()
         db.update_article(article, {'dislike':False, 'like':False})
@@ -72,6 +77,7 @@ class Dislike(Resource):
         db.update_article(article, {'dislike':True, 'like':False} )
         return 200
     
+
     def delete(self):
         article = request.get_json()
         db.update_article(article, {'dislike':False, 'like':False})
@@ -89,17 +95,12 @@ class Tag(Resource):
     def get(self):
         return db.find_untagged(), 200
     
+
     def put(self):
         article = request.get_json()
         db.tag_article(article['_id'], article['tag'])
         return 200
 
-
-class Model(Resource):
-    def patch(self):
-        # fit again the model (TBD)  
-        pass
-        
 
 class Statistics(Resource):
     def get(self, distribution=None):
@@ -114,10 +115,9 @@ api.add_resource(Dislike, "/api/dislike")
 api.add_resource(Read, "/api/read")
 api.add_resource(Tag, "/api/tag")
 
-api.add_resource(Model, "/api/model")
-
 api.add_resource(Statistics, "/api/stats/<string:distribution>")
 
+# api.add_resource(Model, "/api/model")
 
 # front-end routes
 @app.route('/')
