@@ -142,7 +142,7 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
 
 
 ########## CROSS-VALIDATION + META-CLASSIFICATION #############
-def show_confusion_matrix(mat, labels):
+def plot_confusion_matrix(mat, labels):
     n_class = len(labels)
     df_cm = pd.DataFrame(
         mat, 
@@ -202,7 +202,7 @@ def cross_validate_fullscores(model, dataset, labels, n_class=None, folds=10):
 def cross_validate(pl, ds, labels, n_class, show_mat=False, txt_labels=None):
     score = cross_validate_fullscores(pl, ds, labels, n_class=n_class)
     if show_mat:
-        show_confusion_matrix(score[0], txt_labels)
+        plot_confusion_matrix(score[0], txt_labels)
 
 
 def init_simple_classifiers(clf='nc'):

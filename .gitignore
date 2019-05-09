@@ -127,3 +127,4 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+home/db/dump/homedb/diagnostic.data/metrics.interim
