@@ -499,7 +499,7 @@ def deploy_likability_predictor(dataset, dir_path='home/miner/model'):
     labels = np.asarray([labelize_likability(a)[0] for _,a in dataset.iterrows()])
 
     # building the model...
-    clf = classifier['svc']()
+    clf = classifier['log_reg'](solver='lbfgs', multi_class='auto', random_state=42)
     model = build_lc_model(('clf', clf))
 
     cross_validate_fullscores(model, ds, labels, n_class=2, txt_labels=['LIKED', 'DISIKE'])        
