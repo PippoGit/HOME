@@ -216,7 +216,7 @@ def init_simple_classifiers(clf='nc'):
     }
 
     return [
-        # ('dt', classifier['tree']()), # dt is so bad, probably should not even be considered
+        # ('dt', classifier['tree']()), # dt is so bad, probably should not even be considered
         ('mnb', classifier['mnb']()),
         ('svc', classifier['svc'](C=params[clf]['C'], random_state=params[clf]['random_state'])),
         ('Logistic Regression', classifier['log_reg'](solver=params[clf]['lr_solver'], multi_class=params[clf]['lr_multi_class'], random_state=params[clf]['random_state'])),
@@ -254,9 +254,9 @@ def init_ensmeta_classifiers(simple_classifier_list, clf='nc'):
     }
 
     return [
-        # ("AdaBoost", classifier['ada'](n_estimators=params[clf]['ada_estimators'])),
-        # ("RandomForest", classifier['random_forest'](random_state=params[clf]['random_state'], n_estimators=params[clf]['rf_estimators'])),
-        ("XGBClassifier", XGBClassifier(max_depth=params[clf]['xgb_max_depth'], n_estimators=params[clf]['xgb_estimators'], learning_rate=params[clf]['xgb_learning_rate'])),
+        ("AdaBoost", classifier['ada'](n_estimators=params[clf]['ada_estimators'])),
+        ("RandomForest", classifier['random_forest'](random_state=params[clf]['random_state'], n_estimators=params[clf]['rf_estimators'])),
+        # USELESS! ("XGBClassifier", XGBClassifier(max_depth=params[clf]['xgb_max_depth'], n_estimators=params[clf]['xgb_estimators'], learning_rate=params[clf]['xgb_learning_rate'])),
         
         ("VotingClassifier", VotingClassifier(estimators=simple_classifier_list, voting=params[clf]['voting'])),
         ("BaggingClassifier", BaggingClassifier(base_estimator=classifier['svc'](C=params[clf]['C'], random_state=params[clf]['random_state']), 
@@ -388,9 +388,9 @@ def meta_classify_nc(dataset, show_mat=False, tuning=False, plot=False):
             print(tuned_model.best_score_, tuned_model.best_params_)
         else:
             print('\n Regular CV 10 folds for ' + c[0] + '\n')
-            # cross_validate(model, ds, labels, n_class, show_mat=show_mat, txt_labels=news_categories)
-            # if plot:
-            #     plot_learning_curve(model, c[0], ds, labels)
+            cross_validate(model, ds, labels, n_class, show_mat=show_mat, txt_labels=news_categories)
+            if plot:
+                plot_learning_curve(model, c[0], ds, labels)
 
         print('\n---------------------------\n')
 
@@ -414,7 +414,8 @@ def meta_classify_nc(dataset, show_mat=False, tuning=False, plot=False):
         if plot:
             plot_learning_curve(model, c[0], ds, labels)
 
-    test_stacking_classifier(classifiers, ds, labels, plot=plot, n_class=n_class, txt_labels=news_categories, show_mat=show_mat)
+    # STACKING IS USELESS...
+    # test_stacking_classifier(classifiers, ds, labels, plot=plot, n_class=n_class, txt_labels=news_categories, show_mat=show_mat)
 
 
 def meta_classify_lc(dataset, show_mat=False, tuning=False, plot=False):
@@ -438,9 +439,9 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False, plot=False):
         pl = build_lc_model(c)
 
         print('\n Regular CV 10 folds for ' + c[0] + '\n')
-        # cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['LIKE', 'DISLIKE'])
-        # if plot:
-        #     plot_learning_curve(pl, c[0], ds, labels)
+        cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['LIKE', 'DISLIKE'])
+        if plot:
+            plot_learning_curve(pl, c[0], ds, labels)
         print('\n---------------------------\n')
 
     print("\n\nEnsembles and Meta-Classifiers:\n")
