@@ -332,10 +332,8 @@ def build_nc_model(model):
 
 def meta_classify_nc(dataset, show_mat=False, tuning=False):
     # preparing the trainingset
+    dataset = shuffle(dataset, random_state=42)
     ds = pp.tokenize_list(dataset) 
-    
-    # Trying to shuffle it
-    ds = shuffle(ds, random_state=42)
 
     # preparing the targets
     labels = dataset['tag'].to_numpy()
@@ -471,6 +469,7 @@ def deploy_news_classifier(dataset, dir_path='home/miner/model'):
 
     model = build_nc_model(('clf', clf))
 
+    dataset = shuffle(dataset, random_state=42)
     ds = pp.tokenize_list(dataset)
     labels = dataset['tag'].to_numpy()
 
@@ -482,6 +481,7 @@ def deploy_news_classifier(dataset, dir_path='home/miner/model'):
 def deploy_likability_predictor(dataset, dir_path='home/miner/model'):
     # preparing the inputs
     ds = pd.DataFrame()
+    dataset = shuffle(dataset, random_state=42)
     ds['content'] = pp.tokenize_list(dataset)
     ds['tag'] = dataset['tag']
 
