@@ -3,10 +3,9 @@
 
 RSS Feed news aggregator + some machine learning magic to make it nice.
 
+import db: mongorestore --db homedb dump/homedb
+
 ## TODO
-* try this mongorestore --db homedb dump/homedb
-* Try to plot confusion matrix without sorted labels
-* Test again StackingClassifier now that i've fixed CV (i guess)
 * Tuning XGBClassifier (just a little)
 * Fix the model_deploy => Should i trust the score or not? Anyway:
     LC => XGB,

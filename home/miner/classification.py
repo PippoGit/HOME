@@ -235,8 +235,8 @@ def init_ensmeta_classifiers(simple_classifier_list, clf='nc'):
             'ada_estimators': 100,
             'rf_estimators': 100,
             'xgb_estimators': 100,
-            'xgb_max_depth': 3,
-            'xgb_learning_rate': 0.1,
+            'xgb_max_depth': 4,
+            'xgb_learning_rate': 0.09,
         },
         'lc' : {
             'C': 1,
@@ -256,7 +256,7 @@ def init_ensmeta_classifiers(simple_classifier_list, clf='nc'):
     return [
         ("AdaBoost", classifier['ada'](n_estimators=params[clf]['ada_estimators'])),
         ("RandomForest", classifier['random_forest'](random_state=params[clf]['random_state'], n_estimators=params[clf]['rf_estimators'])),
-        # THIS IS TOO SLOW TO EVEN WORTH IT. ("XGBClassifier", XGBClassifier(max_depth=params[clf]['xgb_max_depth'], n_estimators=params[clf]['xgb_estimators'], learning_rate=params[clf]['xgb_learning_rate'])),
+        ("XGBClassifier", XGBClassifier(max_depth=params[clf]['xgb_max_depth'], n_estimators=params[clf]['xgb_estimators'], learning_rate=params[clf]['xgb_learning_rate'])),
         
         ("VotingClassifier", VotingClassifier(estimators=simple_classifier_list, voting=params[clf]['voting'])),
         ("BaggingClassifier", BaggingClassifier(base_estimator=classifier['svc'](C=params[clf]['C'], random_state=params[clf]['random_state']), 
@@ -265,7 +265,7 @@ def init_ensmeta_classifiers(simple_classifier_list, clf='nc'):
     ]
 
 
-def test_stacking_classifier(classifiers, ds, labels):
+def test_stacking_classifier(classifiers, ds, labels, plot, n_class, txt_labels, show_mat):
     print("StackingClassifier: \n")
     # trying StackingClassifier (this is so bad it doesn't even worth it)
     sclf = StackingCVClassifier(classifiers=[c[1] for c in classifiers], 
@@ -273,7 +273,7 @@ def test_stacking_classifier(classifiers, ds, labels):
                                 use_features_in_secondary=True)
 
     # building a list of Pipeline vect-classifier
-    pipeline = Pipeline([
+    model = Pipeline([
         ('vect', init_vectorizer()),
         ('denser', DenseTransformer()), # StackingCV is not working with Sparse matrix (maybe this is why it sucks so much)
         ('sclf', sclf)
@@ -282,9 +282,11 @@ def test_stacking_classifier(classifiers, ds, labels):
     encoded_label = LabelEncoder().fit_transform(labels) # don't know why it doesn't work with string values
 
     # trying to cross_validate the stack...
-    scores = cross_val_score(pipeline, ds, encoded_label, n_jobs=-1,
-                                cv=StratifiedKFold(random_state=42, n_splits=10, shuffle=True), scoring='accuracy')
-    print("Accuracy: %0.4f (+/- %0.4f)" % (scores.mean(), scores.std())) # actually it is really bad, like 30%
+    cross_validate(model, ds, encoded_label, n_class, show_mat=show_mat)
+
+    if plot:
+        plot_learning_curve(model, "StackingClassifier", ds, encoded_label)
+
 
 
 def init_vectorizer():
@@ -330,7 +332,7 @@ def build_nc_model(model):
     ])
 
 
-def meta_classify_nc(dataset, show_mat=False, tuning=False):
+def meta_classify_nc(dataset, show_mat=False, tuning=False, plot=False):
     # preparing the trainingset
     dataset = shuffle(dataset, random_state=42)
     ds = pp.tokenize_list(dataset) 
@@ -387,7 +389,8 @@ def meta_classify_nc(dataset, show_mat=False, tuning=False):
         else:
             print('\n Regular CV 10 folds for ' + c[0] + '\n')
             cross_validate(model, ds, labels, n_class, show_mat=show_mat, txt_labels=news_categories)
-            plot_learning_curve(model, c[0], ds, labels)
+            if plot:
+                plot_learning_curve(model, c[0], ds, labels)
 
         print('\n---------------------------\n')
 
@@ -408,19 +411,22 @@ def meta_classify_nc(dataset, show_mat=False, tuning=False):
 
         # Cross_validating the model
         cross_validate(model, ds, labels, n_class, show_mat=show_mat, txt_labels=news_categories)
-        plot_learning_curve(model, c[0], ds, labels)
+        if plot:
+            plot_learning_curve(model, c[0], ds, labels)
+
+    test_stacking_classifier(classifiers, ds, labels, plot=plot, n_class=n_class, txt_labels=news_categories, show_mat=show_mat)
 
 
-
-def meta_classify_lc(dataset, show_mat=False, tuning=False):
+def meta_classify_lc(dataset, show_mat=False, tuning=False, plot=False):
     # preparing the inputs
     ds = pd.DataFrame()
+    dataset = shuffle(dataset, random_state=42)
     ds['content'] = pp.tokenize_list(dataset)
     ds['tag'] = dataset['tag']
 
     # preparing the targets
     labels = np.asarray([labelize_likability(a)[0] for _,a in dataset.iterrows()])
-    
+
     # classifiers initialization
     classifiers = init_simple_classifiers('lc')
 
@@ -432,8 +438,9 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False):
         pl = build_lc_model(c)
 
         print('\n Regular CV 10 folds for ' + c[0] + '\n')
-        cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['LIKED', 'DISLIKED'])
-        plot_learning_curve(pl, c[0], ds, labels)
+        cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['LIKE', 'DISLIKE'])
+        if plot:
+            plot_learning_curve(pl, c[0], ds, labels)
         print('\n---------------------------\n')
 
     print("\n\nEnsembles and Meta-Classifiers:\n")
@@ -448,10 +455,13 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False):
         pl = build_lc_model(c)
         
         # Cross_validating the model (dunno y its not working with the )
-        cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['LIKED', 'DISLIKED'])
-        plot_learning_curve(pl, c[0], ds, labels)
+        cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['LIKE', 'DISLIKE'])
+        if plot:
+            plot_learning_curve(pl, c[0], ds, labels)
+
     # trying StackingClassifier (this is so bad it doesn't even worth it)
-    # Miner.test_stacking_classifier(classifiers, ds, labels)
+    test_stacking_classifier(classifiers, ds, labels, plot=plot, n_class=2, show_mat=show_mat, txt_labels=['LIKE', 'DISLIKE'])
+
 
 
 ########## CROSS-VALIDATION + META-CLASSIFICATION #############
@@ -492,7 +502,7 @@ def deploy_likability_predictor(dataset, dir_path='home/miner/model'):
     clf = classifier['svc']()
     model = build_lc_model(('clf', clf))
 
-    cross_validate_fullscores(model, ds, labels, n_class=2, txt_labels=['LIKED', 'DISLIKED'])        
+    cross_validate_fullscores(model, ds, labels, n_class=2, txt_labels=['LIKED', 'DISIKE'])        
     joblib.dump(model, dir_path + '/lik_prd.pkl') 
     return model    
 

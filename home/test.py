@@ -4,7 +4,7 @@ from home.miner import classification
 from home.db.connector import DBConnector
 
 
-def classify(nc=True, lc=True, show_mat=False, tuning=False):
+def classify(nc=True, lc=True, show_mat=False, tuning=False, plot_learning_curve=False):
      # importing configuration 
     print("\nimporting config file...") 
     config = utility.load_config()
@@ -15,11 +15,11 @@ def classify(nc=True, lc=True, show_mat=False, tuning=False):
 
     if nc:
         print('\nmeta-classifing NC ... ')
-        classification.meta_classify_nc(dataset=pd.DataFrame(db.find_trainingset()), show_mat=show_mat, tuning=tuning)
+        classification.meta_classify_nc(dataset=pd.DataFrame(db.find_trainingset()), show_mat=show_mat, tuning=tuning, plot=plot_learning_curve)
     
     if lc: 
         print('\nmeta-classifing LC ... ')
-        classification.meta_classify_lc(dataset=pd.DataFrame(db.find_likabilityset()), tuning=tuning, show_mat=show_mat)
+        classification.meta_classify_lc(dataset=pd.DataFrame(db.find_likabilityset()), tuning=tuning, show_mat=show_mat, plot=plot_learning_curve)
 
 
 def deploy_models(path='home/miner/model'):
