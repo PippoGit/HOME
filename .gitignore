@@ -1,3 +1,6 @@
+# old_version
+.OLD_VERSION
+
 # os generated files #
 .DS_Store
 .DS_Store?
@@ -127,4 +130,3 @@ venv.bak/
 
 # mypy
 .mypy_cache/
-home/db/dump/homedb/diagnostic.data/metrics.interim

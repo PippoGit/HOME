@@ -22,7 +22,7 @@ def classify(nc=True, lc=True, show_mat=False, tuning=False):
         classification.meta_classify_lc(dataset=pd.DataFrame(db.find_likabilityset()), tuning=tuning, show_mat=show_mat)
 
 
-def deploy_models():
+def deploy_models(path='home/miner/model'):
     # importing configuration 
     print("\nimporting config file...") 
     config = utility.load_config()
@@ -32,7 +32,7 @@ def deploy_models():
     db = DBConnector(**config['db'])
 
     print("building the news classifier...")
-    classification.deploy_news_classifier(pd.DataFrame(db.find_trainingset()))
+    classification.deploy_news_classifier(pd.DataFrame(db.find_trainingset()), path)
     print("building the likability predictor...")
-    classification.deploy_likability_predictor(pd.DataFrame(db.find_likabilityset()))
+    classification.deploy_likability_predictor(pd.DataFrame(db.find_likabilityset()), path)
     print("models built!")

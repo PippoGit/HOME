@@ -453,7 +453,7 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False):
     
 #####################   MODEL DEPLOY   ##########################
 
-def deploy_news_classifier(dataset):
+def deploy_news_classifier(dataset, dir_path='home/miner/model'):
     # this function should provide a pipeline trained object 
     # that i use to fit with the features extracted from the miner
 
@@ -467,11 +467,11 @@ def deploy_news_classifier(dataset):
     labels = dataset['tag'].to_numpy()
 
     cross_validate_fullscores(model, ds, labels, n_class=9)        
-    joblib.dump(model, 'home/miner/nws_clf.pkl')
+    joblib.dump(model, dir_path + '/nws_clf.pkl')
     return model
 
 
-def deploy_likability_predictor(dataset):
+def deploy_likability_predictor(dataset, dir_path='home/miner/model'):
     # preparing the inputs
     ds = pd.DataFrame()
     ds['content'] = pp.tokenize_list(dataset)
@@ -485,17 +485,17 @@ def deploy_likability_predictor(dataset):
     model = build_lc_model(('clf', clf))
 
     cross_validate_fullscores(model, ds, labels, n_class=2)        
-    joblib.dump(model, 'home/miner/model/lik_prd.pkl')
+    joblib.dump(model, dir_path + '/lik_prd.pkl') 
     return model    
 
 
-def load_likability_predictor():
-    model = joblib.load('home/miner/model/lik_prd.pkl')
+def load_likability_predictor(path='home/miner/model/lik_prd.pkl'):
+    model = joblib.load(path)  
     return model
 
 
-def load_news_classifier():
-    model = joblib.load('home/miner/model/nws_clf.pkl')
+def load_news_classifier(path='home/miner/model/nws_clf.pkl'):
+    model = joblib.load(path) 
     return model
 
 #####################   MODEL BUILDING   ##########################
