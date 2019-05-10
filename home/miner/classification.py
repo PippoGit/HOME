@@ -105,7 +105,7 @@ def labelize_likability(article):
 
 
 def plot_learning_curve(estimator, title, X, y, ylim=None,
-                        n_jobs=None, train_sizes=np.linspace(.1, 1.0, 5)):
+                        n_jobs=-1, train_sizes=np.linspace(.1, 1.0, 5)):
     plt.figure()
     plt.title(title)
     if ylim is not None:
@@ -282,7 +282,7 @@ def test_stacking_classifier(classifiers, ds, labels):
     encoded_label = LabelEncoder().fit_transform(labels) # don't know why it doesn't work with string values
 
     # trying to cross_validate the stack...
-    scores = cross_val_score(pipeline, ds, encoded_label, 
+    scores = cross_val_score(pipeline, ds, encoded_label, n_jobs=-1,
                                 cv=StratifiedKFold(random_state=42, n_splits=10, shuffle=True), scoring='accuracy')
     print("Accuracy: %0.4f (+/- %0.4f)" % (scores.mean(), scores.std())) # actually it is really bad, like 30%
 
@@ -380,7 +380,7 @@ def meta_classify_nc(dataset, show_mat=False, tuning=False):
             tuned_model = GridSearchCV(model, params[c[0]], iid=True,
                 scoring='accuracy', cv=StratifiedKFold(random_state=42, n_splits=10, shuffle=True),
                 verbose=1,
-                n_jobs=2
+                n_jobs=-1
             )
             tuned_model.fit(ds, labels)
             print(tuned_model.best_score_, tuned_model.best_params_)
