@@ -17,7 +17,7 @@ db = DBConnector(**config['db'])
 feed_parser = Parser(config['feeds'])
                           
 # loading models
-print("\nloading the models...") 
+print("\nloading the models...")
 news_classifier = classification.load_news_classifier()
 likability_predictor = classification.load_likability_predictor()
 

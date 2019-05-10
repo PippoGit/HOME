@@ -502,7 +502,7 @@ def deploy_likability_predictor(dataset, dir_path='home/miner/model'):
     clf = classifier['log_reg'](solver='lbfgs', multi_class='auto', random_state=42)
     model = build_lc_model(('clf', clf))
 
-    cross_validate_fullscores(model, ds, labels, n_class=2, txt_labels=['LIKED', 'DISIKE'])        
+    cross_validate_fullscores(model, ds, labels, n_class=2, txt_labels=['LIKE', 'DISIKE'])        
     joblib.dump(model, dir_path + '/lik_prd.pkl') 
     return model    
 
