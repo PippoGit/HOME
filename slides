@@ -2,7 +2,7 @@
 
 * Overview of the system (schema)
     * News coming from the sources
-    * Server (Parser + Features Extraction + Model + To the user)
+    * Server (Parser + Features Extraction + Model + WebServer (REST API))
     * MongoDB (Dataset for training/keep the model updated)
 
 * Preparing the dataset 
@@ -24,17 +24,21 @@
     * TF-IDF (basically)
 
 * The Model: The News classifier
+    * The problem + Dataset balancement
+
     * Simple Classifier with scores
     * Ensemble+Metaclassifier with scores
 
     * Best classifier + Confusion Matrix
 
 * The Model: The Likability Classifier
+    * The problem + Dataset balancement
+
     * Simple Classifier with scores
     * Ensemble+Metaclassifier with scores
 
     * Best classifier + Confusion Matrix
 
 * Conclusion: 
-    * Is classifing an article easy? probably not
+    * Is classifing an article an easy task? probably not
     * Is 80% accuracy good? No, but it's fair enough.
