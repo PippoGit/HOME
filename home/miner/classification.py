@@ -112,7 +112,7 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
     plt.xlabel("Training examples")
     plt.ylabel("Score")
     train_sizes, train_scores, test_scores = learning_curve(
-        estimator, X, y, cv=cv, n_jobs=n_jobs, train_sizes=train_sizes)
+        estimator, X, y, cv=cv, n_jobs=n_jobs, train_sizes=train_sizes, shuffle=True, random_state=42)
     train_scores_mean = np.mean(train_scores, axis=1)
     train_scores_std = np.std(train_scores, axis=1)
     test_scores_mean = np.mean(test_scores, axis=1)
@@ -130,6 +130,7 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
              label="Cross-validation score")
 
     plt.legend(loc="best")
+    plt.show()
     return plt
 
 
@@ -281,7 +282,7 @@ def test_stacking_classifier(classifiers, ds, labels):
 
     # trying to cross_validate the stack...
     scores = cross_val_score(pipeline, ds, encoded_label, 
-                                cv=10, scoring='accuracy')
+                                cv=StratifiedKFold(random_state=42, n_splits=10, shuffle=True), scoring='accuracy')
     print("Accuracy: %0.4f (+/- %0.4f)" % (scores.mean(), scores.std())) # actually it is really bad, like 30%
 
 
@@ -370,21 +371,22 @@ def meta_classify_nc(dataset, show_mat=False, tuning=False):
     for c in classifiers:
         print('\n---------------------------\n')
         # building the model
-        pl = build_nc_model(c)
+        model = build_nc_model(c)
 
         if tuning:
             print("\nTuning {} Hyper-Parameters with GridSearchCV: \n".format(c[0]))
-            model = GridSearchCV(pl, params[c[0]], iid=True,
+            tuned_model = GridSearchCV(model, params[c[0]], iid=True,
                 scoring='accuracy', cv=StratifiedKFold(random_state=42, n_splits=10, shuffle=True),
                 verbose=1,
                 n_jobs=2
             )
-            model.fit(ds, labels)
-            print(model.best_score_, model.best_params_)
+            tuned_model.fit(ds, labels)
+            print(tuned_model.best_score_, tuned_model.best_params_)
         else:
             print('\n Regular CV 10 folds for ' + c[0] + '\n')
-            cross_validate(pl, ds, labels, n_class, show_mat=show_mat, txt_labels=news_categories)
-        
+            cross_validate(model, ds, labels, n_class, show_mat=show_mat, txt_labels=news_categories)
+            plot_learning_curve(model, c[0], ds, labels, cv=10)
+
         print('\n---------------------------\n')
 
 
@@ -400,10 +402,11 @@ def meta_classify_nc(dataset, show_mat=False, tuning=False):
     for c in ens_meta_classifiers:
         print("\nCV 10 folds - " + c[0])
         # building the pipeline vectorizer-classifier
-        pipeline = build_nc_model(c)
+        model = build_nc_model(c)
 
         # Cross_validating the model
-        cross_validate(pipeline, ds, labels, n_class, show_mat=show_mat, txt_labels=news_categories)
+        cross_validate(model, ds, labels, n_class, show_mat=show_mat, txt_labels=news_categories)
+        plot_learning_curve(model, c[0], ds, labels, cv=10)
 
 
 
@@ -428,6 +431,7 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False):
 
         print('\n Regular CV 10 folds for ' + c[0] + '\n')
         cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['DISLIKED', 'LIKED'])
+        plot_learning_curve(pl, c[0], ds, labels, cv=10)
         print('\n---------------------------\n')
 
     print("\n\nEnsembles and Meta-Classifiers:\n")
@@ -443,7 +447,7 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False):
         
         # Cross_validating the model (dunno y its not working with the )
         cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['DISLIKED', 'LIKED'])
-
+        plot_learning_curve(pl, c[0], ds, labels, cv=10)
     # trying StackingClassifier (this is so bad it doesn't even worth it)
     # Miner.test_stacking_classifier(classifiers, ds, labels)
 
