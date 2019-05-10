@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from statistics import mean, stdev
 from sklearn.externals import joblib
+from sklearn.utils import shuffle
 
 # plot
 import matplotlib
@@ -103,7 +104,7 @@ def labelize_likability(article):
     return ("READ", likability) # should not happen
 
 
-def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
+def plot_learning_curve(estimator, title, X, y, ylim=None,
                         n_jobs=None, train_sizes=np.linspace(.1, 1.0, 5)):
     plt.figure()
     plt.title(title)
@@ -112,7 +113,7 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
     plt.xlabel("Training examples")
     plt.ylabel("Score")
     train_sizes, train_scores, test_scores = learning_curve(
-        estimator, X, y, cv=cv, n_jobs=n_jobs, train_sizes=train_sizes, shuffle=True, random_state=42)
+        estimator, X, y, cv=10, shuffle=True, random_state=42, n_jobs=n_jobs, train_sizes=train_sizes)
     train_scores_mean = np.mean(train_scores, axis=1)
     train_scores_std = np.std(train_scores, axis=1)
     test_scores_mean = np.mean(test_scores, axis=1)
@@ -148,7 +149,7 @@ def plot_confusion_matrix(mat, labels):
     plt.show()
 
 
-def cross_validate_fullscores(model, dataset, labels, n_class=None, folds=10):
+def cross_validate_fullscores(model, dataset, labels, n_class=None, folds=10, txt_labels=None):
     kf = StratifiedKFold(random_state=42, n_splits=folds, shuffle=True)
     total = 0
     totalMat = np.zeros((n_class,n_class))
@@ -173,7 +174,7 @@ def cross_validate_fullscores(model, dataset, labels, n_class=None, folds=10):
         model.fit(X_train, y_train)
         result = model.predict(X_test)
         
-        mat = confusion_matrix(y_test, result)
+        mat = confusion_matrix(y_test, result, labels=txt_labels)
         f1.append(f1_score(y_test, result, average='weighted'))
         acc.append(accuracy_score(y_test, result))
         prc.append(precision_score(y_test, result, average='weighted'))
@@ -193,7 +194,7 @@ def cross_validate_fullscores(model, dataset, labels, n_class=None, folds=10):
 
     
 def cross_validate(pl, ds, labels, n_class, show_mat=False, txt_labels=None):
-    score = cross_validate_fullscores(pl, ds, labels, n_class=n_class)
+    score = cross_validate_fullscores(pl, ds, labels, n_class=n_class, txt_labels=txt_labels)
     if show_mat:
         plot_confusion_matrix(score[0], txt_labels)
 
@@ -255,7 +256,7 @@ def init_ensmeta_classifiers(simple_classifier_list, clf='nc'):
     return [
         ("AdaBoost", classifier['ada'](n_estimators=params[clf]['ada_estimators'])),
         ("RandomForest", classifier['random_forest'](random_state=params[clf]['random_state'], n_estimators=params[clf]['rf_estimators'])),
-        ("XGBClassifier", XGBClassifier(max_depth=params[clf]['xgb_max_depth'], n_estimators=params[clf]['xgb_estimators'], learning_rate=params[clf]['xgb_learning_rate'])),
+        # THIS IS TOO SLOW TO EVEN WORTH IT. ("XGBClassifier", XGBClassifier(max_depth=params[clf]['xgb_max_depth'], n_estimators=params[clf]['xgb_estimators'], learning_rate=params[clf]['xgb_learning_rate'])),
         
         ("VotingClassifier", VotingClassifier(estimators=simple_classifier_list, voting=params[clf]['voting'])),
         ("BaggingClassifier", BaggingClassifier(base_estimator=classifier['svc'](C=params[clf]['C'], random_state=params[clf]['random_state']), 
@@ -331,7 +332,10 @@ def build_nc_model(model):
 
 def meta_classify_nc(dataset, show_mat=False, tuning=False):
     # preparing the trainingset
-    ds = pp.tokenize_list(dataset)
+    ds = pp.tokenize_list(dataset) 
+    
+    # Trying to shuffle it
+    ds = shuffle(ds, random_state=42)
 
     # preparing the targets
     labels = dataset['tag'].to_numpy()
@@ -385,7 +389,7 @@ def meta_classify_nc(dataset, show_mat=False, tuning=False):
         else:
             print('\n Regular CV 10 folds for ' + c[0] + '\n')
             cross_validate(model, ds, labels, n_class, show_mat=show_mat, txt_labels=news_categories)
-            plot_learning_curve(model, c[0], ds, labels, cv=10)
+            plot_learning_curve(model, c[0], ds, labels)
 
         print('\n---------------------------\n')
 
@@ -406,7 +410,7 @@ def meta_classify_nc(dataset, show_mat=False, tuning=False):
 
         # Cross_validating the model
         cross_validate(model, ds, labels, n_class, show_mat=show_mat, txt_labels=news_categories)
-        plot_learning_curve(model, c[0], ds, labels, cv=10)
+        plot_learning_curve(model, c[0], ds, labels)
 
 
 
@@ -430,8 +434,8 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False):
         pl = build_lc_model(c)
 
         print('\n Regular CV 10 folds for ' + c[0] + '\n')
-        cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['DISLIKED', 'LIKED'])
-        plot_learning_curve(pl, c[0], ds, labels, cv=10)
+        cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['LIKED', 'DISLIKED'])
+        plot_learning_curve(pl, c[0], ds, labels)
         print('\n---------------------------\n')
 
     print("\n\nEnsembles and Meta-Classifiers:\n")
@@ -447,7 +451,7 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False):
         
         # Cross_validating the model (dunno y its not working with the )
         cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['DISLIKED', 'LIKED'])
-        plot_learning_curve(pl, c[0], ds, labels, cv=10)
+        plot_learning_curve(pl, c[0], ds, labels)
     # trying StackingClassifier (this is so bad it doesn't even worth it)
     # Miner.test_stacking_classifier(classifiers, ds, labels)
 
@@ -470,7 +474,7 @@ def deploy_news_classifier(dataset, dir_path='home/miner/model'):
     ds = pp.tokenize_list(dataset)
     labels = dataset['tag'].to_numpy()
 
-    cross_validate_fullscores(model, ds, labels, n_class=9)        
+    cross_validate_fullscores(model, ds, labels, n_class=9, txt_labels=news_categories)        
     joblib.dump(model, dir_path + '/nws_clf.pkl')
     return model
 
@@ -488,7 +492,7 @@ def deploy_likability_predictor(dataset, dir_path='home/miner/model'):
     clf = classifier['svc']()
     model = build_lc_model(('clf', clf))
 
-    cross_validate_fullscores(model, ds, labels, n_class=2)        
+    cross_validate_fullscores(model, ds, labels, n_class=2, txt_labels=['LIKED', 'DISLIKED'])        
     joblib.dump(model, dir_path + '/lik_prd.pkl') 
     return model    
 
