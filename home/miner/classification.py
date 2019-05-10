@@ -450,7 +450,7 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False):
         pl = build_lc_model(c)
         
         # Cross_validating the model (dunno y its not working with the )
-        cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['DISLIKED', 'LIKED'])
+        cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['LIKED', 'DISLIKED'])
         plot_learning_curve(pl, c[0], ds, labels)
     # trying StackingClassifier (this is so bad it doesn't even worth it)
     # Miner.test_stacking_classifier(classifiers, ds, labels)
