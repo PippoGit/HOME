@@ -460,7 +460,7 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False, plot=False):
             plot_learning_curve(pl, c[0], ds, labels)
 
     # trying StackingClassifier (this is so bad it doesn't even worth it)
-    test_stacking_classifier(classifiers, ds, labels, plot=plot, n_class=2, show_mat=show_mat, txt_labels=['LIKE', 'DISLIKE'])
+    # test_stacking_classifier(classifiers, ds, labels, plot=plot, n_class=2, show_mat=show_mat, txt_labels=['LIKE', 'DISLIKE'])
 
 
 

@@ -8,6 +8,6 @@ import db: mongorestore --db homedb dump/homedb
 ## TODO
 * Tuning XGBClassifier (just a little)
 * Fix the model_deploy => Should i trust the score or not? Anyway:
-    LC => XGB,
+    LC => LOGREG,
     NC => SVC should be fine
 * Powerpoint slides
