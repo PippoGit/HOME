@@ -92,6 +92,7 @@ Recall Scores: 0.7369 [ +/- 0.0322]
 
 [[365. 168.]
  [117. 433.]]
+
 CV 10 folds - RandomForest
 ---
 
@@ -103,6 +104,7 @@ Recall Scores: 0.7996 [ +/- 0.0302]
 
 [[378. 155.]
  [ 62. 488.]]
+ 
 CV 10 folds - XGBClassifier
 ---
 
@@ -143,5 +145,54 @@ Recall Scores: 0.8670 [ +/- 0.0286]
 
 
 
+
+
+
+
+
  ##### ENSEMBLE WITHOUT DT!
- 
+
+
+
+
+
+
+
+
+
+CV 10 folds - XGBClassifier
+---
+
+F1 Scores: 0.7234 [ +/- 0.0410]
+Accuracy Scores: 0.7267 [ +/- 0.0402]
+Precision Scores: 0.7356 [ +/- 0.0423]
+Recall Scores: 0.7267 [ +/- 0.0402]
+---
+
+[[333. 200.]
+ [ 96. 454.]]
+
+CV 10 folds - VotingClassifier
+---
+
+F1 Scores: 0.8743 [ +/- 0.0320]
+Accuracy Scores: 0.8744 [ +/- 0.0320]
+Precision Scores: 0.8756 [ +/- 0.0324]
+Recall Scores: 0.8744 [ +/- 0.0320]
+---
+
+[[462.  71.]
+ [ 65. 485.]]
+
+CV 10 folds - BaggingClassifier
+
+---
+
+F1 Scores: 0.8669 [ +/- 0.0286]
+Accuracy Scores: 0.8670 [ +/- 0.0286]
+Precision Scores: 0.8690 [ +/- 0.0287]
+Recall Scores: 0.8670 [ +/- 0.0286]
+---
+
+[[469.  64.]
+ [ 80. 470.]]

@@ -7,6 +7,7 @@ import db: mongorestore --db homedb dump/homedb
 
 ## TODO
 * tried ensemlble/meta without decision tree
+    probably xgb and stacking are useless.
 * Tuning XGBClassifier (just a little)
 * Fix the model_deploy => Should i trust the score or not? Anyway:
     LC => LOGREG,
