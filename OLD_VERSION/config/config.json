@@ -1,0 +1,136 @@
+{
+  "db" : {
+    "host" : "mongodb://localhost:27017/",
+    "name": "homedb",
+    "user": "",
+    "password": ""
+  },
+  
+  "feeds": 
+  [
+    {
+      "name" : "Corriere della Sera",
+      "url" : "http://xml2.corriereobjects.it/rss/homepage.xml"
+    },
+    {
+      "name" : "La Stampa",
+      "url" : "http://www.lastampa.it/rss.xml"
+    },
+    {
+      "name" : "La Repubblica",
+      "url" : "http://www.repubblica.it/rss/homepage/rss2.0.xml"
+    },
+    {
+      "name" : "ANSA",
+      "url" : "http://www.ansa.it/sito/ansait_rss.xml"
+    },
+    {
+      "name" : "Fanpage.it",
+      "url" : "http://www.fanpage.it/feed/"
+    },
+    {
+      "name" : "Il Fatto Quotidiano",
+      "url" : "http://www.ilfattoquotidiano.it/feed/"
+    },
+    {
+      "name" : "Il Sole 24 Ore",
+      "url" : "http://www.ilsole24ore.com/rss/primapagina.xml"
+    },
+    {
+      "name" : "Internazionale",
+      "url" : "http://www.internazionale.it/sitemaps/rss.xml"
+    },
+    {
+      "name" : "Linkiesta",
+      "url": "http://www.linkiesta.it/it/feed/latest/?format=rss"
+    },
+    {
+      "name" : "TGCom 24",
+      "url": "http://www.tgcom24.mediaset.it/rss/homepage.xml"
+    },
+    {
+      "name": "Gazzetta dello Sport",
+      "url" : "http://www.gazzetta.it/rss/home.xml"
+    },
+    {
+      "name": "Wired.it",
+      "url" : "https://www.wired.it/feed/"
+    },    
+    {
+      "name": "Lega Nerd",
+      "url" : "https://leganerd.com/feed/"
+    },    
+    {
+      "name": "Tom's Hardware",
+      "url" : "https://www.tomshw.it/feed/"
+    },    
+    {
+      "name": "Il Tascabile",
+      "url" : "https://www.iltascabile.com/feed"
+    },
+    {
+      "name": "Noisey",
+      "url" : "https://noisey.vice.com/it/rss"
+    },
+    {
+      "name": "Movieplayer.it",
+      "url" : "https://movieplayer.it/feed/"
+    },
+    {
+      "name": "Le Scienze",
+      "url" : "http://www.lescienze.it/rss/all/rss2.0.xml"
+    },
+    {
+      "name": "il Post",
+      "url" : "https://www.ilpost.it/feed/"
+    },
+    {
+      "name": "Google News",
+      "url" : "https://news.google.com/rss?hl=it&gl=IT&ceid=IT:it"
+    },
+    {
+      "name": "Yahoo News",
+      "url" : "https://it.notizie.yahoo.com/rss"
+    },
+    {
+      "name": "WallStreet Italia",
+      "url" : "https://www.wallstreetitalia.com/feed/"
+    },
+    {
+      "name": "Huffington Post",
+      "url" : "https://www.huffingtonpost.it/feeds/index.xml"
+    },
+    {
+      "name": "RAI News",
+      "url" : "http://www.rai.it/dl/portale/html/PublishingBlock-15c2c340-e282-473d-b944-661e818d667b-rss.xml"
+    },
+    {
+      "name": "AGI",
+      "url" : "https://www.agi.it/rss/"
+    },
+    {
+      "name": "RollingStone",
+      "url" : "https://www.rollingstone.it/feed/"
+    },
+    {
+      "name": "Deerwaves",
+      "url" : "https://deerwaves.com/feed"
+    },
+    {
+      "name": "National Geographic",
+      "url" : "http://www.nationalgeographic.it/rss/all/rss2.0.xml"
+    },
+    {
+      "name": "Libreriamo",
+      "url" : "https://libreriamo.it/feed/"
+    },
+    {
+      "name": "Adnkronos",
+      "url" : "http://rss.adnkronos.com/RSS_PrimaPagina.xml"
+    },
+    {
+      "name": "HDBlog.it",
+      "url" : "https://www.hdblog.it/rss/"
+    }    
+  ]
+}

@@ -486,7 +486,7 @@ def deploy_likability_predictor(dataset):
 
     cross_validate_fullscores(model, ds, labels, n_class=2)        
     joblib.dump(model, 'home/miner/model/lik_prd.pkl')
-    return model
+    return model    
 
 
 def load_likability_predictor():
