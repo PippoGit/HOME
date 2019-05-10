@@ -126,7 +126,7 @@ Recall Scores: 0.8717 [ +/- 0.0338]
 
 [[447.  86.]
  [ 53. 497.]]
- 
+
 CV 10 folds - BaggingClassifier
 
 ---
@@ -139,3 +139,9 @@ Recall Scores: 0.8670 [ +/- 0.0286]
 
 [[469.  64.]
  [ 80. 470.]]
+
+
+
+
+ ##### ENSEMBLE WITHOUT DT!
+ 
