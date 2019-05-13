@@ -60,7 +60,11 @@ class Parser:
                     'read' : False
                 }
 
-                # adding the id
+                # check if there's atleast the title OR the description
+                if article['title'] == "" and article['description'] == "":
+                    continue    # skip
+
+                # adding the id (probably i should use only title+source to avoid duplicates... (nevermind))
                 ida = ''.join('{}{}'.format(key, val) for key, val in article.items())
                 article['_id'] = hashlib.sha1(ida.encode()).hexdigest()
                 
