@@ -2,6 +2,16 @@ import pandas as pd
 from home import utility
 from home.miner import classification
 from home.db.connector import DBConnector
+from home.miner import preprocessing
+import nltk
+
+
+# plot
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+import seaborn as sn
+
 
 
 def classify(nc=True, lc=True, show_mat=False, tuning=False, plot_learning_curve=False):
@@ -36,3 +46,24 @@ def deploy_models(path='home/miner/model'):
     print("building the likability predictor...")
     classification.deploy_likability_predictor(pd.DataFrame(db.find_likabilityset()), path)
     print("models built!")
+
+
+# TODO: plot word distribution for each category (just to see if it makes sense (indeed it does))
+# (i think i'm just going to skip this)
+# def plot_word_tag_distribution():
+#     # importing configuration 
+#     config = utility.load_config()
+
+#     # preparing the components
+#     db = DBConnector(**config['db'])
+#     dataset = pd.DataFrame(db.find_trainingset())
+
+#     for cat in classification.news_categories:
+#         print("info about %s" % (cat))
+#         data = dataset[dataset['tag'] == cat]
+#         data['tokens'] = [preprocessing.tokenize_article(a) for _,a in data.iterrows()]
+#         words = [word for word in [article['tokens'] for _,article in data.iterrows()]]
+#         freqdist = nltk.FreqDist(words)
+#         freqdist.plot(50)
+#         plt.show()
+
