@@ -25,7 +25,7 @@ from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import SGDClassifier, LogisticRegression
 from sklearn.svm import LinearSVC
-from sklearn.ensemble import RandomForestClassifier, VotingClassifier, AdaBoostClassifier, BaggingClassifier
+from sklearn.ensemble import RandomForestClassifier, VotingClassifier, AdaBoostClassifier, BaggingClassifier, GradientBoostingClassifier
 from sklearn.tree import DecisionTreeClassifier
 
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
@@ -235,8 +235,8 @@ def init_ensmeta_classifiers(simple_classifier_list, clf='nc'):
             'ada_estimators': 100,
             'rf_estimators': 100,
             'xgb_estimators': 100,
-            'xgb_max_depth': 4,
-            'xgb_learning_rate': 0.09,
+            'xgb_max_depth': 3,
+            'xgb_learning_rate': 0.01,
         },
         'lc' : {
             'C': 1,
@@ -254,14 +254,14 @@ def init_ensmeta_classifiers(simple_classifier_list, clf='nc'):
     }
 
     return [
-        ("AdaBoost", classifier['ada'](n_estimators=params[clf]['ada_estimators'])),
+        ("AdaBoost", classifier['ada'](base_estimator=MultinomialNB(), n_estimators=params[clf]['ada_estimators'])),
         ("RandomForest", classifier['random_forest'](random_state=params[clf]['random_state'], n_estimators=params[clf]['rf_estimators'])),
-        # USELESS! ("XGBClassifier", XGBClassifier(max_depth=params[clf]['xgb_max_depth'], n_estimators=params[clf]['xgb_estimators'], learning_rate=params[clf]['xgb_learning_rate'])),
+        ("XGBClassifier", XGBClassifier(max_depth=params[clf]['xgb_max_depth'], n_estimators=params[clf]['xgb_estimators'], learning_rate=params[clf]['xgb_learning_rate'])),
         
         ("VotingClassifier", VotingClassifier(estimators=simple_classifier_list, voting=params[clf]['voting'])),
         ("BaggingClassifier", BaggingClassifier(base_estimator=classifier['svc'](C=params[clf]['C'], random_state=params[clf]['random_state']), 
-                                                n_estimators=params[clf]['bc_estimators'], 
-                                                random_state=params[clf]['random_state']))
+                                                 n_estimators=params[clf]['bc_estimators'], 
+                                                 random_state=params[clf]['random_state'])),
     ]
 
 
@@ -409,10 +409,10 @@ def meta_classify_nc(dataset, show_mat=False, tuning=False, plot=False):
         # building the pipeline vectorizer-classifier
         model = build_nc_model(c)
 
-        # Cross_validating the model
-        cross_validate(model, ds, labels, n_class, show_mat=show_mat, txt_labels=news_categories)
-        if plot:
-            plot_learning_curve(model, c[0], ds, labels)
+        # # Cross_validating the model
+        # cross_validate(model, ds, labels, n_class, show_mat=show_mat, txt_labels=news_categories)
+        # if plot:
+        #     plot_learning_curve(model, c[0], ds, labels)
 
     # STACKING IS USELESS...
     # test_stacking_classifier(classifiers, ds, labels, plot=plot, n_class=n_class, txt_labels=news_categories, show_mat=show_mat)
@@ -455,10 +455,10 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False, plot=False):
         # building the pipeline vectorizer-classifier
         pl = build_lc_model(c)
         
-        # Cross_validating the model (dunno y its not working with the )
-        cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['LIKE', 'DISLIKE'])
-        if plot:
-            plot_learning_curve(pl, c[0], ds, labels)
+        # # Cross_validating the model (dunno y its not working with the )
+        # cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['LIKE', 'DISLIKE'])
+        # if plot:
+        #     plot_learning_curve(pl, c[0], ds, labels)
 
     # trying StackingClassifier (this is so bad it doesn't even worth it)
     # test_stacking_classifier(classifiers, ds, labels, plot=plot, n_class=2, show_mat=show_mat, txt_labels=['LIKE', 'DISLIKE'])
