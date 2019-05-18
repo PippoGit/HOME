@@ -29,6 +29,7 @@ from sklearn.ensemble import RandomForestClassifier, VotingClassifier, AdaBoostC
 from sklearn.tree import DecisionTreeClassifier
 
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+from sklearn.feature_selection import SelectPercentile, chi2
 
 from mlxtend.classifier import StackingCVClassifier
 from mlxtend.preprocessing import DenseTransformer
@@ -202,13 +203,13 @@ def cross_validate(pl, ds, labels, n_class, show_mat=False, txt_labels=None):
 def init_simple_classifiers(clf='nc'):
     params = {
         'nc': {
-            'C':0.51,
+            'C':0.484,
             'random_state': 42,
             'lr_solver': 'lbfgs',
             'lr_multi_class':'auto',
         },
         'lc' : {
-            'C': 1,
+            'C': 0.5,
             'random_state': 42,
             'lr_solver': 'lbfgs',
             'lr_multi_class':'auto',
@@ -335,7 +336,7 @@ def build_nc_model(model):
 def meta_classify_nc(dataset, show_mat=False, tuning=False, plot=False):
     # preparing the trainingset
     dataset = shuffle(dataset, random_state=42)
-    ds = pp.tokenize_list(dataset) 
+    ds = pp.tokenize_list(dataset) # pp.vectorize_list(dataset)  (doc_to_vector stuff, not really working)
 
     # preparing the targets
     labels = dataset['tag'].to_numpy()
@@ -361,7 +362,7 @@ def meta_classify_nc(dataset, show_mat=False, tuning=False, plot=False):
             # 'vect__norm': [None, 'l1', 'l2']
             # 'vect__max_df': (0.5, 0.55, 0.65, 0.70, 0.75, 1.0),
             # 'vect__max_features' : [12000, 14500, 15000], # best MF: 14500
-            # 'clf__C': [1, 10, 20, 25, 50, 75, 100] # best C: 0.51
+            'clf__C': np.arange(0.001, 1, 0.001) # best C: 0.51
         },
         'ada' : {
             'clf__n_estimators': [2000],
