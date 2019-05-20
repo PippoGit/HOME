@@ -10,6 +10,7 @@ class NewsFeed:
 
 
     def to_list(self):
+        # sorted_feed = self.feed.sort_values(by=['datetime'], ascending=False)
         return self.feed.to_dict('records')
 
 

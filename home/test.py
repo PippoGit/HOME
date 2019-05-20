@@ -3,6 +3,8 @@ from home import utility
 from home.miner import classification
 from home.db.connector import DBConnector
 from home.miner import preprocessing
+from sklearn.utils import shuffle
+
 import nltk
 
 
@@ -46,6 +48,26 @@ def deploy_models(path='home/miner/model'):
     print("building the likability predictor...")
     classification.deploy_likability_predictor(pd.DataFrame(db.find_likabilityset()), path)
     print("models built!")
+
+
+def t_test_nc():
+    # importing configuration 
+    print("\nimporting config file...") 
+    config = utility.load_config()
+
+    # preparing the components
+    print("\npreparing the components...\n")
+    db = DBConnector(**config['db'])
+
+    dataset= shuffle(pd.DataFrame(db.find_trainingset()), random_state=42)
+    ds = preprocessing.tokenize_list(dataset) # pp.vectorize_list(dataset)  (doc_to_vector stuff, not really working)
+
+    # preparing the targets
+    labels = dataset['tag'].to_numpy()
+
+    # t test here!
+    classifiers = classification.init_simple_classifiers('nc')
+    classification.t_test(classifiers, ds, labels)
 
 
 # TODO: plot word distribution for each category (just to see if it makes sense (indeed it does))

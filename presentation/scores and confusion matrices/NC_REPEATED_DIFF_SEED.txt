@@ -1,0 +1,346 @@
+MacBook:Home filipposcotto$ python3
+Python 3.7.1 (v3.7.1:260ec2c36a, Oct 20 2018, 03:13:28) 
+[Clang 6.0 (clang-600.0.57)] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from home import test
+>>> test.classify(lc=False, show_mat=False, plot_learning_curve=False)
+
+importing config file...
+
+preparing the components...
+
+
+meta-classifing NC ... 
+
+
+Simple Classifiers:
+
+
+---------------------------
+
+
+ Regular CV 10 folds for mnb
+
+---
+
+F1 Scores: 0.7775 [ +/- 0.0232]
+Accuracy Scores: 0.7797 [ +/- 0.0230]
+Precision Scores: 0.7938 [ +/- 0.0216]
+Recall Scores: 0.7797 [ +/- 0.0230]
+---
+
+[[1.966e+03 4.200e+01 8.900e+01 8.300e+01 6.700e+01 3.740e+02 5.000e+01
+  6.000e+01 9.900e+01]
+ [1.790e+02 1.465e+03 7.100e+01 2.710e+02 5.800e+01 2.190e+02 1.740e+02
+  3.800e+01 6.500e+01]
+ [3.200e+01 1.000e+01 2.233e+03 2.000e+00 0.000e+00 2.370e+02 2.100e+01
+  0.000e+00 9.500e+01]
+ [3.600e+01 4.200e+01 1.900e+01 2.506e+03 1.390e+02 8.000e+01 3.200e+01
+  3.400e+01 1.320e+02]
+ [1.780e+02 5.000e+01 4.500e+01 3.130e+02 1.666e+03 1.020e+02 6.800e+01
+  1.230e+02 3.500e+01]
+ [9.800e+01 6.000e+00 1.730e+02 1.200e+01 0.000e+00 2.269e+03 2.600e+01
+  2.000e+00 3.400e+01]
+ [1.170e+02 6.700e+01 1.440e+02 2.500e+01 1.200e+01 9.100e+01 2.027e+03
+  7.000e+00 9.000e+01]
+ [3.800e+01 1.400e+01 1.300e+01 3.700e+01 2.500e+01 6.400e+01 3.000e+00
+  2.681e+03 5.000e+00]
+ [1.140e+02 1.100e+01 9.300e+01 6.800e+01 0.000e+00 1.200e+02 1.190e+02
+  1.000e+01 2.305e+03]]
+
+---------------------------
+
+
+---------------------------
+
+
+ Regular CV 10 folds for svc
+
+---
+
+F1 Scores: 0.7967 [ +/- 0.0245]
+Accuracy Scores: 0.7979 [ +/- 0.0244]
+Precision Scores: 0.8016 [ +/- 0.0245]
+Recall Scores: 0.7979 [ +/- 0.0244]
+---
+
+[[1.976e+03 7.700e+01 8.100e+01 5.500e+01 1.170e+02 2.590e+02 1.010e+02
+  6.600e+01 9.800e+01]
+ [1.360e+02 1.831e+03 2.400e+01 1.740e+02 8.200e+01 6.300e+01 1.640e+02
+  3.500e+01 3.100e+01]
+ [6.200e+01 1.000e+01 2.194e+03 1.000e+00 1.300e+01 1.780e+02 5.400e+01
+  1.600e+01 1.020e+02]
+ [3.600e+01 1.280e+02 1.100e+01 2.410e+03 1.960e+02 1.800e+01 4.200e+01
+  5.000e+01 1.290e+02]
+ [1.310e+02 8.400e+01 3.500e+01 2.350e+02 1.868e+03 2.800e+01 8.000e+01
+  9.700e+01 2.200e+01]
+ [1.420e+02 3.000e+01 1.790e+02 1.400e+01 2.200e+01 2.140e+03 5.400e+01
+  1.300e+01 2.600e+01]
+ [1.170e+02 6.400e+01 7.900e+01 2.900e+01 5.200e+01 2.900e+01 2.101e+03
+  1.500e+01 9.400e+01]
+ [2.700e+01 3.100e+01 4.000e+00 3.800e+01 7.500e+01 3.900e+01 1.200e+01
+  2.653e+03 1.000e+00]
+ [7.900e+01 2.500e+01 6.300e+01 8.700e+01 3.000e+00 4.000e+01 1.400e+02
+  1.100e+01 2.392e+03]]
+
+---------------------------
+
+
+---------------------------
+
+
+ Regular CV 10 folds for Logistic Regression
+
+---
+
+F1 Scores: 0.7898 [ +/- 0.0232]
+Accuracy Scores: 0.7910 [ +/- 0.0228]
+Precision Scores: 0.7955 [ +/- 0.0236]
+Recall Scores: 0.7910 [ +/- 0.0228]
+---
+
+[[2.028e+03 6.500e+01 6.100e+01 7.400e+01 1.560e+02 1.770e+02 9.000e+01
+  6.900e+01 1.100e+02]
+ [1.900e+02 1.704e+03 2.800e+01 2.170e+02 7.800e+01 7.400e+01 1.560e+02
+  3.800e+01 5.500e+01]
+ [9.100e+01 1.000e+01 2.165e+03 1.100e+01 1.000e+00 1.660e+02 4.000e+01
+  6.000e+00 1.400e+02]
+ [5.500e+01 8.900e+01 1.000e+00 2.466e+03 1.850e+02 1.100e+01 3.600e+01
+  3.900e+01 1.380e+02]
+ [1.500e+02 9.900e+01 1.500e+01 2.720e+02 1.816e+03 2.300e+01 7.800e+01
+  9.900e+01 2.800e+01]
+ [1.910e+02 3.700e+01 1.400e+02 2.200e+01 1.400e+01 2.112e+03 5.100e+01
+  1.400e+01 3.900e+01]
+ [1.320e+02 7.700e+01 8.900e+01 3.800e+01 4.500e+01 1.800e+01 2.077e+03
+  7.000e+00 9.700e+01]
+ [2.800e+01 3.000e+01 1.200e+01 4.300e+01 4.500e+01 2.800e+01 7.000e+00
+  2.683e+03 4.000e+00]
+ [1.040e+02 3.000e+01 5.300e+01 1.010e+02 5.000e+00 4.700e+01 1.510e+02
+  6.000e+00 2.343e+03]]
+
+---------------------------
+
+
+
+Ensembles and Meta-Classifiers:
+
+
+CV 10 folds - AdaBoost
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+---
+
+F1 Scores: 0.4442 [ +/- 0.0319]
+Accuracy Scores: 0.4435 [ +/- 0.0281]
+Precision Scores: 0.7670 [ +/- 0.0576]
+Recall Scores: 0.4435 [ +/- 0.0281]
+---
+
+[[1.760e+03 0.000e+00 1.000e+01 9.610e+02 1.000e+00 4.000e+01 0.000e+00
+  1.000e+01 4.800e+01]
+ [1.300e+02 2.230e+02 0.000e+00 2.135e+03 0.000e+00 9.000e+00 0.000e+00
+  0.000e+00 4.300e+01]
+ [1.120e+02 0.000e+00 8.980e+02 1.492e+03 0.000e+00 3.800e+01 0.000e+00
+  0.000e+00 9.000e+01]
+ [0.000e+00 0.000e+00 0.000e+00 2.970e+03 0.000e+00 0.000e+00 1.000e+01
+  9.000e+00 3.100e+01]
+ [1.190e+02 6.000e+01 0.000e+00 2.169e+03 1.610e+02 0.000e+00 0.000e+00
+  6.100e+01 1.000e+01]
+ [4.190e+02 0.000e+00 4.500e+01 1.106e+03 0.000e+00 1.011e+03 0.000e+00
+  7.000e+00 3.200e+01]
+ [1.190e+02 0.000e+00 1.000e+01 1.944e+03 0.000e+00 0.000e+00 3.590e+02
+  0.000e+00 1.480e+02]
+ [1.000e+00 0.000e+00 0.000e+00 1.032e+03 0.000e+00 0.000e+00 0.000e+00
+  1.847e+03 0.000e+00]
+ [6.000e+01 0.000e+00 1.500e+01 1.117e+03 0.000e+00 1.000e+00 0.000e+00
+  0.000e+00 1.647e+03]]
+
+CV 10 folds - RandomForest
+---
+
+F1 Scores: 0.6942 [ +/- 0.0288]
+Accuracy Scores: 0.6967 [ +/- 0.0280]
+Precision Scores: 0.7042 [ +/- 0.0297]
+Recall Scores: 0.6967 [ +/- 0.0280]
+---
+
+[[1622.   91.   88.  109.  290.  272.   92.  126.  140.]
+ [ 172. 1400.   67.  258.  175.  115.  218.   55.   80.]
+ [  75.   10. 2080.   31.   52.  224.   27.   24.  107.]
+ [  93.  151.   14. 2125.  256.   61.   64.  111.  145.]
+ [ 175.  122.   48.  243. 1683.   65.   67.  144.   33.]
+ [ 147.   12.  149.   28.   65. 2109.   58.   21.   31.]
+ [ 124.   94.  121.  123.  160.   50. 1629.   49.  230.]
+ [  84.   24.   30.   85.  149.   45.   26. 2434.    3.]
+ [ 101.   51.  109.  129.  127.  112.  134.   76. 2001.]]
+
+CV 10 folds - XGBClassifier
+^[[B^[[C---
+
+F1 Scores: 0.5604 [ +/- 0.0291]
+Accuracy Scores: 0.5370 [ +/- 0.0301]
+Precision Scores: 0.6617 [ +/- 0.0304]
+Recall Scores: 0.5370 [ +/- 0.0301]
+---
+
+[[1.989e+03 5.300e+01 7.300e+01 7.300e+01 1.750e+02 2.460e+02 8.400e+01
+  6.400e+01 7.300e+01]
+ [7.870e+02 1.097e+03 4.200e+01 1.860e+02 8.800e+01 9.600e+01 1.750e+02
+  3.600e+01 3.300e+01]
+ [5.410e+02 1.200e+01 1.646e+03 3.600e+01 0.000e+00 2.650e+02 5.700e+01
+  2.500e+01 4.800e+01]
+ [1.096e+03 8.900e+01 2.800e+01 1.397e+03 8.700e+01 6.800e+01 6.700e+01
+  1.060e+02 8.200e+01]
+ [1.112e+03 5.500e+01 2.800e+01 1.720e+02 9.020e+02 6.500e+01 1.040e+02
+  8.400e+01 5.800e+01]
+ [5.040e+02 1.500e+01 1.530e+02 2.700e+01 2.400e+01 1.772e+03 7.500e+01
+  1.300e+01 3.700e+01]
+ [9.330e+02 3.400e+01 6.100e+01 5.100e+01 1.200e+01 4.800e+01 1.297e+03
+  5.400e+01 9.000e+01]
+ [8.840e+02 6.000e+00 4.700e+01 4.800e+01 6.000e+01 9.700e+01 3.900e+01
+  1.698e+03 1.000e+00]
+ [8.510e+02 1.500e+01 1.160e+02 8.000e+01 2.600e+01 1.110e+02 1.460e+02
+  1.260e+02 1.369e+03]]
+
+CV 10 folds - VotingClassifier
+---
+
+F1 Scores: 0.7927 [ +/- 0.0220]
+Accuracy Scores: 0.7942 [ +/- 0.0217]
+Precision Scores: 0.7990 [ +/- 0.0221]
+Recall Scores: 0.7942 [ +/- 0.0217]
+---
+
+[[2.025e+03 7.100e+01 7.600e+01 5.800e+01 1.080e+02 2.500e+02 7.700e+01
+  5.900e+01 1.060e+02]
+ [1.960e+02 1.681e+03 3.300e+01 2.340e+02 7.600e+01 8.300e+01 1.550e+02
+  3.200e+01 5.000e+01]
+ [6.800e+01 1.000e+01 2.206e+03 2.000e+00 0.000e+00 1.880e+02 4.100e+01
+  5.000e+00 1.100e+02]
+ [3.900e+01 9.200e+01 1.000e+01 2.468e+03 1.910e+02 2.000e+01 3.500e+01
+  3.100e+01 1.340e+02]
+ [1.450e+02 8.600e+01 2.700e+01 2.660e+02 1.819e+03 2.900e+01 7.800e+01
+  1.050e+02 2.500e+01]
+ [1.640e+02 2.900e+01 1.740e+02 1.400e+01 7.000e+00 2.142e+03 4.600e+01
+  1.300e+01 3.100e+01]
+ [1.200e+02 6.300e+01 1.050e+02 3.100e+01 3.900e+01 2.600e+01 2.088e+03
+  7.000e+00 1.010e+02]
+ [3.100e+01 2.900e+01 9.000e+00 3.900e+01 4.900e+01 3.600e+01 7.000e+00
+  2.680e+03 0.000e+00]
+ [1.010e+02 2.500e+01 6.000e+01 8.600e+01 2.000e+00 5.000e+01 1.430e+02
+  8.000e+00 2.365e+03]]
+
+CV 10 folds - BaggingClassifier
+---
+
+F1 Scores: 0.7972 [ +/- 0.0273]
+Accuracy Scores: 0.7985 [ +/- 0.0270]
+Precision Scores: 0.8022 [ +/- 0.0270]
+Recall Scores: 0.7985 [ +/- 0.0270]
+---
+
+[[1.966e+03 8.800e+01 8.400e+01 5.000e+01 1.160e+02 2.530e+02 1.100e+02
+  6.400e+01 9.900e+01]
+ [1.430e+02 1.837e+03 2.800e+01 1.810e+02 7.900e+01 5.600e+01 1.580e+02
+  3.000e+01 2.800e+01]
+ [6.400e+01 1.000e+01 2.179e+03 6.000e+00 1.300e+01 1.810e+02 5.700e+01
+  1.100e+01 1.090e+02]
+ [3.600e+01 1.210e+02 4.000e+00 2.437e+03 1.890e+02 2.100e+01 3.700e+01
+  4.800e+01 1.270e+02]
+ [1.180e+02 8.900e+01 3.200e+01 2.220e+02 1.880e+03 2.600e+01 8.100e+01
+  1.090e+02 2.300e+01]
+ [1.480e+02 2.800e+01 1.880e+02 8.000e+00 1.800e+01 2.134e+03 5.400e+01
+  1.200e+01 3.000e+01]
+ [9.800e+01 7.600e+01 7.900e+01 2.600e+01 5.300e+01 2.700e+01 2.115e+03
+  1.500e+01 9.100e+01]
+ [2.600e+01 2.600e+01 4.000e+00 3.600e+01 8.100e+01 3.500e+01 1.100e+01
+  2.659e+03 2.000e+00]
+ [9.000e+01 2.600e+01 6.600e+01 8.700e+01 3.000e+00 4.400e+01 1.370e+02
+  1.500e+01 2.372e+03]]
+>>> 

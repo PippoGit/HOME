@@ -27,7 +27,7 @@ newsfeed = NewsFeed(news_classifier, likability_predictor)
 feed_parser.parse()
 
 print("\nbuilding the feed...") 
-newsfeed.build_feed(feed_parser.parsed_feed)
+newsfeed.build_feed(feed_parser.sorted_feed())
 
 print("Custom newsfeed built!")
 
@@ -52,7 +52,7 @@ class Feed(Resource):
         feed_parser.parse() 
 
         # update the newsfeed
-        newsfeed.build_feed(feed_parser.parsed_feed)
+        newsfeed.build_feed(feed_parser.sorted_feed())
 
         # send back the data
         return (newsfeed.to_list(), 200)
