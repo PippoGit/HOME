@@ -29,7 +29,7 @@ from sklearn.ensemble import RandomForestClassifier, VotingClassifier, AdaBoostC
 from sklearn.tree import DecisionTreeClassifier
 
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
-from sklearn.feature_selection import SelectPercentile, chi2
+from sklearn.feature_selection import SelectPercentile, chi2, SelectFromModel
 
 from mlxtend.classifier import StackingCVClassifier
 from mlxtend.preprocessing import DenseTransformer
@@ -161,7 +161,7 @@ def plot_confusion_matrix(mat, labels):
 
 
 def cross_validate_fullscores(model, dataset, labels, n_class=None, folds=10, repeats=5, txt_labels=None, random_state=42):
-    kf = RepeatedStratifiedKFold(random_state=random_state, n_splits=folds, n_repeats=repeats) # TEST! 
+    kf = RepeatedStratifiedKFold(random_state=random_state, n_splits=folds, n_repeats=repeats)  
     total = 0
     totalMat = np.zeros((n_class,n_class))
     n_class = len(np.unique(labels)) if n_class is None else n_class
@@ -335,7 +335,8 @@ def build_lc_model(model):
 def build_nc_model(model):
     return Pipeline([
             ('vect', init_vectorizer()),
-            # ('sel', SelectPercentile(chi2, percentile=45)), # not so useful...
+            # ('sel', SelectFromModel(estimator=LinearSVC(dual=False, penalty='l1',  # THIS STUFF NEVER WORK! 
+            #                                          tol=0.001))),
             ('clf', model[1])
     ])
 
