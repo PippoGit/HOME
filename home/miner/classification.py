@@ -273,20 +273,21 @@ def init_ensmeta_classifiers(simple_classifier_list, clf='nc', random_state=42):
     ]
 
 
-def test_stacking_classifier(classifiers, ds, labels, plot, n_class, txt_labels, show_mat, random_state=42):
-    print("StackingClassifier: \n")
-    # trying StackingClassifier (this is so bad it doesn't even worth it)
+def stacking_classifier(classifiers):
     sclf = StackingCVClassifier(classifiers=[c[1] for c in classifiers], 
                                 meta_classifier=LogisticRegression(solver='lbfgs', multi_class='auto', random_state=random_state),
                                 use_features_in_secondary=True)
 
-    # building a list of Pipeline vect-classifier
-    model = Pipeline([
+    return Pipeline([
         ('vect', init_vectorizer()),
         ('denser', DenseTransformer()), # StackingCV is not working with Sparse matrix (maybe this is why it sucks so much)
         ('sclf', sclf)
     ])
 
+def test_stacking_classifier(classifiers, ds, labels, plot, n_class, txt_labels, show_mat, random_state=42):
+    print("Testing StackingClassifier: \n")
+    # building a list of Pipeline vect-classifier
+    model = stacking_classifier(classifiers)
     encoded_label = LabelEncoder().fit_transform(labels) # don't know why it doesn't work with string values
 
     # trying to cross_validate the stack...
@@ -498,7 +499,6 @@ def t_test(classifiers, X, y, random_state=42, n_repeats=3, model='nc'):
 
     # this is going to be really sloooow!
     for (clf1, clf2) in pairs:
-
         pair_key = clf1[0]+ '_' + clf2[0]
         print("\n\nTesting " + pair_key)
         for i in range(n_repeats):            
@@ -530,8 +530,7 @@ def t_test(classifiers, X, y, random_state=42, n_repeats=3, model='nc'):
 #####################   MODEL DEPLOY   ##########################
 
 def deploy_news_classifier(dataset, dir_path='home/miner/model'):
-    # this function should provide a pipeline trained object 
-    # that i use to fit with the features extracted from the miner
+    # this function should provide a trained pipeline 
 
     clf = classifier['svc'](
         C=0.51
