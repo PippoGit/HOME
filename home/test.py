@@ -6,6 +6,7 @@ from home.miner import preprocessing
 from sklearn.utils import shuffle
 
 import nltk
+import numpy as np
 
 
 # plot
@@ -51,8 +52,9 @@ def deploy_models(path='home/miner/model'):
     print("models built!")
 
 
-def t_test_nc(model='nc', load_pretokenized=False):
+def t_test_nc(load_pretokenized=False):
     # importing configuration 
+    model = 'nc'
     print("\nimporting config file...") 
     config = utility.load_config()
 
@@ -67,6 +69,39 @@ def t_test_nc(model='nc', load_pretokenized=False):
 
     # preparing the targets
     labels = dataset['tag'].to_numpy()
+
+    # t test here!
+    print("\n\nt-testing %s ...\n\n" % (model))
+    classifiers = classification.init_simple_classifiers(model)
+    classifiers = classifiers + classification.init_ensmeta_classifiers(classifiers, model) # putting together simple and ens/meta
+
+    results = classification.t_test(classifiers, ds, labels, model=model)
+    
+    # dumping the results (...)
+    with open('t_test_scores.pkl', 'wb') as f:
+        pickle.dump(results, f)
+
+
+def t_test_lc(load_pretokenized=False):
+    # importing configuration 
+    model = 'lc'
+    print("\nimporting config file...") 
+    config = utility.load_config()
+
+    # preparing the components
+    print("\npreparing the components...\n")
+    db = DBConnector(**config['db'])
+
+
+    dataset = shuffle(pd.DataFrame(db.find_likabilityset()), random_state=42)
+
+    print("\ntokenizing...\n")
+    ds = pd.DataFrame()
+    ds['content'] = preprocessing.tokenize_list(dataset)
+    ds['tag'] = dataset['tag']
+
+    # preparing the targets
+    labels = np.asarray([classification.labelize_likability(a)[0] for _,a in dataset.iterrows()])
 
     # t test here!
     print("\n\nt-testing %s ...\n\n" % (model))

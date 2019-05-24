@@ -273,7 +273,7 @@ def init_ensmeta_classifiers(simple_classifier_list, clf='nc', random_state=42):
     ]
 
 
-def stacking_classifier(classifiers):
+def stacking_classifier(classifiers, random_state=42):
     sclf = StackingCVClassifier(classifiers=[c[1] for c in classifiers], 
                                 meta_classifier=LogisticRegression(solver='lbfgs', multi_class='auto', random_state=random_state),
                                 use_features_in_secondary=True)
@@ -497,6 +497,8 @@ def t_test(classifiers, X, y, random_state=42, n_repeats=3, model='nc'):
     pairs = list(itertools.combinations(classifiers, 2))
     results = {}
 
+    X = np.array(X) if type(X) is list else X
+
     # this is going to be really sloooow!
     for (clf1, clf2) in pairs:
         pair_key = clf1[0]+ '_' + clf2[0]
@@ -512,7 +514,7 @@ def t_test(classifiers, X, y, random_state=42, n_repeats=3, model='nc'):
             t, p = paired_ttest_kfold_cv(
                 estimator1=build_model(clf1),
                 estimator2=build_model(clf2),
-                X=np.array(X), y=y,
+                X=X, y=y,
                 cv=10,
                 random_seed=i+random_state)
 
