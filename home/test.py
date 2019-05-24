@@ -67,33 +67,13 @@ def t_test_nc(load_pretokenized=False):
     #        ds = pickle.load(f)
     # else:
 
-
+    print("\ntokenizing...\n")
     ds = preprocessing.tokenize_list(dataset) # pp.vectorize_list(dataset)  (doc_to_vector stuff, not really working)
 
     # preparing the targets
     labels = dataset['tag'].to_numpy()
 
     # t test here!
+    print("\n\nt-testing...\n\n")
     classifiers = classification.init_simple_classifiers('nc')
     classification.t_test(classifiers, ds, labels)
-
-
-# TODO: plot word distribution for each category (just to see if it makes sense (indeed it does))
-# (i think i'm just going to skip this)
-# def plot_word_tag_distribution():
-#     # importing configuration 
-#     config = utility.load_config()
-
-#     # preparing the components
-#     db = DBConnector(**config['db'])
-#     dataset = pd.DataFrame(db.find_trainingset())
-
-#     for cat in classification.news_categories:
-#         print("info about %s" % (cat))
-#         data = dataset[dataset['tag'] == cat]
-#         data['tokens'] = [preprocessing.tokenize_article(a) for _,a in data.iterrows()]
-#         words = [word for word in [article['tokens'] for _,article in data.iterrows()]]
-#         freqdist = nltk.FreqDist(words)
-#         freqdist.plot(50)
-#         plt.show()
-

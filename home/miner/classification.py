@@ -491,8 +491,8 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False, plot=False, load_pre
     # test_stacking_classifier(classifiers, ds, labels, plot=plot, n_class=2, show_mat=show_mat, txt_labels=['LIKE', 'DISLIKE'])
 
 
-def t_test(classifiers, dataset, labels, random_state=42, n_repeats=5):
-
+def t_test(classifiers, dataset, labels, random_state=42, n_repeats=5, model='nc'):
+    build_model = build_lc_model if model is 'lc' else build_nc_model # this is sooo bad
     pairs = list(itertools.combinations(classifiers, 2))
     results = {}
 
@@ -502,8 +502,14 @@ def t_test(classifiers, dataset, labels, random_state=42, n_repeats=5):
         pair_key = clf1[0]+ '_' + clf2[0]
         results[pair_key] = []
         print("Testing " + pair_key)
-        for i in range(n_repeats):
-            t, p = paired_ttest_kfold_cv(clf1[1], clf2[1], dataset, labels, cv=10, random_seed=i+random_state) 
+        for i in range(n_repeats):            
+            t, p = paired_ttest_kfold_cv(
+                build_model(clf1[1]), 
+                build_model(clf2[1]), 
+                dataset, 
+                labels, 
+                cv=10, random_seed=i+random_state) 
+
             print("Test #%d " % (i))
             print("    random_seed = %d" % (i+random_state))
             print("    t, p = (%f, %f)" % (t, p))
