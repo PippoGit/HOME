@@ -161,8 +161,8 @@ def plot_confusion_matrix(mat, labels):
     plt.show()
 
 
-def cross_validate_fullscores(model, dataset, labels, n_class=None, folds=10, repeats=1, txt_labels=None, random_state=42):
-    kf = RepeatedStratifiedKFold(random_state=random_state, n_splits=folds, n_repeats=repeats)  
+def cross_validate_fullscores(model, dataset, labels, n_class=None, folds=10, txt_labels=None, random_state=42):
+    kf = StratifiedKFold(random_state=random_state, n_splits=folds, shuffle=True)  
     total = 0
     totalMat = np.zeros((n_class,n_class))
     n_class = len(np.unique(labels)) if n_class is None else n_class

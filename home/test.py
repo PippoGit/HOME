@@ -70,7 +70,9 @@ def t_test_nc(model='nc', load_pretokenized=False):
 
     # t test here!
     print("\n\nt-testing %s ...\n\n" % (model))
-    classifiers = classification.init_simple_classifiers(model) + classification.init_ensmeta_classifiers(model)
+    classifiers = classification.init_simple_classifiers(model)
+    classifiers = classifiers + classification.init_ensmeta_classifiers(classifiers, model) # putting together simple and ens/meta
+
     results = classification.t_test(classifiers, ds, labels, model=model)
     
     # dumping the results (...)
