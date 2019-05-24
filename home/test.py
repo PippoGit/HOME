@@ -14,9 +14,10 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import seaborn as sn
 
+import pickle
 
 
-def classify(nc=True, lc=True, show_mat=False, tuning=False, plot_learning_curve=False):
+def classify(nc=True, lc=True, show_mat=False, tuning=False, plot_learning_curve=False, pretokenized=False):
      # importing configuration 
     print("\nimporting config file...") 
     config = utility.load_config()
@@ -27,11 +28,11 @@ def classify(nc=True, lc=True, show_mat=False, tuning=False, plot_learning_curve
 
     if nc:
         print('\nmeta-classifing NC ... ')
-        classification.meta_classify_nc(dataset=pd.DataFrame(db.find_trainingset()), show_mat=show_mat, tuning=tuning, plot=plot_learning_curve)
+        classification.meta_classify_nc(dataset=pd.DataFrame(db.find_trainingset()), show_mat=show_mat, tuning=tuning, plot=plot_learning_curve, load_pretokenized=pretokenized)
     
     if lc: 
         print('\nmeta-classifing LC ... ')
-        classification.meta_classify_lc(dataset=pd.DataFrame(db.find_likabilityset()), tuning=tuning, show_mat=show_mat, plot=plot_learning_curve)
+        classification.meta_classify_lc(dataset=pd.DataFrame(db.find_likabilityset()), tuning=tuning, show_mat=show_mat, plot=plot_learning_curve, load_pretokenized=pretokenized)
 
 
 def deploy_models(path='home/miner/model'):
@@ -50,7 +51,7 @@ def deploy_models(path='home/miner/model'):
     print("models built!")
 
 
-def t_test_nc():
+def t_test_nc(load_pretokenized=False):
     # importing configuration 
     print("\nimporting config file...") 
     config = utility.load_config()
@@ -58,8 +59,15 @@ def t_test_nc():
     # preparing the components
     print("\npreparing the components...\n")
     db = DBConnector(**config['db'])
+    dataset = shuffle(pd.DataFrame(db.find_trainingset()), random_state=42)
 
-    dataset= shuffle(pd.DataFrame(db.find_trainingset()), random_state=42)
+    # JUST TO AVOID WASTING TIME:
+    # if load_pretokenized:
+    #    with open('home/pretokenized_dataset/ncds.pkl', 'rb') as f:
+    #        ds = pickle.load(f)
+    # else:
+
+
     ds = preprocessing.tokenize_list(dataset) # pp.vectorize_list(dataset)  (doc_to_vector stuff, not really working)
 
     # preparing the targets

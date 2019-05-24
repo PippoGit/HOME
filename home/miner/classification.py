@@ -5,6 +5,7 @@ from statistics import mean, stdev
 from sklearn.externals import joblib
 from sklearn.utils import shuffle
 import itertools
+import pickle
 
 # plot
 import matplotlib
@@ -160,7 +161,7 @@ def plot_confusion_matrix(mat, labels):
     plt.show()
 
 
-def cross_validate_fullscores(model, dataset, labels, n_class=None, folds=10, repeats=5, txt_labels=None, random_state=42):
+def cross_validate_fullscores(model, dataset, labels, n_class=None, folds=10, repeats=1, txt_labels=None, random_state=42):
     kf = RepeatedStratifiedKFold(random_state=random_state, n_splits=folds, n_repeats=repeats)  
     total = 0
     totalMat = np.zeros((n_class,n_class))
@@ -225,7 +226,7 @@ def init_simple_classifiers(clf='nc', random_state=42):
     }
 
     return [
-        # ('dt', classifier['tree']()), # dt is so bad, probably should not even be considered
+        ('dt', classifier['tree']()), # dt is so bad, probably should not even be considered
         ('mnb', classifier['mnb']()),
         ('svc', classifier['svc'](C=params[clf]['C'], random_state=random_state)),
         ('Logistic Regression', classifier['log_reg'](solver=params[clf]['lr_solver'], multi_class=params[clf]['lr_multi_class'], random_state=random_state)),
@@ -265,7 +266,6 @@ def init_ensmeta_classifiers(simple_classifier_list, clf='nc', random_state=42):
         ("AdaBoost", classifier['ada'](base_estimator=MultinomialNB(), n_estimators=params[clf]['ada_estimators'])),
         ("RandomForest", classifier['random_forest'](random_state=random_state, n_estimators=params[clf]['rf_estimators'])),
         ("XGBClassifier", XGBClassifier(max_depth=params[clf]['xgb_max_depth'], n_estimators=params[clf]['xgb_estimators'], learning_rate=params[clf]['xgb_learning_rate'])),
-        
         ("VotingClassifier", VotingClassifier(estimators=simple_classifier_list, voting=params[clf]['voting'])),
         ("BaggingClassifier", BaggingClassifier(base_estimator=classifier['svc'](C=params[clf]['C'], random_state=random_state), 
                                                  n_estimators=params[clf]['bc_estimators'], 
@@ -314,37 +314,46 @@ def init_vectorizer():
     )
 
 
-def build_lc_model(model):
-    return Pipeline([
-            ('union', FeatureUnion([
-                    # Pipeline for article's content
-                    ('content', Pipeline([
-                        ('selector', ItemSelector(key='content')),
-                        ('vect', init_vectorizer()),
-                    ])),
-                    # Pipeline for article's tag
-                    ('tag', Pipeline([
-                        ('selector', ItemSelector(key='tag')),
-                        ('enc', ModifiedLabelEncoder())
-                    ]))
+def build_lc_model(model, feature_selection=None):
+    return Pipeline(
+        [('union', FeatureUnion([
+                # Pipeline for article's content
+                ('content', Pipeline([
+                    ('selector', ItemSelector(key='content')),
+                    ('vect', init_vectorizer()),
                 ])),
-            model
-        ])
+                # Pipeline for article's tag
+                ('tag', Pipeline([
+                    ('selector', ItemSelector(key='tag')),
+                    ('enc', ModifiedLabelEncoder())
+                ]))
+            ])
+        )] + 
+        [feature_selection] +
+        [model]
+    )
 
 
-def build_nc_model(model):
-    return Pipeline([
-            ('vect', init_vectorizer()),
-            # ('sel', SelectFromModel(estimator=LinearSVC(dual=False, penalty='l1',  # THIS STUFF NEVER WORK! 
-            #                                          tol=0.001))),
-            ('clf', model[1])
-    ])
+def build_nc_model(model, feature_selection=None):
+    # feature selection should be a Pair <'selection', SKLEARN_MODEL>
+    return Pipeline(
+            [('vect', init_vectorizer())] +
+            [feature_selection] +
+            [('clf', model[1])]
+    )
 
 
-def meta_classify_nc(dataset, show_mat=False, tuning=False, plot=False):
+def meta_classify_nc(dataset, show_mat=False, tuning=False, plot=False, load_pretokenized=False):
     # preparing the trainingset
     dataset = shuffle(dataset, random_state=42)
+
+    # avoid wasting time during test...
+    # if load_pretokenized:
+    #     with open('home/pretokenized_dataset/ncds.pkl', 'rb') as f:
+    #         ds = pickle.load(f)
+    # else:
     ds = pp.tokenize_list(dataset) # pp.vectorize_list(dataset)  (doc_to_vector stuff, not really working)
+        
 
     # preparing the targets
     labels = dataset['tag'].to_numpy()
@@ -397,7 +406,7 @@ def meta_classify_nc(dataset, show_mat=False, tuning=False, plot=False):
             tuned_model.fit(ds, labels)
             print(tuned_model.best_score_, tuned_model.best_params_)
         else:
-            print('\n Repeated (10) CrossValidation with 10 folds for ' + c[0] + '\n')
+            print('\n CrossValidation with 10 folds for ' + c[0] + '\n')
             cross_validate(model, ds, labels, n_class, show_mat=show_mat, txt_labels=news_categories, random_state=42)
 
             if plot:
@@ -429,10 +438,16 @@ def meta_classify_nc(dataset, show_mat=False, tuning=False, plot=False):
     # test_stacking_classifier(classifiers, ds, labels, plot=plot, n_class=n_class, txt_labels=news_categories, show_mat=show_mat)
 
 
-def meta_classify_lc(dataset, show_mat=False, tuning=False, plot=False):
+def meta_classify_lc(dataset, show_mat=False, tuning=False, plot=False, load_pretokenized=False):
     # preparing the inputs
     ds = pd.DataFrame()
     dataset = shuffle(dataset, random_state=42)
+
+    # avoid wasting time during test...
+    # if load_pretokenized:
+    #     with open('home/pretokenized_dataset/lcds.pkl', 'rb') as f:
+    #         ds['content'] = pickle.load(f)
+    # else:
     ds['content'] = pp.tokenize_list(dataset)
     ds['tag'] = dataset['tag']
 
@@ -476,22 +491,23 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False, plot=False):
     # test_stacking_classifier(classifiers, ds, labels, plot=plot, n_class=2, show_mat=show_mat, txt_labels=['LIKE', 'DISLIKE'])
 
 
-def t_test(classifiers, dataset, labels, random_state=42):
+def t_test(classifiers, dataset, labels, random_state=42, n_repeats=5):
 
     pairs = list(itertools.combinations(classifiers, 2))
-    results = []
+    results = {}
 
     for (clf1, clf2) in pairs:
-
-        t, p = paired_ttest_5x2cv(
-            estimator2=build_nc_model(clf2), 
-            estimator1=build_nc_model(clf1),
-            X=dataset, y=labels,
-            random_seed=random_state,
-        )
-        results.append((t, p))
-        print(t, p)
-
+        # this is going to be really sloooow!
+        # Manually repeated cross validation, starting from seed random_state (42)
+        pair_key = clf1[0]+ '_' + clf2[0]
+        results[pair_key] = []
+        print("Testing " + pair_key)
+        for i in range(n_repeats):
+            t, p = paired_ttest_kfold_cv(clf1[1], clf2[1], dataset, labels, cv=10, random_seed=i+random_state) 
+            print("Test #%d " % (i))
+            print("    random_seed = %d" % (i+random_state))
+            print("    t, p = (%f, %f)" % (t, p))
+            results[pair_key].append((t, p))
     return results
     
 
