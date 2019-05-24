@@ -6,6 +6,7 @@ from sklearn.externals import joblib
 from sklearn.utils import shuffle, indexable
 import itertools
 import pickle
+from scipy import stats
 
 # plot
 import matplotlib
@@ -19,8 +20,8 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.preprocessing import LabelEncoder, LabelBinarizer
 
-from sklearn.model_selection import cross_val_score, StratifiedKFold, learning_curve, RepeatedStratifiedKFold
-from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, recall_score, precision_score, roc_auc_score
+from sklearn.model_selection import cross_val_score, StratifiedKFold, learning_curve, RepeatedStratifiedKFold, KFold
+from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, recall_score, precision_score, roc_auc_score, get_scorer
 
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.naive_bayes import MultinomialNB
@@ -88,6 +89,68 @@ news_categories = [
     "Sport",
     "Tecnologia"
 ]
+
+
+def custom_paired_ttest_cv(estimator1, estimator2, X, y,
+                          cv=10,
+                          scoring=None,
+                          shuffle=False,
+                          random_seed=None):
+    kf = KFold(n_splits=cv, random_state=random_seed, shuffle=shuffle)
+
+    if scoring is None:
+        if estimator1._estimator_type == 'classifier':
+            scoring = 'accuracy'
+        elif estimator1._estimator_type == 'regressor':
+            scoring = 'r2'
+        else:
+            raise AttributeError('Estimator must '
+                                 'be a Classifier or Regressor.')
+    if isinstance(scoring, str):
+        scorer = get_scorer(scoring)
+    else:
+        scorer = scoring
+
+    score_diff = []
+
+    for train_index, test_index in kf.split(X):
+        if isinstance(X, pd.DataFrame):
+            X_train = X.iloc[train_index]
+            X_test = X.iloc[test_index]
+        else:
+            X_train = [X[i] for i in train_index]
+            X_test = [X[i] for i in test_index]
+
+        y_train, y_test = y[train_index], y[test_index]
+
+        estimator1.fit(X_train, y_train)
+        estimator2.fit(X_train, y_train)
+
+        est1_score = scorer(estimator1, X_test, y_test)
+        est2_score = scorer(estimator2, X_test, y_test)
+        score_diff.append(est1_score - est2_score)
+
+    avg_diff = np.mean(score_diff)
+
+    numerator = avg_diff * np.sqrt(cv)
+    denominator = np.sqrt(sum([(diff - avg_diff)**2 for diff in score_diff])
+                          / (cv - 1))
+    t_stat = numerator / denominator
+
+    pvalue = stats.t.sf(np.abs(t_stat), cv - 1)*2.
+    return float(t_stat), float(pvalue)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def dumb_function(x):
@@ -497,8 +560,6 @@ def t_test(classifiers, X, y, random_state=42, n_repeats=3, model='nc'):
     pairs = list(itertools.combinations(classifiers, 2))
     results = {}
 
-    X = np.array(X) if type(X) is list else X
-
     # this is going to be really sloooow!
     for (clf1, clf2) in pairs:
         pair_key = clf1[0]+ '_' + clf2[0]
@@ -511,7 +572,7 @@ def t_test(classifiers, X, y, random_state=42, n_repeats=3, model='nc'):
             results[pair_key] = []
 
             # t-test for the current fold
-            t, p = paired_ttest_kfold_cv(
+            t, p = custom_paired_ttest_cv(
                 estimator1=build_model(clf1),
                 estimator2=build_model(clf2),
                 X=X, y=y,
