@@ -114,12 +114,14 @@ def custom_paired_ttest_cv(estimator1, estimator2, X, y,
     score_diff = []
 
     for train_index, test_index in kf.split(X):
+        ##### THIS IS WHERE IT BECOMES "CUSTOM"
         if isinstance(X, pd.DataFrame):
             X_train = X.iloc[train_index]
             X_test = X.iloc[test_index]
         else:
             X_train = [X[i] for i in train_index]
             X_test = [X[i] for i in test_index]
+        #####
 
         y_train, y_test = y[train_index], y[test_index]
 
@@ -139,18 +141,6 @@ def custom_paired_ttest_cv(estimator1, estimator2, X, y,
 
     pvalue = stats.t.sf(np.abs(t_stat), cv - 1)*2.
     return float(t_stat), float(pvalue)
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def dumb_function(x):

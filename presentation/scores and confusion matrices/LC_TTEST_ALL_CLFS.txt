@@ -1,0 +1,335 @@
+Testing dt_mnb
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-11.358478, 0.000001) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-11.519486, 0.000001) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-8.127591, 0.000020) (test based on accuracy score of the CV)
+
+
+Testing dt_svc
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-15.197370, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-9.988408, 0.000004) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-12.856914, 0.000000) (test based on accuracy score of the CV)
+
+
+Testing dt_lr
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-10.265924, 0.000003) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-11.708311, 0.000001) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-10.944051, 0.000002) (test based on accuracy score of the CV)
+
+
+Testing dt_AdaBoost
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (9.802908, 0.000004) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (7.062393, 0.000059) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (8.423777, 0.000015) (test based on accuracy score of the CV)
+
+
+Testing dt_RandomForest
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-7.493607, 0.000037) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-5.858437, 0.000241) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-5.989791, 0.000205) (test based on accuracy score of the CV)
+
+
+Testing dt_VotingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-9.650573, 0.000005) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-11.194779, 0.000001) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-15.206933, 0.000000) (test based on accuracy score of the CV)
+
+
+Testing dt_BaggingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-9.691115, 0.000005) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-9.528713, 0.000005) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-14.030158, 0.000000) (test based on accuracy score of the CV)
+
+
+Testing mnb_svc
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-0.255517, 0.804067) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-0.255517, 0.804067) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-0.255517, 0.804067) (test based on accuracy score of the CV)
+
+
+Testing mnb_lr
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (0.434962, 0.673834) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (0.434962, 0.673834) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (0.434962, 0.673834) (test based on accuracy score of the CV)
+
+
+Testing mnb_AdaBoost
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (16.882223, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (16.882223, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (16.882223, 0.000000) (test based on accuracy score of the CV)
+
+
+Testing mnb_RandomForest
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (4.392157, 0.001740) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (4.392157, 0.001740) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (4.392157, 0.001740) (test based on accuracy score of the CV)
+
+
+Testing mnb_VotingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (1.099316, 0.300165) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (0.915041, 0.384031) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (0.406513, 0.693862) (test based on accuracy score of the CV)
+
+
+Testing mnb_BaggingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-0.326799, 0.751292) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-0.326799, 0.751292) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-0.326799, 0.751292) (test based on accuracy score of the CV)
+
+
+Testing svc_lr
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (1.634022, 0.136686) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (1.634022, 0.136686) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (1.634022, 0.136686) (test based on accuracy score of the CV)
+
+
+Testing svc_AdaBoost
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (25.020900, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (25.020900, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (25.020900, 0.000000) (test based on accuracy score of the CV)
+
+
+Testing svc_RandomForest
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (3.816908, 0.004109) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (3.816908, 0.004109) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (3.816908, 0.004109) (test based on accuracy score of the CV)
+
+
+Testing svc_VotingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (0.447240, 0.665271) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (0.980086, 0.352653) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (1.021814, 0.333549) (test based on accuracy score of the CV)
+
+
+Testing svc_BaggingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (0.000000, 1.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (0.000000, 1.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (0.000000, 1.000000) (test based on accuracy score of the CV)
+
+
+Testing lr_AdaBoost
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (22.967833, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (22.967833, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (22.967833, 0.000000) (test based on accuracy score of the CV)
+
+
+Testing lr_RandomForest
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (3.079493, 0.013151) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (3.079493, 0.013151) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (3.079493, 0.013151) (test based on accuracy score of the CV)
+
+
+Testing lr_VotingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-0.154977, 0.880259) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-0.411721, 0.690176) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-0.495471, 0.632140) (test based on accuracy score of the CV)
+
+
+Testing lr_BaggingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-1.276511, 0.233728) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-1.276511, 0.233728) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-1.276511, 0.233728) (test based on accuracy score of the CV)
+
+
+Testing AdaBoost_RandomForest
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-12.607654, 0.000001) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-12.607654, 0.000001) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-12.607654, 0.000001) (test based on accuracy score of the CV)
+
+
+Testing AdaBoost_VotingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-20.233900, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-19.861217, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-19.671308, 0.000000) (test based on accuracy score of the CV)
+
+
+Testing AdaBoost_BaggingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-22.316916, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-22.316916, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-22.316916, 0.000000) (test based on accuracy score of the CV)
+
+
+Testing RandomForest_VotingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-3.966080, 0.003274) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-3.794386, 0.004254) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-3.514492, 0.006572) (test based on accuracy score of the CV)
+
+
+Testing RandomForest_BaggingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-5.177721, 0.000581) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-5.177721, 0.000581) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-5.177721, 0.000581) (test based on accuracy score of the CV)
+
+
+Testing VotingClassifier_BaggingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-0.152608, 0.882074) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-0.695931, 0.504045) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-0.690118, 0.507524) (test based on accuracy score of the CV)
+-----------
