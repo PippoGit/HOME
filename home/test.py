@@ -51,7 +51,7 @@ def deploy_models(path='home/miner/model'):
     print("models built!")
 
 
-def t_test_nc(load_pretokenized=False):
+def t_test_nc(model='nc', load_pretokenized=False):
     # importing configuration 
     print("\nimporting config file...") 
     config = utility.load_config()
@@ -61,19 +61,18 @@ def t_test_nc(load_pretokenized=False):
     db = DBConnector(**config['db'])
     dataset = shuffle(pd.DataFrame(db.find_trainingset()), random_state=42)
 
-    # JUST TO AVOID WASTING TIME:
-    # if load_pretokenized:
-    #    with open('home/pretokenized_dataset/ncds.pkl', 'rb') as f:
-    #        ds = pickle.load(f)
-    # else:
-
     print("\ntokenizing...\n")
     ds = preprocessing.tokenize_list(dataset) # pp.vectorize_list(dataset)  (doc_to_vector stuff, not really working)
+    # ds = pd.DataFrame(ds) # why do i need this? t-test function from mlxtend is strange...q
 
     # preparing the targets
     labels = dataset['tag'].to_numpy()
 
     # t test here!
-    print("\n\nt-testing...\n\n")
-    classifiers = classification.init_simple_classifiers('nc')
-    classification.t_test(classifiers, ds, labels)
+    print("\n\nt-testing %s ...\n\n" % (model))
+    classifiers = classification.init_simple_classifiers(model) + classification.init_ensmeta_classifiers(model)
+    results = classification.t_test(classifiers, ds, labels, model=model)
+    
+    # dumping the results (...)
+    with open('t_test_scores.pkl', 'wb') as f:
+        pickle.dump(results, f)

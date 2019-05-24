@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from statistics import mean, stdev
 from sklearn.externals import joblib
-from sklearn.utils import shuffle
+from sklearn.utils import shuffle, indexable
 import itertools
 import pickle
 
@@ -34,7 +34,7 @@ from sklearn.feature_selection import SelectPercentile, chi2, SelectFromModel
 
 from mlxtend.classifier import StackingCVClassifier
 from mlxtend.preprocessing import DenseTransformer
-from mlxtend.evaluate import paired_ttest_5x2cv, paired_ttest_kfold_cv
+from mlxtend.evaluate import paired_ttest_5x2cv, paired_ttest_kfold_cv, paired_ttest_resampled
 
 from xgboost import XGBClassifier
 
@@ -229,7 +229,7 @@ def init_simple_classifiers(clf='nc', random_state=42):
         ('dt', classifier['tree']()), # dt is so bad, probably should not even be considered
         ('mnb', classifier['mnb']()),
         ('svc', classifier['svc'](C=params[clf]['C'], random_state=random_state)),
-        ('Logistic Regression', classifier['log_reg'](solver=params[clf]['lr_solver'], multi_class=params[clf]['lr_multi_class'], random_state=random_state)),
+        ('lr', classifier['log_reg'](solver=params[clf]['lr_solver'], multi_class=params[clf]['lr_multi_class'], random_state=random_state)),
     ]
 
 
@@ -265,7 +265,7 @@ def init_ensmeta_classifiers(simple_classifier_list, clf='nc', random_state=42):
     return [
         ("AdaBoost", classifier['ada'](base_estimator=MultinomialNB(), n_estimators=params[clf]['ada_estimators'])),
         ("RandomForest", classifier['random_forest'](random_state=random_state, n_estimators=params[clf]['rf_estimators'])),
-        ("XGBClassifier", XGBClassifier(max_depth=params[clf]['xgb_max_depth'], n_estimators=params[clf]['xgb_estimators'], learning_rate=params[clf]['xgb_learning_rate'])),
+        # ("XGBClassifier", XGBClassifier(max_depth=params[clf]['xgb_max_depth'], n_estimators=params[clf]['xgb_estimators'], learning_rate=params[clf]['xgb_learning_rate'])),
         ("VotingClassifier", VotingClassifier(estimators=simple_classifier_list, voting=params[clf]['voting'])),
         ("BaggingClassifier", BaggingClassifier(base_estimator=classifier['svc'](C=params[clf]['C'], random_state=random_state), 
                                                  n_estimators=params[clf]['bc_estimators'], 
@@ -329,7 +329,7 @@ def build_lc_model(model, feature_selection=None):
                 ]))
             ])
         )] + 
-        [feature_selection] +
+        ([feature_selection] if feature_selection is not None else []) +
         [model]
     )
 
@@ -338,7 +338,7 @@ def build_nc_model(model, feature_selection=None):
     # feature selection should be a Pair <'selection', SKLEARN_MODEL>
     return Pipeline(
             [('vect', init_vectorizer())] +
-            [feature_selection] +
+            ([feature_selection] if feature_selection is not None else []) +
             [('clf', model[1])]
     )
 
@@ -491,29 +491,34 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False, plot=False, load_pre
     # test_stacking_classifier(classifiers, ds, labels, plot=plot, n_class=2, show_mat=show_mat, txt_labels=['LIKE', 'DISLIKE'])
 
 
-def t_test(classifiers, dataset, labels, random_state=42, n_repeats=5, model='nc'):
+def t_test(classifiers, X, y, random_state=42, n_repeats=3, model='nc'):
     build_model = build_lc_model if model is 'lc' else build_nc_model # this is sooo bad
     pairs = list(itertools.combinations(classifiers, 2))
     results = {}
 
+    # this is going to be really sloooow!
     for (clf1, clf2) in pairs:
-        # this is going to be really sloooow!
-        # Manually repeated cross validation, starting from seed random_state (42)
-        pair_key = clf1[0]+ '_' + clf2[0]
-        results[pair_key] = []
-        print("Testing " + pair_key)
-        for i in range(n_repeats):            
-            t, p = paired_ttest_kfold_cv(
-                build_model(clf1[1]), 
-                build_model(clf2[1]), 
-                dataset, 
-                labels, 
-                cv=10, random_seed=i+random_state) 
 
-            print("Test #%d " % (i))
-            print("    random_seed = %d" % (i+random_state))
-            print("    t, p = (%f, %f)" % (t, p))
+        pair_key = clf1[0]+ '_' + clf2[0]
+        print("\n\nTesting " + pair_key)
+        for i in range(n_repeats):            
+            print(" - Iteration: %d " % (i))
+            print(" - random_seed = %d" % (i+random_state))
+
+            # curr_fold = 0
+            results[pair_key] = []
+
+            # t-test for the current fold
+            t, p = paired_ttest_kfold_cv(
+                estimator1=build_model(clf1),
+                estimator2=build_model(clf2),
+                X=np.array(X), y=y,
+                cv=10,
+                random_seed=i+random_state)
+
+            print("    t, p = (%f, %f) (test based on accuracy score of the CV)" % (t, p))
             results[pair_key].append((t, p))
+    print("-----------")
     return results
     
 
