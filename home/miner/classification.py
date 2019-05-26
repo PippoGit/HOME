@@ -29,6 +29,7 @@ from sklearn.linear_model import SGDClassifier, LogisticRegression
 from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier, AdaBoostClassifier, BaggingClassifier, GradientBoostingClassifier
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.feature_selection import SelectPercentile, chi2, SelectFromModel
@@ -283,6 +284,7 @@ def init_simple_classifiers(clf='nc', random_state=42):
         ('mnb', classifier['mnb']()),
         ('svc', classifier['svc'](C=params[clf]['C'], random_state=random_state)),
         ('lr', classifier['log_reg'](solver=params[clf]['lr_solver'], multi_class=params[clf]['lr_multi_class'], random_state=random_state)),
+        ('knn', KNeighborsClassifier(n_neighbors=15, metric='cosine', weights='distance', n_jobs=-1))
     ]
 
 

@@ -1,0 +1,453 @@
+MacBook:Home filipposcotto$ python3
+Python 3.7.1 (v3.7.1:260ec2c36a, Oct 20 2018, 03:13:28) 
+[Clang 6.0 (clang-600.0.57)] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from home import test
+>>> test.classif
+test.classification test.classify(     
+>>> test.classify(nc=False)
+
+importing config file...
+
+preparing the components...
+
+
+meta-classifing LC ... 
+
+
+Simple Classifiers:
+
+
+---------------------------
+
+
+ Repeated (10) CrossValidation with 10 folds for dt
+
+---
+
+F1 Scores: 0.6990 [ +/- 0.0508]
+Accuracy Scores: 0.6999 [ +/- 0.0502]
+Precision Scores: 0.7016 [ +/- 0.0505]
+ROC AUC Scores: 0.6996 [ +/- 0.0508]
+---
+
+[[364. 169.]
+ [156. 394.]]
+
+---------------------------
+
+
+---------------------------
+
+
+ Repeated (10) CrossValidation with 10 folds for mnb
+
+---
+
+F1 Scores: 0.8607 [ +/- 0.0244]
+Accuracy Scores: 0.8615 [ +/- 0.0241]
+Precision Scores: 0.8680 [ +/- 0.0242]
+ROC AUC Scores: 0.8605 [ +/- 0.0242]
+---
+
+[[424. 109.]
+ [ 41. 509.]]
+
+---------------------------
+
+
+---------------------------
+
+
+ Repeated (10) CrossValidation with 10 folds for svc
+
+---
+
+F1 Scores: 0.8725 [ +/- 0.0334]
+Accuracy Scores: 0.8726 [ +/- 0.0334]
+Precision Scores: 0.8740 [ +/- 0.0338]
+ROC AUC Scores: 0.8727 [ +/- 0.0333]
+---
+
+[[468.  65.]
+ [ 73. 477.]]
+
+---------------------------
+
+
+---------------------------
+
+
+ Repeated (10) CrossValidation with 10 folds for lr
+
+---
+
+F1 Scores: 0.8725 [ +/- 0.0312]
+Accuracy Scores: 0.8726 [ +/- 0.0312]
+Precision Scores: 0.8739 [ +/- 0.0316]
+ROC AUC Scores: 0.8726 [ +/- 0.0312]
+---
+
+[[464.  69.]
+ [ 69. 481.]]
+
+---------------------------
+
+
+---------------------------
+
+
+ Repeated (10) CrossValidation with 10 folds for knn
+
+---
+
+F1 Scores: 0.7963 [ +/- 0.0308]
+Accuracy Scores: 0.7987 [ +/- 0.0311]
+Precision Scores: 0.8119 [ +/- 0.0370]
+ROC AUC Scores: 0.7972 [ +/- 0.0309]
+---
+
+[[374. 159.]
+ [ 59. 491.]]
+
+---------------------------
+
+
+
+Ensembles and Meta-Classifiers:
+
+CV 10 folds - AdaBoost
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+---
+
+F1 Scores: 0.3246 [ +/- 0.0025]
+Accuracy Scores: 0.4921 [ +/- 0.0023]
+Precision Scores: 0.2422 [ +/- 0.0022]
+ROC AUC Scores: 0.5000 [ +/- 0.0000]
+---
+
+[[533.   0.]
+ [550.   0.]]
+CV 10 folds - RandomForest
+---
+
+F1 Scores: 0.7976 [ +/- 0.0312]
+Accuracy Scores: 0.7996 [ +/- 0.0302]
+Precision Scores: 0.8087 [ +/- 0.0271]
+ROC AUC Scores: 0.7982 [ +/- 0.0306]
+---
+
+[[378. 155.]
+ [ 62. 488.]]
+CV 10 folds - VotingClassifier
+---
+
+F1 Scores: 0.8715 [ +/- 0.0318]
+Accuracy Scores: 0.8717 [ +/- 0.0318]
+Precision Scores: 0.8734 [ +/- 0.0325]
+ROC AUC Scores: 0.8714 [ +/- 0.0319]
+---
+
+[[456.  77.]
+ [ 62. 488.]]
+CV 10 folds - BaggingClassifier
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/svm/base.py:931: ConvergenceWarning: Liblinear failed to converge, increase the number of iterations.
+  "the number of iterations.", ConvergenceWarning)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/svm/base.py:931: ConvergenceWarning: Liblinear failed to converge, increase the number of iterations.
+  "the number of iterations.", ConvergenceWarning)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/svm/base.py:931: ConvergenceWarning: Liblinear failed to converge, increase the number of iterations.
+  "the number of iterations.", ConvergenceWarning)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/svm/base.py:931: ConvergenceWarning: Liblinear failed to converge, increase the number of iterations.
+  "the number of iterations.", ConvergenceWarning)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/svm/base.py:931: ConvergenceWarning: Liblinear failed to converge, increase the number of iterations.
+  "the number of iterations.", ConvergenceWarning)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/svm/base.py:931: ConvergenceWarning: Liblinear failed to converge, increase the number of iterations.
+  "the number of iterations.", ConvergenceWarning)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/svm/base.py:931: ConvergenceWarning: Liblinear failed to converge, increase the number of iterations.
+  "the number of iterations.", ConvergenceWarning)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/svm/base.py:931: ConvergenceWarning: Liblinear failed to converge, increase the number of iterations.
+  "the number of iterations.", ConvergenceWarning)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/svm/base.py:931: ConvergenceWarning: Liblinear failed to converge, increase the number of iterations.
+  "the number of iterations.", ConvergenceWarning)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/svm/base.py:931: ConvergenceWarning: Liblinear failed to converge, increase the number of iterations.
+  "the number of iterations.", ConvergenceWarning)
+---
+
+F1 Scores: 0.8669 [ +/- 0.0286]
+Accuracy Scores: 0.8670 [ +/- 0.0286]
+Precision Scores: 0.8690 [ +/- 0.0287]
+ROC AUC Scores: 0.8672 [ +/- 0.0285]
+---
+
+[[469.  64.]
+ [ 80. 470.]]
+>>> test.classify(lc=False)
+
+importing config file...
+
+preparing the components...
+
+
+meta-classifing NC ... 
+
+
+Simple Classifiers:
+
+
+---------------------------
+
+
+ CrossValidation with 10 folds for dt
+
+---
+
+F1 Scores: 0.5474 [ +/- 0.0305]
+Accuracy Scores: 0.5473 [ +/- 0.0283]
+Precision Scores: 0.5623 [ +/- 0.0355]
+ROC AUC Scores: 0.7453 [ +/- 0.0159]
+---
+
+[[125.  13.  12.  27.  34.  24.  12.  14.  22.]
+ [ 15. 125.  10.  32.  19.   7.  24.  12.  10.]
+ [ 14.   5. 161.  13.  13.  30.  10.   4.  13.]
+ [ 19.  27.   3. 167.  37.   6.  13.  17.  13.]
+ [ 20.  13.   7.  43. 133.   7.  13.  10.  12.]
+ [ 17.  10.  28.   3.  16. 163.  13.   5.   7.]
+ [ 21.  19.  13.  17.  21.   6. 126.  12.  23.]
+ [ 15.   6.   9.  15.  29.   6.   8. 196.   4.]
+ [ 14.  12.  20.  17.  30.  10.  22.  13. 146.]]
+
+---------------------------
+
+
+---------------------------
+
+
+ CrossValidation with 10 folds for mnb
+
+---
+
+F1 Scores: 0.7756 [ +/- 0.0344]
+Accuracy Scores: 0.7775 [ +/- 0.0346]
+Precision Scores: 0.7933 [ +/- 0.0340]
+ROC AUC Scores: 0.8748 [ +/- 0.0194]
+---
+
+[[195.   4.  11.   6.   7.  39.   5.   6.  10.]
+ [ 19. 148.   7.  27.   6.  22.  15.   4.   6.]
+ [  3.   1. 224.   0.   0.  23.   2.   0.  10.]
+ [  3.   5.   2. 247.  16.   9.   4.   4.  12.]
+ [ 20.   6.   5.  30. 163.  10.   7.  13.   4.]
+ [ 10.   0.  16.   1.   0. 229.   3.   0.   3.]
+ [ 11.   7.  15.   3.   1.   9. 203.   1.   8.]
+ [  4.   1.   1.   4.   3.   7.   0. 268.   0.]
+ [ 10.   2.   8.   8.   0.  14.  12.   1. 229.]]
+
+---------------------------
+
+
+---------------------------
+
+
+ CrossValidation with 10 folds for svc
+
+---
+
+F1 Scores: 0.8031 [ +/- 0.0280]
+Accuracy Scores: 0.8032 [ +/- 0.0283]
+Precision Scores: 0.8105 [ +/- 0.0275]
+ROC AUC Scores: 0.8893 [ +/- 0.0159]
+---
+
+[[205.   6.   7.   3.  13.  24.   9.   8.   8.]
+ [ 14. 182.   2.  19.   7.   7.  18.   2.   3.]
+ [  6.   1. 218.   0.   1.  18.   7.   2.  10.]
+ [  3.  13.   1. 244.  18.   2.   3.   5.  13.]
+ [ 11.   8.   3.  21. 189.   3.   7.  13.   3.]
+ [ 15.   4.  16.   2.   0. 214.   5.   3.   3.]
+ [ 11.   6.   9.   2.   5.   2. 214.   2.   7.]
+ [  4.   3.   1.   2.   8.   3.   1. 266.   0.]
+ [  8.   2.   7.   9.   0.   4.  15.   2. 237.]]
+
+---------------------------
+
+
+---------------------------
+
+
+ CrossValidation with 10 folds for lr
+
+---
+
+F1 Scores: 0.7914 [ +/- 0.0314]
+Accuracy Scores: 0.7918 [ +/- 0.0312]
+Precision Scores: 0.7995 [ +/- 0.0321]
+ROC AUC Scores: 0.8828 [ +/- 0.0175]
+---
+
+[[203.   6.   5.   8.  15.  18.   9.   9.  10.]
+ [ 19. 171.   2.  21.   8.   8.  17.   3.   5.]
+ [  7.   1. 217.   1.   0.  18.   5.   1.  13.]
+ [  6.   9.   0. 246.  18.   1.   3.   4.  15.]
+ [ 16.   8.   2.  27. 182.   2.   8.   9.   4.]
+ [ 19.   4.  12.   4.   2. 211.   4.   2.   4.]
+ [ 13.   7.   8.   3.   4.   1. 212.   0.  10.]
+ [  2.   3.   2.   4.   6.   4.   0. 266.   1.]
+ [  9.   3.   4.  12.   1.   4.  16.   2. 233.]]
+
+---------------------------
+
+
+---------------------------
+
+
+ CrossValidation with 10 folds for knn
+
+---
+
+F1 Scores: 0.7542 [ +/- 0.0268]
+Accuracy Scores: 0.7570 [ +/- 0.0267]
+Precision Scores: 0.7619 [ +/- 0.0277]
+ROC AUC Scores: 0.8635 [ +/- 0.0150]
+---
+
+[[171.  16.  19.   4.  13.  33.  12.   4.  11.]
+ [ 11. 161.   6.  16.  15.  12.  21.   5.   7.]
+ [  3.   2. 219.   1.   0.  20.   7.   0.  11.]
+ [  4.  11.   4. 221.  25.   4.   6.  10.  17.]
+ [ 12.  11.   5.  19. 175.   6.  12.  11.   7.]
+ [ 12.   6.  18.   0.   2. 213.   5.   1.   5.]
+ [  5.  12.  13.   3.   7.   5. 197.   3.  13.]
+ [  6.   2.   1.   2.   4.   2.   0. 270.   1.]
+ [  9.   5.   6.   6.   2.   8.  16.   3. 229.]]
+
+---------------------------
+
+
+
+Ensembles and Meta-Classifiers:
+
+
+CV 10 folds - AdaBoost
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+---
+
+F1 Scores: 0.4473 [ +/- 0.0291]
+Accuracy Scores: 0.4460 [ +/- 0.0267]
+Precision Scores: 0.7771 [ +/- 0.0452]
+ROC AUC Scores: 0.6845 [ +/- 0.0150]
+---
+
+[[175.   0.   1.  98.   0.   4.   0.   1.   4.]
+ [ 11.  22.   0. 216.   0.   1.   0.   0.   4.]
+ [ 11.   0.  87. 152.   0.   4.   0.   0.   9.]
+ [  0.   0.   0. 297.   0.   0.   1.   1.   3.]
+ [ 11.   6.   0. 217.  17.   0.   0.   6.   1.]
+ [ 41.   0.   4. 110.   0. 101.   0.   1.   5.]
+ [ 11.   0.   1. 191.   0.   0.  39.   0.  16.]
+ [  0.   0.   0.  99.   0.   0.   0. 189.   0.]
+ [  6.   0.   1. 111.   0.   0.   0.   0. 166.]]
+
+CV 10 folds - RandomForest
+---
+
+F1 Scores: 0.6914 [ +/- 0.0376]
+Accuracy Scores: 0.6952 [ +/- 0.0357]
+Precision Scores: 0.6992 [ +/- 0.0377]
+ROC AUC Scores: 0.8285 [ +/- 0.0200]
+---
+
+[[156.  11.   8.   8.  32.  27.  11.  16.  14.]
+ [ 15. 138.   6.  29.  16.  11.  23.   6.  10.]
+ [  9.   1. 207.   0.   5.  23.   3.   2.  13.]
+ [  8.  14.   2. 215.  25.   6.   5.  12.  15.]
+ [ 12.  16.   3.  27. 168.   7.   7.  13.   5.]
+ [ 13.   1.  17.   3.   4. 212.   4.   3.   5.]
+ [ 15.   8.  12.  11.  15.   4. 164.   4.  25.]
+ [ 12.   2.   3.   6.  18.   2.   4. 240.   1.]
+ [ 10.   6.  10.  13.   9.  11.  13.   8. 204.]]
+
+CV 10 folds - VotingClassifier
+---
+
+F1 Scores: 0.7934 [ +/- 0.0331]
+Accuracy Scores: 0.7934 [ +/- 0.0333]
+Precision Scores: 0.8019 [ +/- 0.0324]
+ROC AUC Scores: 0.8838 [ +/- 0.0187]
+---
+
+[[205.   6.   9.   3.  12.  25.   7.   7.   9.]
+ [ 19. 177.   2.  20.   7.   7.  16.   3.   3.]
+ [  6.   1. 217.   0.   1.  20.   7.   1.  10.]
+ [  4.  12.   2. 242.  19.   3.   3.   4.  13.]
+ [ 15.   8.   3.  25. 183.   3.   6.  11.   4.]
+ [ 14.   4.  15.   2.   2. 216.   4.   2.   3.]
+ [ 13.   6.  12.   3.   5.   3. 208.   1.   7.]
+ [  5.   3.   1.   3.   6.   4.   0. 266.   0.]
+ [ 11.   3.   4.   9.   1.   9.  15.   1. 231.]]
+
+CV 10 folds - BaggingClassifier
+---
+
+F1 Scores: 0.8023 [ +/- 0.0291]
+Accuracy Scores: 0.8024 [ +/- 0.0292]
+Precision Scores: 0.8096 [ +/- 0.0289]
+ROC AUC Scores: 0.8888 [ +/- 0.0164]
+---
+
+[[205.   6.   7.   3.  13.  24.   9.   8.   8.]
+ [ 14. 183.   2.  19.   6.   7.  18.   2.   3.]
+ [  6.   1. 218.   0.   1.  18.   7.   2.  10.]
+ [  3.  13.   1. 244.  18.   2.   3.   5.  13.]
+ [ 11.   8.   3.  21. 189.   3.   7.  13.   3.]
+ [ 16.   4.  17.   2.   0. 214.   4.   2.   3.]
+ [ 11.   6.   9.   2.   5.   2. 213.   2.   8.]
+ [  4.   3.   1.   2.   8.   3.   1. 266.   0.]
+ [  9.   2.   8.   9.   0.   4.  15.   2. 235.]]
+>>> 
