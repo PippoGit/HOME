@@ -97,6 +97,7 @@ def custom_paired_ttest_cv(estimator1, estimator2, X, y,
                           scoring=None,
                           shuffle=False,
                           random_seed=None):
+    
     kf = KFold(n_splits=cv, random_state=random_seed, shuffle=shuffle)
 
     if scoring is None:
@@ -114,6 +115,7 @@ def custom_paired_ttest_cv(estimator1, estimator2, X, y,
 
     score_diff = []
 
+    # this is probably wrong :(
     for train_index, test_index in kf.split(X):
         ##### THIS IS WHERE IT BECOMES "CUSTOM"
         if isinstance(X, pd.DataFrame):
@@ -284,7 +286,7 @@ def init_simple_classifiers(clf='nc', random_state=42):
         ('mnb', classifier['mnb']()),
         ('svc', classifier['svc'](C=params[clf]['C'], random_state=random_state)),
         ('lr', classifier['log_reg'](solver=params[clf]['lr_solver'], multi_class=params[clf]['lr_multi_class'], random_state=random_state)),
-        ('knn', KNeighborsClassifier(n_neighbors=15, metric='cosine', weights='distance', n_jobs=-1))
+        # ('knn', KNeighborsClassifier(n_neighbors=10, metric='cosine', weights='distance', n_jobs=-1))
     ]
 
 
@@ -521,7 +523,7 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False, plot=False, load_pre
         # building the model
         pl = build_lc_model(c)
 
-        print('\n Repeated (10) CrossValidation with 10 folds for ' + c[0] + '\n')
+        print('\nCrossValidation with 10 folds for ' + c[0] + '\n')
         cross_validate(pl, ds, labels, 2, show_mat=show_mat, txt_labels=['LIKE', 'DISLIKE'], random_state=42)
         if plot:
             plot_learning_curve(pl, c[0], ds, labels, random_state=42)
@@ -547,33 +549,38 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False, plot=False, load_pre
     # test_stacking_classifier(classifiers, ds, labels, plot=plot, n_class=2, show_mat=show_mat, txt_labels=['LIKE', 'DISLIKE'])
 
 
-def t_test(classifiers, X, y, random_state=42, n_repeats=3, model='nc'):
+def t_test(classifiers, X, y, random_state=42, n_repeats=5, n_iter=10, model='nc'):
     build_model = build_lc_model if model is 'lc' else build_nc_model # this is sooo bad
     pairs = list(itertools.combinations(classifiers, 2))
     results = {}
 
-    # this is going to be really sloooow!
     for (clf1, clf2) in pairs:
         pair_key = clf1[0]+ '_' + clf2[0]
         print("\n\nTesting " + pair_key)
+
         for i in range(n_repeats):            
             print(" - Iteration: %d " % (i))
             print(" - random_seed = %d" % (i+random_state))
 
-            # curr_fold = 0
-            results[pair_key] = []
+            results[pair_key] = {}
+            results[pair_key]['t_values'] = []
+            results[pair_key]['p_values'] = []
 
             # t-test for the current fold
             t, p = custom_paired_ttest_cv(
                 estimator1=build_model(clf1),
                 estimator2=build_model(clf2),
                 X=X, y=y,
-                cv=10,
+                cv=n_iter,
                 random_seed=i+random_state)
 
-            print("    t, p = (%f, %f) (test based on accuracy score of the CV)" % (t, p))
-            results[pair_key].append((t, p))
-    print("-----------")
+            print("    t, p = (%f, %f) (test based on accuracy score of the CV)" % (t, p))            
+            results[pair_key]['t_values'].append(t)
+            results[pair_key]['p_values'].append(p)
+        
+        results[pair_key]['fisher'] = stats.combine_pvalues(np.array(results[pair_key]['p_values']))        
+        print(" * Combined p_values (Fisher's Method): t, p = (%f, %f)" % (results[pair_key]['fisher'][0], results[pair_key]['fisher'][1]))
+
     return results
     
 
