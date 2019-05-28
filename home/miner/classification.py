@@ -98,7 +98,7 @@ def custom_paired_ttest_cv(estimator1, estimator2, X, y,
                           shuffle=False,
                           random_seed=None):
     
-    kf = KFold(n_splits=cv, random_state=random_seed, shuffle=shuffle)
+    kf = StratifiedKFold(random_state=random_seed, n_splits=cv, shuffle=True)  
 
     if scoring is None:
         if estimator1._estimator_type == 'classifier':
@@ -116,7 +116,7 @@ def custom_paired_ttest_cv(estimator1, estimator2, X, y,
     score_diff = []
 
     # this is probably wrong :(
-    for train_index, test_index in kf.split(X):
+    for train_index, test_index in kf.split(X, y):
         ##### THIS IS WHERE IT BECOMES "CUSTOM"
         if isinstance(X, pd.DataFrame):
             X_train = X.iloc[train_index]
@@ -549,7 +549,7 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False, plot=False, load_pre
     # test_stacking_classifier(classifiers, ds, labels, plot=plot, n_class=2, show_mat=show_mat, txt_labels=['LIKE', 'DISLIKE'])
 
 
-def t_test(classifiers, X, y, random_state=42, n_repeats=5, n_iter=10, model='nc'):
+def t_test(classifiers, X, y, random_state=42, n_repeats=5, n_iter=10, model='nc', alfa=0.05):
     build_model = build_lc_model if model is 'lc' else build_nc_model # this is sooo bad
     pairs = list(itertools.combinations(classifiers, 2))
     results = {}
@@ -580,7 +580,10 @@ def t_test(classifiers, X, y, random_state=42, n_repeats=5, n_iter=10, model='nc
         
         results[pair_key]['fisher'] = stats.combine_pvalues(np.array(results[pair_key]['p_values']))        
         print(" * Combined p_values (Fisher's Method): t, p = (%f, %f)" % (results[pair_key]['fisher'][0], results[pair_key]['fisher'][1]))
-
+        
+        if results[pair_key]['fisher'][1] >= alfa:
+            print(" ****** T-TEST HAS FAILED! The classifier is better ONLY by chance!")
+    
     return results
     
 
