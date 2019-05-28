@@ -583,7 +583,9 @@ def t_test(classifiers, X, y, random_state=42, n_repeats=5, n_iter=10, model='nc
         
         if results[pair_key]['fisher'][1] >= alfa:
             print(" ****** T-TEST HAS FAILED! The classifier is better ONLY by chance!")
-    
+        else:
+            print(" ** T-Test passed!")
+            
     return results
     
 
