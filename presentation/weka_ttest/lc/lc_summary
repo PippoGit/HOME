@@ -1,0 +1,19 @@
+Tester:     weka.experiment.PairedCorrectedTTester -G 3 -D 1 -R 2 -S 0.05 -V -result-matrix "weka.experiment.ResultMatrixPlainText -mean-prec 5 -stddev-prec 5 -col-name-width 0 -row-name-width 25 -mean-width 2 -stddev-width 2 -sig-width 1 -count-width 5 -show-stddev -print-col-names -print-row-names -enum-col-names"
+Analysing:  Avg_accuracy
+Datasets:   1
+Resultsets: 8
+Confidence: 0.05 (two tailed)
+Sorted by:  -
+Date:       05/06/19 17.00
+
+
+     a     b     c     d     e     f     g     h  (No. of datasets where [col] >> [row])
+     - 1 (1) 1 (1) 1 (1) 0 (0) 1 (1) 1 (1) 1 (1) | a = (1) dt
+ 0 (0)     - 1 (0) 1 (0) 0 (0) 0 (0) 1 (0) 1 (0) | b = (2) mnb
+ 0 (0) 0 (0)     - 0 (0) 0 (0) 0 (0) 0 (0) 0 (0) | c = (3) svc
+ 0 (0) 0 (0) 1 (0)     - 0 (0) 0 (0) 0 (0) 0 (0) | d = (4) lr
+ 1 (1) 1 (1) 1 (1) 1 (1)     - 1 (1) 1 (1) 1 (1) | e = (5) AdaBoost
+ 0 (0) 1 (1) 1 (1) 1 (1) 0 (0)     - 1 (1) 1 (1) | f = (6) RandomForest
+ 0 (0) 0 (0) 1 (0) 1 (0) 0 (0) 0 (0)     - 1 (0) | g = (7) VotingClassifier
+ 0 (0) 0 (0) 1 (0) 1 (0) 0 (0) 0 (0) 0 (0)     - | h = (8) BaggingClassifier
+
