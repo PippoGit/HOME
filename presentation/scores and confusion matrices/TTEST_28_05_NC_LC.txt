@@ -1,0 +1,609 @@
+Testing dt_mnb
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-24.075462, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-40.176598, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-21.392968, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-28.944162, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-23.388895, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (39.803462, 0.000000)
+
+
+Testing dt_svc
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-31.745240, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-25.952011, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-26.551216, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+^CTraceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/Users/filipposcotto/Desktop/DataMining Project/HOME/home/test.py", line 78, in t_test_nc
+    results = classification.t_test(classifiers, ds, labels, model=model)
+  File "/Users/filipposcotto/Desktop/DataMining Project/HOME/home/miner/classification.py", line 575, in t_test
+    random_seed=i+random_state)
+  File "/Users/filipposcotto/Desktop/DataMining Project/HOME/home/miner/classification.py", line 132, in custom_paired_ttest_cv
+    estimator2.fit(X_train, y_train)
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/pipeline.py", line 267, in fit
+    self._final_estimator.fit(Xt, y, **fit_params)
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/svm/classes.py", line 237, in fit
+    self.loss, sample_weight=sample_weight)
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/sklearn/svm/base.py", line 923, in _fit_liblinear
+    epsilon, sample_weight)
+KeyboardInterrupt
+>>> quit89
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+NameError: name 'quit89' is not defined
+>>> quit()
+MacBook:Home filipposcotto$ python3
+Python 3.7.1 (v3.7.1:260ec2c36a, Oct 20 2018, 03:13:28) 
+[Clang 6.0 (clang-600.0.57)] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from home import test
+>>> test.t_test_nc()
+
+importing config file...
+
+preparing the components...
+
+
+tokenizing...
+
+
+
+t-testing nc ...
+
+
+
+
+Testing dt_mnb
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-20.107393, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-32.269863, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-17.792246, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-46.955589, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-23.149929, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (39.621356, 0.000000)
+
+
+Testing dt_svc
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-22.360319, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-20.917477, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-27.679025, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-44.865784, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-21.124778, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (38.000659, 0.000000)
+
+
+Testing dt_lr
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-20.173322, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-30.725430, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-24.786518, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-34.363497, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-33.119267, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (45.998164, 0.000000)
+
+
+Testing dt_AdaBoost
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (9.342835, 0.000006) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (18.046705, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (8.942312, 0.000009) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (7.485409, 0.000037) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (16.429609, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (33.581170, 0.000000)
+
+
+Testing dt_RandomForest
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-20.696475, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-15.556012, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-10.237570, 0.000003) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-14.250936, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-19.054036, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (36.180634, 0.000000)
+
+
+Testing dt_VotingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-28.495327, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-27.182896, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-31.403265, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-34.823085, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-35.525256, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (47.251762, 0.000000)
+
+
+Testing dt_BaggingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-32.337884, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-27.528173, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-23.475540, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-31.277317, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-28.202543, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (43.130714, 0.000000)
+
+
+Testing mnb_svc
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-4.264617, 0.002097) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-2.485038, 0.034703) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-2.725289, 0.023404) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-4.681432, 0.001150) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-2.523715, 0.032570) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (6.848758, 0.032570)
+
+
+Testing mnb_lr
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-5.143424, 0.000608) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-1.757245, 0.112750) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-2.550031, 0.031193) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-2.002444, 0.076252) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-1.795066, 0.106217) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (4.484548, 0.106217)
+
+
+Testing mnb_AdaBoost
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (38.376019, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (50.980586, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (35.467260, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (49.208882, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (35.059310, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (47.015664, 0.000000)
+
+
+Testing mnb_RandomForest
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (10.763950, 0.000002) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (12.855333, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (10.450309, 0.000002) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (9.987271, 0.000004) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (14.878136, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (31.853461, 0.000000)
+
+
+Testing mnb_VotingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-4.922384, 0.000822) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-2.768397, 0.021811) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-3.360619, 0.008381) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-2.889791, 0.017890) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-2.193273, 0.055951) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (5.766562, 0.055951)
+
+
+Testing mnb_BaggingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-3.809252, 0.004158) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-2.490619, 0.034387) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-2.667343, 0.025734) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-4.254523, 0.002128) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-2.467515, 0.035716) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (6.664337, 0.035716)
+
+
+Testing svc_lr
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (2.463946, 0.035925) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (1.839546, 0.098983) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (1.349297, 0.210203) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (1.976767, 0.079472) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (1.653625, 0.132592) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (4.040950, 0.132592)
+
+
+Testing svc_AdaBoost
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (63.462272, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (30.169923, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (50.382037, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (37.196649, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (30.468652, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (44.508743, 0.000000)
+
+
+Testing svc_RandomForest
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (14.270407, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (11.636389, 0.000001) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (12.184675, 0.000001) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (10.552639, 0.000002) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (17.077648, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (34.257818, 0.000000)
+
+
+Testing svc_VotingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (2.176023, 0.057546) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (0.936136, 0.373640) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (0.801933, 0.443250) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (3.165905, 0.011441) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (0.878508, 0.402513) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (1.820058, 0.402513)
+
+
+Testing svc_BaggingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (0.811041, 0.438263) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (1.149352, 0.280037) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-0.414410, 0.688276) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (0.010976, 0.991482) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (1.000000, 0.343436) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (2.137507, 0.343436)
+
+
+Testing lr_AdaBoost
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (42.890627, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (43.446343, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (58.394167, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (34.827037, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (35.286576, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (47.131205, 0.000000)
+
+
+Testing lr_RandomForest
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (13.735826, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (16.500571, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (15.570128, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (8.728780, 0.000011) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (15.260990, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (32.294928, 0.000000)
+
+
+Testing lr_VotingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-0.883772, 0.399812) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-1.532113, 0.159857) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-0.801783, 0.443332) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-1.133527, 0.286284) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-2.083632, 0.066870) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (5.410002, 0.066870)
+
+
+Testing lr_BaggingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-2.076094, 0.067692) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-1.750545, 0.113946) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-1.372873, 0.203027) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-2.062270, 0.069225) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-1.544457, 0.156876) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (3.704605, 0.156876)
+
+
+Testing AdaBoost_RandomForest
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-30.039715, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-26.942986, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-32.113606, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-34.943954, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-28.804738, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (43.507225, 0.000000)
+
+
+Testing AdaBoost_VotingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-41.703904, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-40.360733, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-45.422131, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-33.182722, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-32.401518, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (45.606768, 0.000000)
+
+
+Testing AdaBoost_BaggingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-62.360234, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-31.037353, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-52.535186, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-37.435874, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-30.585469, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (44.577024, 0.000000)
+
+
+Testing RandomForest_VotingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-13.198461, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-17.122572, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-15.201251, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-8.744975, 0.000011) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-16.970867, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (34.148010, 0.000000)
+
+
+Testing RandomForest_BaggingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-13.853045, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-12.714705, 0.000000) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-12.164756, 0.000001) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-10.684699, 0.000002) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-17.523723, 0.000000) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (34.709625, 0.000000)
+
+
+Testing VotingClassifier_BaggingClassifier
+ - Iteration: 0 
+ - random_seed = 42
+    t, p = (-1.878603, 0.093013) (test based on accuracy score of the CV)
+ - Iteration: 1 
+ - random_seed = 43
+    t, p = (-0.980673, 0.352379) (test based on accuracy score of the CV)
+ - Iteration: 2 
+ - random_seed = 44
+    t, p = (-0.937179, 0.373132) (test based on accuracy score of the CV)
+ - Iteration: 3 
+ - random_seed = 45
+    t, p = (-2.126192, 0.062407) (test based on accuracy score of the CV)
+ - Iteration: 4 
+ - random_seed = 46
+    t, p = (-0.807243, 0.440338) (test based on accuracy score of the CV)
+ * Combined p_values (Fisher's Method): t, p = (1.640426, 0.440338)
+>>> 
+
+
+LC HERE:
+
+
+(mancaroba :( )

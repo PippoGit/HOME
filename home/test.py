@@ -113,3 +113,40 @@ def t_test_lc(load_pretokenized=False):
     # dumping the results (...)
     with open('t_test_scores.pkl', 'wb') as f:
         pickle.dump(results, f)
+
+
+def weka_arff_ttest(model='nc'):
+	# importing config
+	print("\nimporting config file...") 
+	config = utility.load_config()
+	
+	print("\npreparing the components...\n")
+	db = DBConnector(**config['db'])
+
+	if model is 'nc':
+		n_class = 9
+		dataset = shuffle(pd.DataFrame(db.find_trainingset()), random_state=42)
+		# dataset = dataset.head(100)
+		print("\ntokenizing...\n")
+		ds = preprocessing.tokenize_list(dataset)
+		labels = dataset['tag'].to_numpy()
+
+		txt_labels = classification.news_categories
+	else:
+		n_class = 2
+		dataset = shuffle(pd.DataFrame(db.find_likabilityset()), random_state=42)
+
+		print("\ntokenizing...\n")
+		ds = pd.DataFrame()
+		ds['content'] = preprocessing.tokenize_list(dataset)
+		ds['tag'] = dataset['tag']
+
+		labels = np.asarray([classification.labelize_likability(a)[0] for _,a in dataset.iterrows()])
+		txt_labels = ['LIKE', 'DISLIKE']
+
+	# preparing classifiers
+	print("\n\nt-testing %s ...\n\n" % (model))
+	classifiers = classification.init_simple_classifiers(model)
+	classifiers = classifiers + classification.init_ensmeta_classifiers(classifiers, model) # putting together simple and ens/meta
+
+	classification.weka_ttest(classifiers, ds, labels, n_class=n_class, txt_labels=txt_labels, model=model)

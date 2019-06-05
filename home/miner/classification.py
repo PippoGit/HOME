@@ -217,17 +217,18 @@ def plot_confusion_matrix(mat, labels):
     plt.show()
 
 
-def cross_validate_fullscores(model, dataset, labels, n_class=None, folds=10, txt_labels=None, random_state=42):
+def cross_validate_fullscores(model, dataset, labels, n_class=None, folds=10, txt_labels=None, random_state=42, verbose=True):
     kf = StratifiedKFold(random_state=random_state, n_splits=folds, shuffle=True)  
     total = 0
     totalMat = np.zeros((n_class,n_class))
     n_class = len(np.unique(labels)) if n_class is None else n_class
 
-    # metrics
-    f1 = []
-    acc = []
-    prc = []
-    rau = []
+    metrics = {
+        'f1' : [],
+        'accuracy': [],
+        'precision': [],
+        'roc_auc': []
+    }
 
     for train_index, test_index in kf.split(dataset,labels):
         if isinstance(dataset, pd.DataFrame):
@@ -243,22 +244,31 @@ def cross_validate_fullscores(model, dataset, labels, n_class=None, folds=10, tx
         result = model.predict(X_test)
         
         mat = confusion_matrix(y_test, result, labels=txt_labels)
-        f1.append(f1_score(y_test, result, average='weighted'))
-        acc.append(accuracy_score(y_test, result))
-        prc.append(precision_score(y_test, result, average='weighted'))
-        rau.append(multiclass_roc_auc_score(y_test, result, average='weighted'))
+        metrics['f1'].append(f1_score(y_test, result, average='weighted'))
+        metrics['accuracy'].append(accuracy_score(y_test, result))
+        metrics['precision'].append(precision_score(y_test, result, average='weighted'))
+        metrics['roc_auc'].append(multiclass_roc_auc_score(y_test, result, average='weighted'))
 
         totalMat = totalMat + mat
         total = total + sum(y_test==result)
-    
-    print("---\n")
-    print("F1 Scores: %0.4f [ +/- %0.4f]" % (mean(f1), stdev(f1)))
-    print("Accuracy Scores: %0.4f [ +/- %0.4f]" % (mean(acc), stdev(acc)))
-    print("Precision Scores: %0.4f [ +/- %0.4f]" % (mean(prc), stdev(prc)))
-    print("ROC AUC Scores: %0.4f [ +/- %0.4f]" % (mean(rau), stdev(rau)))
-    print("---\n")
-    print(totalMat)
-    return (totalMat, total/len(labels))
+
+    aggregated_metrics = {
+        'f1':        (mean(metrics['f1']), stdev(metrics['f1'])),
+        'accuracy':  (mean(metrics['accuracy']), stdev(metrics['accuracy'])),
+        'precision': (mean(metrics['precision']), stdev(metrics['precision'])),
+        'roc_auc':   (mean(metrics['roc_auc']), stdev(metrics['roc_auc']))
+    }
+
+    if verbose:
+        print("---\n")
+        print("F1 Scores: %0.4f [ +/- %0.4f]" % (aggregated_metrics['f1'][0], aggregated_metrics['f1'][1]))
+        print("Accuracy Scores: %0.4f [ +/- %0.4f]" % (aggregated_metrics['accuracy'][0], aggregated_metrics['accuracy'][1]))
+        print("Precision Scores: %0.4f [ +/- %0.4f]" % (aggregated_metrics['precision'][0], aggregated_metrics['precision'][1]))
+        print("ROC AUC Scores: %0.4f [ +/- %0.4f]" % (aggregated_metrics['roc_auc'][0], aggregated_metrics['roc_auc'][1]))
+        print("---\n")
+        print(totalMat)
+
+    return [totalMat, total/len(labels), aggregated_metrics]
 
     
 def cross_validate(pl, ds, labels, n_class, show_mat=False, txt_labels=None, random_state=42):
@@ -396,7 +406,7 @@ def build_nc_model(model, feature_selection=None):
     # feature selection should be a Pair <'selection', SKLEARN_MODEL>
     return Pipeline(
             [('vect', init_vectorizer())] +
-            ([feature_selection] if feature_selection is not None else []) +
+            ([('sel', feature_selection)] if feature_selection is not None else []) +
             [('clf', model[1])]
     )
 
@@ -473,6 +483,31 @@ def meta_classify_nc(dataset, show_mat=False, tuning=False, plot=False, load_pre
         print('\n---------------------------\n')
 
 
+    print("\n\nSimple Classifiers WITH Independent Features Selection (chi2-40Percentile):\n")
+    for c in classifiers:
+
+        print('\n---------------------------\n')
+        # building the model
+        model = build_nc_model(c, feature_selection=SelectPercentile(chi2, percentile=40))
+
+        if tuning:
+            print("\nTuning {} Hyper-Parameters with GridSearchCV: \n".format(c[0]))
+            tuned_model = GridSearchCV(model, params[c[0]], iid=True,
+                scoring='accuracy', cv=StratifiedKFold(random_state=42, shuffle=True, n_splits=10),
+                verbose=1,
+                n_jobs=-1
+            )
+            tuned_model.fit(ds, labels)
+            print(tuned_model.best_score_, tuned_model.best_params_)
+        else:
+            print('\n CrossValidation with 10 folds for ' + c[0] + '\n')
+            cross_validate(model, ds, labels, n_class, show_mat=show_mat, txt_labels=news_categories, random_state=42)
+
+            if plot:
+                plot_learning_curve(model, c[0], ds, labels, random_state=42)
+
+        print('\n---------------------------\n')
+
 
     print("\n\nEnsembles and Meta-Classifiers:\n")
     
@@ -491,9 +526,6 @@ def meta_classify_nc(dataset, show_mat=False, tuning=False, plot=False, load_pre
         cross_validate(model, ds, labels, n_class, show_mat=show_mat, txt_labels=news_categories, random_state=42)
         if plot:
              plot_learning_curve(model, c[0], ds, labels, random_state=42)
-
-    # STACKING IS USELESS...
-    # test_stacking_classifier(classifiers, ds, labels, plot=plot, n_class=n_class, txt_labels=news_categories, show_mat=show_mat)
 
 
 def meta_classify_lc(dataset, show_mat=False, tuning=False, plot=False, load_pretokenized=False):
@@ -545,9 +577,6 @@ def meta_classify_lc(dataset, show_mat=False, tuning=False, plot=False, load_pre
         if plot:
             plot_learning_curve(pl, c[0], ds, labels, random_state=42)
 
-    # trying StackingClassifier (this is so bad it doesn't even worth it)
-    # test_stacking_classifier(classifiers, ds, labels, plot=plot, n_class=2, show_mat=show_mat, txt_labels=['LIKE', 'DISLIKE'])
-
 
 def t_test(classifiers, X, y, random_state=42, n_repeats=5, n_iter=10, model='nc', alfa=0.05):
     build_model = build_lc_model if model is 'lc' else build_nc_model # this is sooo bad
@@ -597,11 +626,10 @@ def t_test(classifiers, X, y, random_state=42, n_repeats=5, n_iter=10, model='nc
 #####################   MODEL DEPLOY   ##########################
 
 def deploy_news_classifier(dataset, dir_path='home/miner/model'):
-    # this function should provide a trained pipeline 
-
-    clf = classifier['svc'](
-        C=0.51
-    )
+    # this function should provide a trained pipeline  (so apparently bagging is the best now)
+    clf = BaggingClassifier(base_estimator=classifier['svc'](C=0.51, random_state=42), 
+                            n_estimators=100, 
+                            random_state=42)
 
     model = build_nc_model(('clf', clf))
 
@@ -643,3 +671,36 @@ def load_news_classifier(path='home/miner/model/nws_clf.pkl'):
     return model
 
 #####################   MODEL BUILDING   ##########################
+
+
+def weka_ttest(classifiers, X, y, repeats=5, n_class=9, txt_labels=None, model='nc'):    
+    build_model = build_lc_model if model is 'lc' else build_nc_model # this is sooo bad
+
+    with open("all_metrics_test_" + model + ".arff", "w") as f:
+        f.write("@RELATION ExperimentResults\n\n")
+        f.write("@ATTRIBUTE Key_Dataset {wekaTest}\n")
+        f.write("@ATTRIBUTE Key_Run {1,2,3,4,5}\n")
+        f.write("@ATTRIBUTE Key_Scheme {" + ','.join([c[0] for c in classifiers]) + "}\n")
+        f.write("@ATTRIBUTE Avg_accuracy numeric\n")
+        f.write("@ATTRIBUTE Avg_precision numeric\n")
+        f.write("@ATTRIBUTE F1_Score numeric\n")
+        f.write("@ATTRIBUTE ROC_Area numeric\n\n")
+        f.write("@DATA\n")
+
+        for c in classifiers:
+            output = {}
+            output['classifier'] = c[0]   
+            output['metrics'] = []
+
+            print("Testing %s" % (c[0]))
+            for i in range(repeats):
+                print(" - Test %d" % (i))
+                output['metrics'] = cross_validate_fullscores(build_model(c), X, y, random_state=i, n_class=n_class, verbose=False, txt_labels=txt_labels)[2]
+
+                f.write("wekaTest,%d,%s,%f,%f,%f,%f\n" % (i+1, 
+                                                        output['classifier'],
+                                                        output['metrics']['accuracy'][0],
+                                                        output['metrics']['precision'][0],
+                                                        output['metrics']['f1'][0],
+                                                        output['metrics']['roc_auc'][0]))
+        f.close()
