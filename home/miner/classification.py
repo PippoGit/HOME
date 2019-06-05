@@ -292,10 +292,10 @@ def init_simple_classifiers(clf='nc', random_state=42):
     }
 
     return [
-        ('dt', classifier['tree']()), # dt is so bad, probably should not even be considered
-        ('mnb', classifier['mnb']()),
-        ('svc', classifier['svc'](C=params[clf]['C'], random_state=random_state)),
-        ('lr', classifier['log_reg'](solver=params[clf]['lr_solver'], multi_class=params[clf]['lr_multi_class'], random_state=random_state)),
+        # ('dt', classifier['tree']()), # dt is so bad, probably should not even be considered
+        # ('mnb', classifier['mnb']()),
+        # ('svc', classifier['svc'](C=params[clf]['C'], random_state=random_state)),
+        # ('lr', classifier['log_reg'](solver=params[clf]['lr_solver'], multi_class=params[clf]['lr_multi_class'], random_state=random_state)),
         # ('knn', KNeighborsClassifier(n_neighbors=10, metric='cosine', weights='distance', n_jobs=-1))
     ]
 
@@ -330,10 +330,10 @@ def init_ensmeta_classifiers(simple_classifier_list, clf='nc', random_state=42):
     }
 
     return [
-        ("AdaBoost", classifier['ada'](base_estimator=MultinomialNB(), n_estimators=params[clf]['ada_estimators'])),
-        ("RandomForest", classifier['random_forest'](random_state=random_state, n_estimators=params[clf]['rf_estimators'])),
+        # ("AdaBoost", classifier['ada'](base_estimator=MultinomialNB(), n_estimators=params[clf]['ada_estimators'])),
+        # ("RandomForest", classifier['random_forest'](random_state=random_state, n_estimators=params[clf]['rf_estimators'])),
         # ("XGBClassifier", XGBClassifier(max_depth=params[clf]['xgb_max_depth'], n_estimators=params[clf]['xgb_estimators'], learning_rate=params[clf]['xgb_learning_rate'])),
-        ("VotingClassifier", VotingClassifier(estimators=simple_classifier_list, voting=params[clf]['voting'])),
+        # ("VotingClassifier", VotingClassifier(estimators=simple_classifier_list, voting=params[clf]['voting'])),
         ("BaggingClassifier", BaggingClassifier(base_estimator=classifier['svc'](C=params[clf]['C'], random_state=random_state), 
                                                  n_estimators=params[clf]['bc_estimators'], 
                                                  random_state=random_state)),
