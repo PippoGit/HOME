@@ -174,9 +174,11 @@ function tagging() {
     }
 
     tagging_article = data;
+    var predicted_tag = (tagging_article.predicted_tag)?(" " + tagging_article.predicted_tag + "?"): "";
+
     $("#tag_section").slideDown();
     $("#tag_article").html(getArticleHTMLElement(tagging_article, true));
-    $("#predicted_tag").text(" " + tagging_article['predicted_tag'] + "?");
+    $("#predicted_tag").text(predicted_tag);
   });
 
 }
